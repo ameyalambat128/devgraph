@@ -69,4 +69,6 @@ package.json          # root scripts: turbo run build/dev/lint, packageManager=p
 - Local docs: `apps/web/app/docs` (MDX) for public-facing docs; `docs/DEVLOG.md` to summarize ongoing changes/status for contributors.
 - README maintenance: keep `README.md` concise and current whenever features land (what it is, how to install, how to run CLI, outputs in `.devgraph/`, links to docs).
 - Formatting/linting: Prettier via `pnpm format`, ESLint via root config (TS + Next override).
+- Testing: vitest in `@devgraph/core` (`pnpm --filter @devgraph/core test`). Add more as features land.
+- CLI: `pnpm devgraph build/validate ...`; `--compare <graph.json>` writes `integration_notes.md` diff.
 - Formatting/linting: use Biome (`@biomejs/biome`), primary formatter/linter. Root scripts `pnpm fmt` (biome check --write) and `pnpm lint:biome`. Package-level `lint` uses Biome. Keep config in `biome.json`.

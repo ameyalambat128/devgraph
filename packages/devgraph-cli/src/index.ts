@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
   buildGraph,
+  diffGraphs,
   generateAgents,
   generateMermaid,
   generateSummary,
@@ -42,7 +43,8 @@ program
   .description('Build graph.json, summary, agents, and mermaid outputs')
   .argument('[paths...]', 'Markdown files or globs (default **/*.md)')
   .option('--out-dir <dir>', 'Output directory', '.devgraph')
-  .action(async (paths: string[], options: { outDir: string }) => {
+  .option('--compare <path>', 'Optional previous graph.json to diff against')
+  .action(async (paths: string[], options: { outDir: string; compare?: string }) => {
     const { pats, blocks, errors } = await handleParse(paths);
     if (errors.length) {
       console.error(`Found ${errors.length} error(s):`);
@@ -71,6 +73,18 @@ program
     const mermaidPath = path.join(outDir, 'system.mmd');
     await writeFile(mermaidPath, generateMermaid(graph));
     await maybeRenderMermaid(mermaidPath, path.join(outDir, 'system.png'));
+
+    if (options.compare) {
+      try {
+        const prevPath = path.resolve(workspaceRoot, options.compare);
+        const prevRaw = await readFile(prevPath, 'utf8');
+        const prevGraph = JSON.parse(prevRaw);
+        const diff = diffGraphs(graph, prevGraph);
+        await writeFile(path.join(outDir, 'integration_notes.md'), diff);
+      } catch (err) {
+        console.error(`Could not generate diff: ${(err as Error).message}`);
+      }
+    }
 
     console.log(
       `Built graph (${Object.keys(graph.services).length} services) from patterns: ${pats.join(', ')}`

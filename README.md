@@ -7,6 +7,7 @@ DevGraph is a pnpm-first Turborepo with a Next.js docs app and a CLI to parse `d
 - Install: `pnpm install`
 - Validate: `pnpm devgraph validate examples/*.md`
 - Build outputs: `pnpm devgraph build examples/*.md`
+- Optional diff: `pnpm devgraph build examples/*.md --compare .devgraph/graph.json`
 - Outputs land in `.devgraph/` (`graph.json`, `summary.md`, `agents/*.md`, `system.mmd`, optional `system.png`).
 - Format: `pnpm format` (Prettier). Check-only: `pnpm format:check`.
 
@@ -25,6 +26,7 @@ DevGraph is a pnpm-first Turborepo with a Next.js docs app and a CLI to parse `d
 - Lint web: `pnpm lint --filter web`
 - Lint core/cli: `pnpm --filter @devgraph/core lint`, `pnpm --filter devgraph-cli lint`
 - Core/CLI builds: `pnpm --filter @devgraph/core build`, `pnpm --filter devgraph-cli build`
+- Tests (core): `pnpm --filter @devgraph/core test`
 
 ## Notes
 
