@@ -6,7 +6,7 @@
 - Next.js docs/landing lives in `apps/web` with MDX enabled via `@next/mdx`.
 - Core package parses Markdown for `devgraph-*` fenced blocks (service/api/env), validates YAML, builds a graph, and generates summary/agents/mermaid text.
 - CLI builds `.devgraph/` outputs: `graph.json`, `summary.md`, per-service agents, `system.mmd`, and attempts `system.png` via `@mermaid-js/mermaid-cli`.
-- Tooling: root Prettier (`pnpm format`), ESLint config (TS + Next override) with package lint scripts using workspace-root eslint; Biome scripts remain if preferred.
+- Tooling: root Prettier (`pnpm format`), ESLint config (TS + Next override) with package lint scripts using workspace-root eslint.
 
 ## Next up
 

@@ -68,5 +68,5 @@ package.json          # root scripts: turbo run build/dev/lint, packageManager=p
 - Git workflow: conventional commits (`feat|fix|docs|ci|build|refactor|perf|style|test|chore`), concise messages; keep `.devgraph/` generated outputs ignored.
 - Local docs: `apps/web/app/docs` (MDX) for public-facing docs; `docs/DEVLOG.md` to summarize ongoing changes/status for contributors.
 - README maintenance: keep `README.md` concise and current whenever features land (what it is, how to install, how to run CLI, outputs in `.devgraph/`, links to docs).
-- Formatting/linting: Prettier via `pnpm format`, ESLint via root config (TS + Next override). Biome scripts remain available if desired.
+- Formatting/linting: Prettier via `pnpm format`, ESLint via root config (TS + Next override).
 - Formatting/linting: use Biome (`@biomejs/biome`), primary formatter/linter. Root scripts `pnpm fmt` (biome check --write) and `pnpm lint:biome`. Package-level `lint` uses Biome. Keep config in `biome.json`.
