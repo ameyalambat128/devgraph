@@ -257,17 +257,102 @@ export function generateAgents(graph: Devgraph): Record<string, string> {
 }
 
 export function generateMermaid(graph: Devgraph): string {
+  return generateServiceMermaid(graph);
+}
+
+export function generateServiceMermaid(graph: Devgraph): string {
   const lines = ['graph LR'];
-  for (const svc of Object.values(graph.services)) {
+  const services = Object.keys(graph.services).sort();
+
+  const ensureNode = (name: string, type?: string) => {
+    const id = sanitizeId(name);
+    const label = type ? `${name} (${type})` : name;
+    lines.push(`${id}["${label}"]`);
+    return id;
+  };
+
+  const declared = new Set<string>();
+
+  for (const name of services) {
+    const svc = graph.services[name];
+    const id = ensureNode(name, svc.type);
+    declared.add(id);
     if (svc.depends && svc.depends.length) {
-      for (const dep of svc.depends) {
-        lines.push(`${svc.name} --> ${dep}`);
+      const deps = [...svc.depends].sort();
+      for (const dep of deps) {
+        const depId = ensureNode(dep, graph.services[dep]?.type);
+        declared.add(depId);
+        lines.push(`${id} --> ${depId}`);
       }
-    } else {
-      lines.push(`${svc.name}`);
     }
   }
-  return lines.join('\n') + '\n';
+
+  // Make sure standalone nodes still appear even if no edges.
+  for (const name of services) {
+    const id = sanitizeId(name);
+    if (!declared.has(id)) {
+      const svc = graph.services[name];
+      lines.push(`${id}["${name} (${svc.type})"]`);
+    }
+  }
+
+  return uniqueLines(lines).join('\n') + '\n';
+}
+
+export function generateCodemapMermaid(graph: Devgraph): string {
+  const lines: string[] = ['graph LR'];
+
+  // Monorepo-level view.
+  lines.push('repo[devgraph (turborepo)]');
+  lines.push('repo --> pkg_core["@devgraph/core"]');
+  lines.push('repo --> pkg_cli["devgraph-cli"]');
+  lines.push('repo --> pkg_web["apps/web (docs)"]');
+  lines.push('pkg_cli --> pkg_core');
+  lines.push('pkg_web --> pkg_core');
+
+  // Pipeline view.
+  lines.push('md[Markdown (*.md)] --> blocks[devgraph-* blocks]');
+  lines.push('blocks --> core["@devgraph/core (parser/graph)"]');
+  lines.push('cli["devgraph-cli"] --> core');
+  lines.push('core --> graphjson[.devgraph/graph.json]');
+  lines.push('core --> summary[.devgraph/summary.md]');
+  lines.push('core --> agents[.devgraph/agents/*.md]');
+  lines.push('core --> mmd[.devgraph/system.mmd/png]');
+  lines.push('core --> codemap[.devgraph/codemap.mmd/png]');
+  lines.push('core --> diff[.devgraph/integration_notes.md]');
+
+  // Service-level overlay (if any).
+  const services = Object.keys(graph.services).sort();
+  for (const name of services) {
+    const svc = graph.services[name];
+    const id = sanitizeId(`svc_${name}`);
+    lines.push(`${id}["${name} (${svc.type})"]`);
+    lines.push(`graphjson --> ${id}`);
+    if (svc.depends && svc.depends.length) {
+      for (const dep of [...svc.depends].sort()) {
+        const depId = sanitizeId(`svc_${dep}`);
+        lines.push(`${id} --> ${depId}`);
+      }
+    }
+  }
+
+  return uniqueLines(lines).join('\n') + '\n';
+}
+
+function sanitizeId(name: string): string {
+  return name.replace(/[^a-zA-Z0-9_]/g, '_');
+}
+
+function uniqueLines(lines: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const line of lines) {
+    if (!seen.has(line)) {
+      seen.add(line);
+      result.push(line);
+    }
+  }
+  return result;
 }
 
 export function diffGraphs(newGraph: Devgraph, oldGraph: Devgraph): string {

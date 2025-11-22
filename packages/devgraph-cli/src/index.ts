@@ -6,6 +6,7 @@ import {
   buildGraph,
   diffGraphs,
   generateAgents,
+  generateCodemapMermaid,
   generateMermaid,
   generateSummary,
   parseMarkdownFiles,
@@ -73,6 +74,10 @@ program
     const mermaidPath = path.join(outDir, 'system.mmd');
     await writeFile(mermaidPath, generateMermaid(graph));
     await maybeRenderMermaid(mermaidPath, path.join(outDir, 'system.png'));
+
+    const codemapPath = path.join(outDir, 'codemap.mmd');
+    await writeFile(codemapPath, generateCodemapMermaid(graph));
+    await maybeRenderMermaid(codemapPath, path.join(outDir, 'codemap.png'));
 
     if (options.compare) {
       try {
