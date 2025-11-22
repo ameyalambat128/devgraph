@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
+    "devgraph": "tsx src/index.ts",
     "lint": "pnpm --workspace-root exec eslint \"packages/devgraph-cli/src/**/*.{ts,tsx}\"",
     "test": "echo 'no tests yet'"
   },
