@@ -1,0 +1,21 @@
+{
+  "root": true,
+  "ignorePatterns": ["node_modules", "dist", ".devgraph", "coverage", "*.config.js"],
+  "env": {
+    "es2022": true,
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": ["./tsconfig.json"],
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "overrides": [
+    {
+      "files": ["apps/web/**/*.{ts,tsx,mdx,md}"],
+      "extends": ["next/core-web-vitals"]
+    }
+  ]
+}

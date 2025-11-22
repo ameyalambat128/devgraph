@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import fg from 'fast-glob';
-import { unified } from 'unified';
 import remarkParse from 'remark-parse';
+import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 import yaml from 'yaml';
 
@@ -32,7 +32,7 @@ export interface EnvBlock {
 }
 
 export interface Devgraph {
-  services: Record<string, (ServiceBlock & { apis?: ApiBlock[]; env?: EnvBlock[] })>;
+  services: Record<string, ServiceBlock & { apis?: ApiBlock[]; env?: EnvBlock[] }>;
   apis: Record<string, ApiBlock>;
 }
 
@@ -50,7 +50,11 @@ export interface ParseOptions {
   cwd?: string;
 }
 
-function parseBlock(lang: string | null | undefined, value: string, file: string): DevgraphBlock | ParseError | null {
+function parseBlock(
+  lang: string | null | undefined,
+  value: string,
+  file: string
+): DevgraphBlock | ParseError | null {
   if (!lang || !lang.startsWith('devgraph-')) return null;
   const type = lang.replace('devgraph-', '') as DevgraphBlockType;
   if (!['service', 'api', 'env'].includes(type)) {
@@ -87,7 +91,16 @@ function parseBlock(lang: string | null | undefined, value: string, file: string
   return { type, file, data };
 }
 
-export async function parseMarkdownFiles(patterns: string[], options: ParseOptions = {}): Promise<ParseResult> {
+type CodeNode = {
+  type: 'code';
+  lang?: string | null;
+  value: string;
+};
+
+export async function parseMarkdownFiles(
+  patterns: string[],
+  options: ParseOptions = {}
+): Promise<ParseResult> {
   const cwd = options.cwd ?? process.cwd();
   const files = await fg(patterns, { cwd, absolute: true, onlyFiles: true });
   const blocks: DevgraphBlock[] = [];
@@ -97,7 +110,7 @@ export async function parseMarkdownFiles(patterns: string[], options: ParseOptio
     const content = await readFile(abs, 'utf8');
     const tree = unified().use(remarkParse).parse(content);
 
-    visit(tree, 'code', (node: any) => {
+    visit(tree, 'code', (node: CodeNode) => {
       const result = parseBlock(node.lang, node.value, path.relative(cwd, abs));
       if (!result) return;
       if ('message' in result) {
@@ -159,10 +172,10 @@ export function generateSummary(graph: Devgraph): string {
         lines.push(`    - ${k}: ${v}`);
       }
     }
-    if (svc.depends && svc.depends.length) {
+    if (svc.depends?.length) {
       lines.push(`  - depends: ${svc.depends.join(', ')}`);
     }
-    if (svc.apis && svc.apis.length) {
+    if (svc.apis?.length) {
       lines.push('  - apis:');
       for (const api of svc.apis) {
         const routes = api.routes || {};
@@ -171,7 +184,7 @@ export function generateSummary(graph: Devgraph): string {
         }
       }
     }
-    if (svc.env && svc.env.length) {
+    if (svc.env?.length) {
       lines.push('  - env vars:');
       for (const env of svc.env) {
         lines.push(...Object.keys(env.vars).map((k) => `    - ${k}`));
@@ -179,13 +192,19 @@ export function generateSummary(graph: Devgraph): string {
     }
   }
 
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 
 export function generateAgents(graph: Devgraph): Record<string, string> {
   const result: Record<string, string> = {};
   for (const svc of Object.values(graph.services)) {
-    const lines: string[] = [`# AGENTS.md (${svc.name})`, '', '## Overview', `${svc.name} service (${svc.type}).`, ''];
+    const lines: string[] = [
+      `# AGENTS.md (${svc.name})`,
+      '',
+      '## Overview',
+      `${svc.name} service (${svc.type}).`,
+      '',
+    ];
     if (svc.commands && Object.keys(svc.commands).length) {
       lines.push('## Commands');
       for (const [k, v] of Object.entries(svc.commands)) {
@@ -193,12 +212,12 @@ export function generateAgents(graph: Devgraph): Record<string, string> {
       }
       lines.push('');
     }
-    if (svc.depends && svc.depends.length) {
+    if (svc.depends?.length) {
       lines.push('## Dependencies');
       for (const dep of svc.depends) lines.push(`- ${dep}`);
       lines.push('');
     }
-    if (svc.apis && svc.apis.length) {
+    if (svc.apis?.length) {
       lines.push('## APIs');
       for (const api of svc.apis) {
         for (const [route] of Object.entries(api.routes || {})) {
@@ -207,14 +226,14 @@ export function generateAgents(graph: Devgraph): Record<string, string> {
       }
       lines.push('');
     }
-    if (svc.env && svc.env.length) {
+    if (svc.env?.length) {
       lines.push('## Env Vars');
       for (const env of svc.env) {
         for (const key of Object.keys(env.vars)) lines.push(`- ${key}`);
       }
       lines.push('');
     }
-    result[svc.name] = lines.join('\n').trim() + '\n';
+    result[svc.name] = `${lines.join('\n').trim()}\n`;
   }
   return result;
 }
@@ -231,5 +250,5 @@ export function generateMermaid(graph: Devgraph): string {
       lines.push(`${svc.name}`);
     }
   }
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }

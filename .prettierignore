@@ -1,0 +1,8 @@
+node_modules
+.turbo
+.next
+out
+.devgraph
+dist
+coverage
+pnpm-lock.yaml

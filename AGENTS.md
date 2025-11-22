@@ -1,9 +1,11 @@
 # AGENTS.md
 
 ## Overview
+
 DevGraph is a Turborepo monorepo (pnpm-first) with a Next.js app and a shared TypeScript CLI/lib that scans Markdown for `devgraph-*` fenced blocks, builds a project graph, and generates outputs like `graph.json`, `summary.md`, `AGENTS.md`, and `system.mmd/png` inside `.devgraph/`.
 
 ## Immediate Plan (v0.1)
+
 - Define block specs for `devgraph-service`, `devgraph-api`, and `devgraph-env` (YAML inside fenced Markdown).
 - Build parser to scan `.md` files, extract and validate blocks.
 - Assemble unified `graph.json` from parsed blocks (services, apis, env, dependencies).
@@ -13,6 +15,7 @@ DevGraph is a Turborepo monorepo (pnpm-first) with a Next.js app and a shared Ty
 - Docs/release: README, examples, badge, simple landing page, npm packaging.
 
 ## Stack (pnpm + Turborepo + Next.js)
+
 - Package manager: pnpm (root `packageManager` set, lockfile committed).
 - Build system: Turborepo (`turbo` scripts at root).
 - Apps: Next.js app (in `apps/web`) for landing/docs/demo.
@@ -23,6 +26,7 @@ DevGraph is a Turborepo monorepo (pnpm-first) with a Next.js app and a shared Ty
 - Mermaid rendering: `@mermaid-js/mermaid-cli` for `system.png`.
 
 ## Proposed Directory Layout
+
 ```
 apps/
   web/                # Next.js app (landing/docs/demo)
@@ -39,17 +43,20 @@ package.json          # root scripts: turbo run build/dev/lint, packageManager=p
 ```
 
 ## Turborepo/Pnpm Defaults (from docs)
+
 - `pnpm-workspace.yaml` globs: `apps/*`, `packages/*`.
 - Root scripts: `"build": "turbo run build"`, `"dev": "turbo run dev"`, `"lint": "turbo run lint"`.
 - DevDependency: `"turbo": "latest"`.
 - `packageManager`: pin pnpm version (e.g., `pnpm@9.x`).
 
 ## Dev Workflow (once scaffolded)
+
 - Install deps: `pnpm install`.
 - Run build pipeline: `pnpm devgraph build` (or `pnpm devgraph validate`) via CLI package; for overall repo use `pnpm dev`/`pnpm build` (Turbo).
 - Outputs land in `.devgraph/` (`graph.json`, `summary.md`, `system.mmd`, `system.png`, generated `AGENTS.md` files). Keep repo root clean by treating `.devgraph/` as the canonical output folder.
 
 ## Notes for Agents
+
 - Repo is currently empty; next step is to scaffold the TypeScript project per layout above.
 - Start by codifying schemas/interfaces for block types and `graph.json`.
 - Ensure parsers and generators are deterministic for CLI use.
@@ -61,3 +68,5 @@ package.json          # root scripts: turbo run build/dev/lint, packageManager=p
 - Git workflow: conventional commits (`feat|fix|docs|ci|build|refactor|perf|style|test|chore`), concise messages; keep `.devgraph/` generated outputs ignored.
 - Local docs: `apps/web/app/docs` (MDX) for public-facing docs; `docs/DEVLOG.md` to summarize ongoing changes/status for contributors.
 - README maintenance: keep `README.md` concise and current whenever features land (what it is, how to install, how to run CLI, outputs in `.devgraph/`, links to docs).
+- Formatting/linting: Prettier via `pnpm format`, ESLint via root config (TS + Next override). Biome scripts remain available if desired.
+- Formatting/linting: use Biome (`@biomejs/biome`), primary formatter/linter. Root scripts `pnpm fmt` (biome check --write) and `pnpm lint:biome`. Package-level `lint` uses Biome. Keep config in `biome.json`.

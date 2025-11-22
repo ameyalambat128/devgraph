@@ -1,16 +1,19 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
+import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
-import { buildGraph, generateAgents, generateMermaid, generateSummary, parseMarkdownFiles } from '@devgraph/core';
+import {
+  buildGraph,
+  generateAgents,
+  generateMermaid,
+  generateSummary,
+  parseMarkdownFiles,
+} from '@devgraph/core';
+import { Command } from 'commander';
 
 const program = new Command();
 
-program
-  .name('devgraph')
-  .description('DevGraph CLI')
-  .version('0.0.0');
+program.name('devgraph').description('DevGraph CLI').version('0.0.0');
 
 async function handleParse(patterns: string[]) {
   const pats = patterns.length ? patterns : ['**/*.md'];
@@ -68,7 +71,9 @@ program
     await writeFile(mermaidPath, generateMermaid(graph));
     await maybeRenderMermaid(mermaidPath, path.join(outDir, 'system.png'));
 
-    console.log(`Built graph (${Object.keys(graph.services).length} services) from patterns: ${pats.join(', ')}`);
+    console.log(
+      `Built graph (${Object.keys(graph.services).length} services) from patterns: ${pats.join(', ')}`
+    );
     console.log(`Outputs written to ${outDir}`);
   });
 

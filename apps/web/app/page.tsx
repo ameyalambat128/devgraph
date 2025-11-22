@@ -6,7 +6,9 @@ export default function Home() {
       <h1>DevGraph</h1>
       <p>A Turborepo + Next.js workspace for the DevGraph CLI and docs.</p>
       <ul>
-        <li><Link href="/docs">Docs</Link></li>
+        <li>
+          <Link href="/docs">Docs</Link>
+        </li>
       </ul>
     </main>
   );

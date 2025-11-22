@@ -6,9 +6,18 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "fmt": "biome check --write .",
+    "lint:biome": "biome lint .",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,md,mdx,json,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,mdx,json,css}\""
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "8.11.0",
+    "@typescript-eslint/parser": "8.11.0",
+    "eslint": "9.12.0",
+    "prettier": "3.3.3",
+    "@biomejs/biome": "2.3.4",
     "turbo": "latest"
   }
 }
