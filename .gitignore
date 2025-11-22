@@ -4,7 +4,9 @@ coverage
 .turbo
 .next
 out
+.devgraph
+dist
+*.tsbuildinfo
 .DS_Store
 .env*
 !.env.example
-.devgraph

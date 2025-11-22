@@ -1,7 +1,11 @@
 {
   "extends": "./packages/tsconfig/tsconfig.base.json",
   "compilerOptions": {
-    "moduleResolution": "Bundler"
+    "baseUrl": ".",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@devgraph/core": ["packages/devgraph-core/src"]
+    }
   },
   "include": ["packages/**/*", "apps/**/*", "turbo.json"]
 }
