@@ -9,13 +9,14 @@
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,md,mdx,json,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,mdx,json,css}\"",
-    "devgraph": "pnpm --filter devgraph-cli devgraph"
+    "devgraph": "pnpm exec tsx packages/devgraph-cli/src/index.ts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "8.11.0",
     "@typescript-eslint/parser": "8.11.0",
     "eslint": "9.12.0",
     "prettier": "3.3.3",
+    "tsx": "4.19.1",
     "turbo": "latest"
   }
 }

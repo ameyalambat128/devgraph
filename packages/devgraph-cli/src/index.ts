@@ -12,12 +12,13 @@ import {
 import { Command } from 'commander';
 
 const program = new Command();
+const workspaceRoot = process.env.PNPM_WORKSPACE_ROOT || process.cwd();
 
 program.name('devgraph').description('DevGraph CLI').version('0.0.0');
 
 async function handleParse(patterns: string[]) {
   const pats = patterns.length ? patterns : ['**/*.md'];
-  const { blocks, errors } = await parseMarkdownFiles(pats);
+  const { blocks, errors } = await parseMarkdownFiles(pats, { cwd: workspaceRoot });
   return { pats, blocks, errors };
 }
 
@@ -51,7 +52,7 @@ program
     }
 
     const graph = buildGraph(blocks);
-    const outDir = path.resolve(options.outDir);
+    const outDir = path.resolve(workspaceRoot, options.outDir);
     await mkdir(outDir, { recursive: true });
 
     const graphPath = path.join(outDir, 'graph.json');
