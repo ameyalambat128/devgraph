@@ -1,0 +1,10 @@
+node_modules
+.pnp.*
+coverage
+.turbo
+.next
+out
+.DS_Store
+.env*
+!.env.example
+.devgraph

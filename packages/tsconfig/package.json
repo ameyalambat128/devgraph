@@ -1,0 +1,9 @@
+{
+  "name": "@devgraph/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "files": ["tsconfig.base.json"],
+  "exports": {
+    "./base": "./tsconfig.base.json"
+  }
+}
