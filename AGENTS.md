@@ -60,3 +60,4 @@ package.json          # root scripts: turbo run build/dev/lint, packageManager=p
 - Use Context7 MCP docs for Turborepo/Next/pnpm/MDX references; follow doc-recommended defaults and scaffold with Turborepo CLI patterns (pnpm-first).
 - Git workflow: conventional commits (`feat|fix|docs|ci|build|refactor|perf|style|test|chore`), concise messages; keep `.devgraph/` generated outputs ignored.
 - Local docs: `apps/web/app/docs` (MDX) for public-facing docs; `docs/DEVLOG.md` to summarize ongoing changes/status for contributors.
+- README maintenance: keep `README.md` concise and current whenever features land (what it is, how to install, how to run CLI, outputs in `.devgraph/`, links to docs).
