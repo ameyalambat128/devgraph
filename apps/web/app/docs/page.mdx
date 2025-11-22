@@ -3,9 +3,14 @@
 This site runs on the Next.js App Router with MDX enabled via `@next/mdx`.
 
 ## What is DevGraph?
-- Parses `devgraph-*` fenced blocks in Markdown
+- Parses `devgraph-*` fenced blocks in Markdown (service/api/env)
 - Builds a project graph and emits `.devgraph/graph.json`
-- Generates `summary.md`, per-service `AGENTS.md`, and Mermaid diagrams
+- Generates `summary.md`, per-service `AGENTS.md`, and Mermaid diagrams (`system.mmd` + optional `system.png`)
+
+## CLI (MVP)
+- Validate: `pnpm --filter devgraph-cli devgraph validate examples/*.md`
+- Build: `pnpm --filter devgraph-cli devgraph build examples/*.md`
+- Outputs land in `.devgraph/`
 
 ## Development
 - Install deps: `pnpm install`
@@ -14,5 +19,5 @@ This site runs on the Next.js App Router with MDX enabled via `@next/mdx`.
 - Lint: `pnpm lint --filter web`
 
 ## Next steps
-- Flesh out CLI/core packages in `packages/`
+- Harden schemas/validation and add richer generators (integration diff, better AGENTS)
 - Add more docs pages as `.mdx` under `app/docs`

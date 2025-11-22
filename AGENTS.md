@@ -59,3 +59,4 @@ package.json          # root scripts: turbo run build/dev/lint, packageManager=p
 - Additional considerations: pin TS/ESLint/Prettier configs in `packages/config`, add `tsconfig` base in `packages/tsconfig`, set up CI to run `pnpm lint && pnpm test && pnpm build`, and leverage Turbo caching locally/CI.
 - Use Context7 MCP docs for Turborepo/Next/pnpm/MDX references; follow doc-recommended defaults and scaffold with Turborepo CLI patterns (pnpm-first).
 - Git workflow: conventional commits (`feat|fix|docs|ci|build|refactor|perf|style|test|chore`), concise messages; keep `.devgraph/` generated outputs ignored.
+- Local docs: `apps/web/app/docs` (MDX) for public-facing docs; `docs/DEVLOG.md` to summarize ongoing changes/status for contributors.
