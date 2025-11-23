@@ -1,6 +1,6 @@
 # DevGraph
 
-DevGraph is a pnpm-first Turborepo with a Next.js docs app and a CLI to parse `devgraph-*` fenced Markdown blocks (service/api/env), build a project graph, and emit docs/diagrams into `.devgraph/`.
+DevGraph is a CLI that scans Markdown for `devgraph-*` fenced blocks (service/api/env), builds a unified project graph, and emits human/agent-friendly outputs (`graph.json`, `summary.md`, per-service `AGENTS.md`, Mermaid diagrams, and a codemap) into `.devgraph/`.
 
 ## Quick start
 
@@ -8,7 +8,8 @@ DevGraph is a pnpm-first Turborepo with a Next.js docs app and a CLI to parse `d
 - Validate: `pnpm devgraph validate examples/*.md`
 - Build outputs: `pnpm devgraph build examples/*.md`
 - Optional diff: `pnpm devgraph build examples/*.md --compare .devgraph/graph.json`
-- Outputs land in `.devgraph/` (`graph.json`, `summary.md`, `agents/*.md`, `system.mmd`, optional `system.png`).
+- Outputs land in `.devgraph/` (`graph.json`, `summary.md`, `agents/*.md`, `system.mmd`, optional `system.png`, `codemap.mmd/png`, `integration_notes.md` when using `--compare`).
+- `.devgraph/` is git-ignored because it contains generated artifacts.
 - Format: `pnpm format` (Prettier). Check-only: `pnpm format:check`.
 
 ## Structure

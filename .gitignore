@@ -4,7 +4,7 @@ coverage
 .turbo
 .next
 out
-.devgraph
+.devgraph  # generated outputs (graph.json, summary, agents, diagrams)
 dist
 *.tsbuildinfo
 .DS_Store
