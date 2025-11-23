@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import {
   buildGraph,
   diffGraphs,
+  generateCodemapMermaid,
   generateMermaid,
   generateSummary,
   parseMarkdownFiles,
@@ -51,6 +52,9 @@ vars:
 
     const mermaid = generateMermaid(graph);
     expect(mermaid).toContain('graph LR');
+    const codemap = generateCodemapMermaid(graph);
+    expect(codemap).toContain('codemap');
+    expect(codemap).toContain('graphjson');
   });
 });
 

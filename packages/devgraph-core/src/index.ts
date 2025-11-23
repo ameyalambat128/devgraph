@@ -302,36 +302,42 @@ export function generateServiceMermaid(graph: Devgraph): string {
 export function generateCodemapMermaid(graph: Devgraph): string {
   const lines: string[] = ['graph LR'];
 
-  // Monorepo-level view.
-  lines.push('repo[devgraph (turborepo)]');
-  lines.push('repo --> pkg_core["@devgraph/core"]');
-  lines.push('repo --> pkg_cli["devgraph-cli"]');
-  lines.push('repo --> pkg_web["apps/web (docs)"]');
-  lines.push('pkg_cli --> pkg_core');
-  lines.push('pkg_web --> pkg_core');
+  // Monorepo-level view (apps/packages/docs/examples).
+  push(lines, 'repo[devgraph (turborepo)]');
+  push(lines, 'repo --> pkg_core["@devgraph/core"]');
+  push(lines, 'repo --> pkg_cli["devgraph-cli"]');
+  push(lines, 'repo --> pkg_web["apps/web (docs)"]');
+  push(lines, 'repo --> pkg_config["packages/tsconfig + config"]');
+  push(lines, 'repo --> pkg_examples["examples/*.md"]');
+  push(lines, 'repo --> pkg_docs["docs/DEVLOG.md"]');
 
-  // Pipeline view.
-  lines.push('md[Markdown (*.md)] --> blocks[devgraph-* blocks]');
-  lines.push('blocks --> core["@devgraph/core (parser/graph)"]');
-  lines.push('cli["devgraph-cli"] --> core');
-  lines.push('core --> graphjson[.devgraph/graph.json]');
-  lines.push('core --> summary[.devgraph/summary.md]');
-  lines.push('core --> agents[.devgraph/agents/*.md]');
-  lines.push('core --> mmd[.devgraph/system.mmd/png]');
-  lines.push('core --> codemap[.devgraph/codemap.mmd/png]');
-  lines.push('core --> diff[.devgraph/integration_notes.md]');
+  // Relationships between packages.
+  push(lines, 'pkg_cli --> pkg_core');
+  push(lines, 'pkg_web --> pkg_core');
+
+  // Pipeline view (Markdown -> parser -> outputs).
+  push(lines, 'md[Markdown (*.md)] --> blocks[devgraph-* blocks]');
+  push(lines, 'pkg_examples --> md');
+  push(lines, 'blocks --> parser["@devgraph/core (parser/graph)"]');
+  push(lines, 'cli["devgraph-cli"] --> parser');
+  push(lines, 'parser --> graphjson[.devgraph/graph.json]');
+  push(lines, 'parser --> summary[.devgraph/summary.md]');
+  push(lines, 'parser --> agents[.devgraph/agents/*.md]');
+  push(lines, 'parser --> mmd[.devgraph/system.mmd/png]');
+  push(lines, 'parser --> codemap[.devgraph/codemap.mmd/png]');
+  push(lines, 'parser --> diff[.devgraph/integration_notes.md]');
 
   // Service-level overlay (if any).
   const services = Object.keys(graph.services).sort();
   for (const name of services) {
     const svc = graph.services[name];
     const id = sanitizeId(`svc_${name}`);
-    lines.push(`${id}["${name} (${svc.type})"]`);
-    lines.push(`graphjson --> ${id}`);
+    push(lines, `${id}["${name} (${svc.type})"]`);
+    push(lines, `graphjson --> ${id}`);
     if (svc.depends && svc.depends.length) {
       for (const dep of [...svc.depends].sort()) {
         const depId = sanitizeId(`svc_${dep}`);
-        lines.push(`${id} --> ${depId}`);
+        push(lines, `${id} --> ${depId}`);
       }
     }
   }
@@ -341,6 +347,10 @@ export function generateCodemapMermaid(graph: Devgraph): string {
 
 function sanitizeId(name: string): string {
   return name.replace(/[^a-zA-Z0-9_]/g, '_');
+}
+
+function push(lines: string[], value: string) {
+  lines.push(value);
 }
 
 function uniqueLines(lines: string[]): string[] {
