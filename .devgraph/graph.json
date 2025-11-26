@@ -1,0 +1,36 @@
+{
+  "services": {
+    "web": {
+      "name": "web",
+      "type": "nextjs",
+      "commands": {
+        "dev": "pnpm dev --filter web",
+        "build": "pnpm build --filter web"
+      },
+      "apis": [
+        {
+          "service": "web",
+          "routes": {
+            "GET /health": {}
+          }
+        }
+      ],
+      "env": [
+        {
+          "service": "web",
+          "vars": {
+            "NEXT_PUBLIC_API_URL": "http://localhost:3000"
+          }
+        }
+      ]
+    }
+  },
+  "apis": {
+    "web": {
+      "service": "web",
+      "routes": {
+        "GET /health": {}
+      }
+    }
+  }
+}

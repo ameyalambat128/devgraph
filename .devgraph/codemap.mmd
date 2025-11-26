@@ -1,0 +1,18 @@
+graph LR
+repo[devgraph (turborepo)]
+repo --> pkg_core["@devgraph/core"]
+repo --> pkg_cli["devgraph-cli"]
+repo --> pkg_web["apps/web (docs)"]
+pkg_cli --> pkg_core
+pkg_web --> pkg_core
+md[Markdown (*.md)] --> blocks[devgraph-* blocks]
+blocks --> core["@devgraph/core (parser/graph)"]
+cli["devgraph-cli"] --> core
+core --> graphjson[.devgraph/graph.json]
+core --> summary[.devgraph/summary.md]
+core --> agents[.devgraph/agents/*.md]
+core --> mmd[.devgraph/system.mmd/png]
+core --> codemap[.devgraph/codemap.mmd/png]
+core --> diff[.devgraph/integration_notes.md]
+svc_web["web (nextjs)"]
+graphjson --> svc_web
