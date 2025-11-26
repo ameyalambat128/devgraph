@@ -1,4 +1,13 @@
+import { Github } from 'lucide-react';
 import { Terminal } from './components/Terminal';
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
 
 export default function Home() {
   return (
@@ -15,25 +24,24 @@ export default function Home() {
               <br />
               Context for humans and AI.
             </p>
-            <p className="mb-8 text-sm uppercase tracking-widest text-muted/60">
-              Coming Soon
-            </p>
             <div className="flex justify-center gap-4 lg:justify-start">
               <a
                 href="https://github.com/ameyalambat128/devgraph"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-12 cursor-pointer items-center justify-center rounded-md border border-accent bg-accent px-6 text-base font-medium text-bg no-underline transition-all hover:border-[#ddd] hover:bg-[#ddd]"
+                className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-md border border-accent bg-accent px-6 text-base font-medium text-bg no-underline transition-all hover:border-[#ddd] hover:bg-[#ddd]"
               >
-                View on GitHub
+                <Github className="h-5 w-5" />
+                GitHub
               </a>
               <a
-                href="https://twitter.com/ameyalambat"
+                href="https://x.com/lambatameya"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-12 cursor-pointer items-center justify-center rounded-md border border-border bg-transparent px-6 text-base font-medium text-text no-underline transition-all hover:border-muted hover:bg-white/5"
+                className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-transparent px-6 text-base font-medium text-text no-underline transition-all hover:border-muted hover:bg-white/5"
               >
-                Follow Updates
+                <XIcon className="h-4 w-4" />
+                Follow
               </a>
             </div>
           </div>
