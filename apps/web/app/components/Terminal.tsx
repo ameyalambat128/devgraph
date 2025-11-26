@@ -26,30 +26,34 @@ export function Terminal() {
     const timeouts = LINES.map((line) => {
       return setTimeout(() => {
         setVisibleLines((prev) => [...prev, line.text]);
-      }, line.delay - 500); // adjust relative to start
+      }, line.delay - 500);
     });
 
     return () => timeouts.forEach(clearTimeout);
   }, [started]);
 
   return (
-    <div className="terminal-window">
-      <div className="terminal-header">
-        <div className="terminal-dot red" />
-        <div className="terminal-dot yellow" />
-        <div className="terminal-dot green" />
-        <div className="terminal-title">bash — 80x24</div>
+    <div className="w-full max-w-xl overflow-hidden rounded-xl bg-[#111] font-mono text-left shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5),0_0_0_1px_#333]">
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-[#222] bg-[#1a1a1a] px-4 py-3">
+        <div className="h-3 w-3 rounded-full bg-[#ff5f56]" />
+        <div className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
+        <div className="h-3 w-3 rounded-full bg-[#27c93f]" />
+        <div className="ml-3 text-xs font-medium text-[#666]">bash — 80x24</div>
       </div>
-      <div className="terminal-body">
-        <div className="terminal-line command">
-          <span className="prompt">$</span> devgraph build
+
+      {/* Body */}
+      <div className="h-80 overflow-y-auto p-5 text-sm leading-relaxed text-[#ccc]">
+        <div className="mb-2 text-white">
+          <span className="mr-2 font-bold text-[#ff00ff]">$</span>
+          devgraph build
         </div>
         {visibleLines.map((line, i) => (
-          <div key={i} className="terminal-line output">
+          <div key={i} className="text-[#888]">
             {line}
           </div>
         ))}
-        <div className="terminal-cursor" />
+        <span className="ml-1 inline-block h-4 w-2 animate-blink bg-[#666] align-middle" />
       </div>
     </div>
   );
