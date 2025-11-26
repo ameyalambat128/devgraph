@@ -4,9 +4,14 @@
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev": "turbo run dev",
+    "dev:web": "pnpm --filter web dev",
     "build": "turbo run build",
+    "build:web": "pnpm --filter web build",
+    "build:core": "pnpm --filter @devgraph/core build",
+    "build:cli": "pnpm --filter devgraph-cli build",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "test:core": "pnpm --filter @devgraph/core test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,md,mdx,json,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,mdx,json,css}\"",
     "devgraph": "pnpm exec tsx packages/devgraph-cli/src/index.ts"
