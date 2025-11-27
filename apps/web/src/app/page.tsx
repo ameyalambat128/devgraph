@@ -1,6 +1,6 @@
 import { Github } from 'lucide-react';
-import { Terminal } from './components/Terminal';
-import { Scene3D } from './components/Scene3D';
+import { Terminal } from '@/components/Terminal';
+import { Scene3D } from '@/components/Scene3D';
 
 function XIcon({ className }: { className?: string }) {
   return (
