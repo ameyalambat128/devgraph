@@ -1,6 +1,6 @@
 import { Github } from 'lucide-react';
 import { Terminal } from './components/Terminal';
-import { GraphBackground } from './components/GraphBackground';
+import { Scene3D } from './components/Scene3D';
 
 function XIcon({ className }: { className?: string }) {
   return (
@@ -13,7 +13,7 @@ function XIcon({ className }: { className?: string }) {
 export default function Home() {
   return (
     <main>
-      <GraphBackground />
+      <Scene3D />
       <div className="mx-auto max-w-7xl px-6">
         {/* Hero Section */}
         <div className="flex min-h-screen flex-col items-center justify-center py-20 text-center lg:flex-row lg:justify-between lg:gap-16 lg:text-left">
