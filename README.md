@@ -35,3 +35,7 @@ DevGraph is a CLI that scans Markdown for `devgraph-*` fenced blocks (service/ap
 - Mermaid PNG generation is best-effort via `@mermaid-js/mermaid-cli`.
 - Conventional commits: `feat|fix|docs|ci|build|refactor|perf|style|test|chore`.
 - Linting uses root ESLint config (TS + Next override); Turbo orchestrates lint/build/test per package.
+
+## License
+
+[MIT](LICENSE) © [Ameya Lambat](https://ameyalambat.com)
