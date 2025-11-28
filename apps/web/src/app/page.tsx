@@ -1,15 +1,7 @@
 import Image from 'next/image';
-import { Github } from 'lucide-react';
-import { Terminal } from '@/components/Terminal';
-import { Scene3D } from '@/components/Scene3D';
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  );
-}
+import { Terminal } from '@/components/terminal';
+import { Scene3D } from '@/components/scene-3d';
+import { IconGithub, IconX } from '@/components/icons';
 
 export default function Home() {
   return (
@@ -35,26 +27,37 @@ export default function Home() {
               <br />
               Context for humans and AI.
             </p>
-            <div className="flex justify-center gap-4 lg:justify-start">
+            <div className="flex justify-center gap-3 lg:justify-start">
               <a
                 href="https://github.com/ameyalambat128/devgraph"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-md border border-accent bg-accent px-6 text-base font-medium text-bg no-underline transition-all hover:border-[#ddd] hover:bg-[#ddd]"
+                className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-white px-3 py-1.5 text-sm text-black transition-colors hover:bg-white/90"
               >
-                <Github className="h-5 w-5" />
-                GitHub
+                <IconGithub className="h-4 w-4" />
+                Star on GitHub
               </a>
               <a
                 href="https://x.com/lambatameya"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-transparent px-6 text-base font-medium text-text no-underline transition-all hover:border-muted hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-md border border-neutral-600 bg-black px-3 py-1.5 text-sm text-white transition-colors hover:border-neutral-500 hover:bg-neutral-900"
               >
-                <XIcon className="h-4 w-4" />
-                Follow
+                <IconX className="h-4 w-4" />
+                Follow on X
               </a>
             </div>
+            <p className="mt-4 text-sm text-gray-500">
+              created by{' '}
+              <a
+                href="https://ameyalambat.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 underline underline-offset-2 transition-colors hover:text-gray-200"
+              >
+                Ameya Lambat
+              </a>
+            </p>
           </div>
 
           <div className="mt-12 w-full max-w-lg lg:mt-0">

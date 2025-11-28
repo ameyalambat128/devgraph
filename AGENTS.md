@@ -55,6 +55,11 @@ package.json          # root scripts: turbo run build/dev/lint, packageManager=p
 - Run build pipeline: `pnpm devgraph build` (or `pnpm devgraph validate`) via CLI package; for overall repo use `pnpm dev`/`pnpm build` (Turbo).
 - Outputs land in `.devgraph/` (`graph.json`, `summary.md`, `system.mmd`, `system.png`, generated `AGENTS.md` files). Keep repo root clean by treating `.devgraph/` as the canonical output folder.
 
+## Code Style
+
+- Component files: kebab-case, lowercase (e.g., `terminal.tsx`, `scene-3d.tsx`, `graph-background.tsx`).
+- Exports: use `export function` syntax, not `export const` for components.
+
 ## Notes for Agents
 
 - Repo is currently empty; next step is to scaffold the TypeScript project per layout above.
