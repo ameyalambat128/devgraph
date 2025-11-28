@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Github } from 'lucide-react';
 import { Terminal } from '@/components/Terminal';
 import { Scene3D } from '@/components/Scene3D';
@@ -18,6 +19,14 @@ export default function Home() {
         {/* Hero Section */}
         <div className="flex min-h-screen flex-col items-center justify-center py-20 text-center lg:flex-row lg:justify-between lg:gap-16 lg:text-left">
           <div className="lg:max-w-lg">
+            <Image
+              src="/icon.png"
+              alt="DevGraph"
+              width={56}
+              height={56}
+              className="mb-4"
+              priority
+            />
             <h1 className="mb-4 bg-gradient-to-br from-white to-gray-500 bg-clip-text text-6xl font-bold leading-tight tracking-tighter text-transparent">
               DevGraph
             </h1>

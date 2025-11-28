@@ -1,4 +1,4 @@
-# DevGraph
+# <img src="https://github.com/ameyalambat128/devgraph/blob/main/.github/public/logo.png?raw=true" width="60" align="center" /> DevGraph
 
 DevGraph is a CLI that scans Markdown for `devgraph-*` fenced blocks (service/api/env), builds a unified project graph, and emits human/agent-friendly outputs (`graph.json`, `summary.md`, per-service `AGENTS.md`, Mermaid diagrams, and a codemap) into `.devgraph/`.
 
