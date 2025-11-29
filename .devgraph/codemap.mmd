@@ -3,16 +3,20 @@ repo[devgraph (turborepo)]
 repo --> pkg_core["@devgraph/core"]
 repo --> pkg_cli["devgraph-cli"]
 repo --> pkg_web["apps/web (docs)"]
+repo --> pkg_config["packages/tsconfig + config"]
+repo --> pkg_examples["examples/*.md"]
+repo --> pkg_docs["docs/DEVLOG.md"]
 pkg_cli --> pkg_core
 pkg_web --> pkg_core
 md[Markdown (*.md)] --> blocks[devgraph-* blocks]
-blocks --> core["@devgraph/core (parser/graph)"]
-cli["devgraph-cli"] --> core
-core --> graphjson[.devgraph/graph.json]
-core --> summary[.devgraph/summary.md]
-core --> agents[.devgraph/agents/*.md]
-core --> mmd[.devgraph/system.mmd/png]
-core --> codemap[.devgraph/codemap.mmd/png]
-core --> diff[.devgraph/integration_notes.md]
+pkg_examples --> md
+blocks --> parser["@devgraph/core (parser/graph)"]
+cli["devgraph-cli"] --> parser
+parser --> graphjson[.devgraph/graph.json]
+parser --> summary[.devgraph/summary.md]
+parser --> agents[.devgraph/agents/*.md]
+parser --> mmd[.devgraph/system.mmd/png]
+parser --> codemap[.devgraph/codemap.mmd/png]
+parser --> diff[.devgraph/integration_notes.md]
 svc_web["web (nextjs)"]
 graphjson --> svc_web

@@ -2,6 +2,7 @@ import './globals.css';
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { Inter, Outfit, JetBrains_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -68,7 +69,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
