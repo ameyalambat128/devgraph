@@ -1,5 +1,9 @@
 # <img src="https://github.com/ameyalambat128/devgraph/blob/main/.github/public/icon.png" width="40" align="top" /> DevGraph
 
+[![npm version](https://img.shields.io/npm/v/devgraph?style=flat&labelColor=000&color=8B5CF6)](https://www.npmjs.com/package/devgraph)
+[![npm downloads](https://img.shields.io/npm/dm/devgraph?style=flat&labelColor=000&color=8B5CF6)](https://www.npmjs.com/package/devgraph)
+[![GitHub stars](https://img.shields.io/github/stars/ameyalambat128/devgraph?style=flat&labelColor=000&color=8B5CF6)](https://github.com/ameyalambat128/devgraph/stargazers)
+
 One graph. Every repo. Context for humans and AI.
 
 DevGraph scans Markdown for `devgraph-*` fenced blocks and builds a unified project graph with human-readable and LLM-optimized outputs.
