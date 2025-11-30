@@ -1,40 +1,147 @@
 # <img src="https://github.com/ameyalambat128/devgraph/blob/main/.github/public/icon.png" width="40" align="top" /> DevGraph
 
-DevGraph is a CLI that scans Markdown for `devgraph-*` fenced blocks (service/api/env), builds a unified project graph, and emits human/agent-friendly outputs (`graph.json`, `summary.md`, per-service `AGENTS.md`, Mermaid diagrams, and a codemap) into `.devgraph/`.
+One graph. Every repo. Context for humans and AI.
 
-## Quick start
+DevGraph scans Markdown for `devgraph-*` fenced blocks and builds a unified project graph with human-readable and LLM-optimized outputs.
 
-- Install: `pnpm install`
-- Validate: `pnpm devgraph validate examples/*.md`
-- Build outputs: `pnpm devgraph build examples/*.md`
-- Optional diff: `pnpm devgraph build examples/*.md --compare .devgraph/graph.json`
-- Outputs land in `.devgraph/` (`graph.json`, `summary.md`, `agents/*.md`, `system.mmd`, optional `system.png`, `codemap.mmd/png`, `integration_notes.md` when using `--compare`).
-- `.devgraph/` is git-ignored because it contains generated artifacts.
-- Format: `pnpm format` (Prettier). Check-only: `pnpm format:check`.
+## Quick Start
 
-## Structure
+### Install
 
-- `apps/web`: Next.js app with MDX docs (`/app/docs`).
-- `packages/devgraph-core`: parsers, graph builder, generators.
-- `packages/devgraph-cli`: CLI wiring to core (`devgraph build|validate`).
-- `.devgraph/`: generated artifacts (ignored in git).
-- `docs/DEVLOG.md`: contributor-facing change log/notes.
+```bash
+npm install -g devgraph
+# or use npx
+npx devgraph build docs/*.md
+```
+
+### 1. Add blocks to your Markdown
+
+In any `.md` file (e.g., `docs/architecture.md`):
+
+```markdown
+## API Service
+
+\`\`\`devgraph-service
+name: api
+type: node
+commands:
+  dev: npm run dev
+  build: npm run build
+depends:
+  - database
+\`\`\`
+
+\`\`\`devgraph-api
+service: api
+routes:
+  GET /health: Health check
+  GET /api/users: List users
+  POST /api/users: Create user
+\`\`\`
+
+\`\`\`devgraph-env
+service: api
+vars:
+  PORT: "3000"
+  DATABASE_URL: postgresql://localhost:5432/mydb
+\`\`\`
+```
+
+### 2. Build the graph
+
+```bash
+devgraph build docs/*.md
+```
+
+### 3. Check outputs
+
+Outputs are generated in `.devgraph/`:
+
+| File | Description |
+|------|-------------|
+| `graph.json` | Machine-readable project graph |
+| `summary.md` | Human-readable overview with tables |
+| `agents/*.md` | Per-service context files for LLMs |
+| `system.mmd` | Mermaid diagram of service dependencies |
+| `codemap.mmd` | Mermaid diagram of repo structure |
+
+## Block Types
+
+| Block | Purpose | Required Fields |
+|-------|---------|-----------------|
+| `devgraph-service` | Define a service | `name`, `type` |
+| `devgraph-api` | Define API routes | `service`, `routes` |
+| `devgraph-env` | Define env vars | `service`, `vars` |
+
+### devgraph-service
+
+```yaml
+name: my-service          # Service name (required)
+type: node                # Service type: node, nextjs, python, etc. (required)
+commands:                 # Optional commands
+  dev: npm run dev
+  build: npm run build
+depends:                  # Optional dependencies
+  - other-service
+```
+
+### devgraph-api
+
+```yaml
+service: my-service       # Parent service name (required)
+routes:                   # Route definitions (required)
+  GET /health: Health check
+  POST /api/users: Create user
+```
+
+### devgraph-env
+
+```yaml
+service: my-service       # Parent service name (required)
+vars:                     # Environment variables (required)
+  PORT: "3000"
+  DATABASE_URL: postgresql://localhost:5432/db
+```
+
+## CLI Commands
+
+```bash
+# Validate blocks without generating outputs
+devgraph validate docs/*.md
+
+# Build graph and generate all outputs
+devgraph build docs/*.md
+
+# Build with diff against previous graph
+devgraph build docs/*.md --compare .devgraph/graph.json
+```
+
+## Examples
+
+See [`examples/ecommerce.md`](examples/ecommerce.md) for a realistic multi-service example.
 
 ## Development
 
-- Dev server (docs): `pnpm dev --filter web`
-- Build web: `pnpm build --filter web`
-- Lint web: `pnpm lint --filter web`
-- Lint core/cli: `pnpm --filter @devgraph/core lint`, `pnpm --filter devgraph-cli lint`
-- Core/CLI builds: `pnpm --filter @devgraph/core build`, `pnpm --filter devgraph-cli build`
-- Tests (core): `pnpm --filter @devgraph/core test`
+```bash
+# Install dependencies
+pnpm install
 
-## Notes
+# Run CLI locally
+pnpm devgraph build examples/*.md
 
-- Uses Next.js App Router with MDX (`@next/mdx`).
-- Mermaid PNG generation is best-effort via `@mermaid-js/mermaid-cli`.
-- Conventional commits: `feat|fix|docs|ci|build|refactor|perf|style|test|chore`.
-- Linting uses root ESLint config (TS + Next override); Turbo orchestrates lint/build/test per package.
+# Build packages
+pnpm build:core && pnpm build:cli
+
+# Run tests
+pnpm test:core
+```
+
+## Structure
+
+- `apps/web`: Landing page and docs
+- `packages/devgraph-core`: Parser, graph builder, generators
+- `packages/devgraph-cli`: CLI wrapper
+- `.devgraph/`: Generated outputs (git-ignored)
 
 ## License
 

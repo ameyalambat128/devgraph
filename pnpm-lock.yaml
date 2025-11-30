@@ -105,7 +105,7 @@ importers:
   packages/devgraph-cli:
     dependencies:
       '@devgraph/core':
-        specifier: workspace:*
+        specifier: ^0.1.0
         version: link:../devgraph-core
       '@mermaid-js/mermaid-cli':
         specifier: 11.4.0
@@ -113,9 +113,6 @@ importers:
       commander:
         specifier: 12.1.0
         version: 12.1.0
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
     devDependencies:
       '@types/node':
         specifier: 22.9.4

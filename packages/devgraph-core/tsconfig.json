@@ -9,5 +9,6 @@
     "declarationMap": true,
     "composite": true
   },
-  "include": ["src/**/*", "tests/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["tests/**/*"]
 }

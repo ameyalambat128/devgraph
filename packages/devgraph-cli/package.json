@@ -1,22 +1,33 @@
 {
-  "name": "devgraph-cli",
-  "version": "0.0.0",
-  "private": true,
+  "name": "devgraph",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CLI that scans Markdown for devgraph-* blocks and builds a unified project graph",
   "bin": {
-    "devgraph": "./src/index.ts"
+    "devgraph": "./dist/index.js"
   },
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ameyalambat128/devgraph",
+    "directory": "packages/devgraph-cli"
+  },
+  "homepage": "https://devgraph.ameyalambat.com",
+  "author": "Ameya Lambat",
+  "license": "MIT",
+  "keywords": ["devgraph", "cli", "documentation", "monorepo", "architecture", "agents", "mermaid"],
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
     "devgraph": "tsx src/index.ts",
     "lint": "pnpm --workspace-root exec eslint \"packages/devgraph-cli/src/**/*.{ts,tsx}\"",
-    "test": "echo 'no tests yet'"
+    "test": "echo 'no tests yet'",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@devgraph/core": "workspace:*",
+    "@devgraph/core": "^0.1.0",
     "@mermaid-js/mermaid-cli": "11.4.0",
-    "commander": "12.1.0",
-    "tsx": "4.19.1"
+    "commander": "12.1.0"
   },
   "devDependencies": {
     "@types/node": "22.9.4",

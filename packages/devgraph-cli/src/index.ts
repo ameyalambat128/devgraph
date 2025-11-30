@@ -16,7 +16,7 @@ import { Command } from 'commander';
 const program = new Command();
 const workspaceRoot = process.env.PNPM_WORKSPACE_ROOT || process.cwd();
 
-program.name('devgraph').description('DevGraph CLI').version('0.0.0');
+program.name('devgraph').description('DevGraph CLI').version('0.1.0');
 
 async function handleParse(patterns: string[]) {
   const pats = patterns.length ? patterns : ['**/*.md'];

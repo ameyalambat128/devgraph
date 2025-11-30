@@ -9,7 +9,7 @@
     "build": "turbo run build",
     "build:web": "pnpm --filter web build",
     "build:core": "pnpm --filter @devgraph/core build",
-    "build:cli": "pnpm --filter devgraph-cli build",
+    "build:cli": "pnpm --filter devgraph build",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:core": "pnpm --filter @devgraph/core test",
