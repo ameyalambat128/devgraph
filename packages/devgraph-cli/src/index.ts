@@ -13,10 +13,17 @@ import {
 } from '@devgraph/core';
 import { Command } from 'commander';
 
+const BANNER = `
+╔══════════════════════════════════════╗
+║           D E V G R A P H            ║
+║       One graph. Every repo.         ║
+╚══════════════════════════════════════╝
+`;
+
 const program = new Command();
 const workspaceRoot = process.env.PNPM_WORKSPACE_ROOT || process.cwd();
 
-program.name('devgraph').description('DevGraph CLI').version('0.1.0');
+program.name('devgraph').description(BANNER).version('0.1.0');
 
 async function handleParse(patterns: string[]) {
   const pats = patterns.length ? patterns : ['**/*.md'];
@@ -36,6 +43,19 @@ program
       process.exitCode = 1;
       return;
     }
+    if (!blocks.length) {
+      console.log('No devgraph blocks found.\n');
+      console.log('Add blocks to your markdown like this:\n');
+      console.log('  ```devgraph-service');
+      console.log('  name: my-service');
+      console.log('  type: node');
+      console.log('  commands:');
+      console.log('    dev: npm run dev');
+      console.log('  ```\n');
+      console.log('Then run: devgraph build "**/*.md"\n');
+      console.log('Docs: https://devgraph.ameyalambat.com');
+      return;
+    }
     console.log(`Validated ${blocks.length} blocks from patterns: ${pats.join(', ')}`);
   });
 
@@ -51,6 +71,20 @@ program
       console.error(`Found ${errors.length} error(s):`);
       for (const err of errors) console.error(`- ${err.file}: ${err.message}`);
       process.exitCode = 1;
+      return;
+    }
+
+    if (!blocks.length) {
+      console.log('No devgraph blocks found.\n');
+      console.log('Add blocks to your markdown like this:\n');
+      console.log('  ```devgraph-service');
+      console.log('  name: my-service');
+      console.log('  type: node');
+      console.log('  commands:');
+      console.log('    dev: npm run dev');
+      console.log('  ```\n');
+      console.log('Then run: devgraph build "**/*.md"\n');
+      console.log('Docs: https://devgraph.ameyalambat.com');
       return;
     }
 
