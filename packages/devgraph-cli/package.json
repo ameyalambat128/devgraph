@@ -1,12 +1,14 @@
 {
   "name": "devgraph",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "CLI that scans Markdown for devgraph-* blocks and builds a unified project graph",
   "bin": {
     "devgraph": "./dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ameyalambat128/devgraph",
@@ -15,7 +17,15 @@
   "homepage": "https://devgraph.ameyalambat.com",
   "author": "Ameya Lambat",
   "license": "MIT",
-  "keywords": ["devgraph", "cli", "documentation", "monorepo", "architecture", "agents", "mermaid"],
+  "keywords": [
+    "devgraph",
+    "cli",
+    "documentation",
+    "monorepo",
+    "architecture",
+    "agents",
+    "mermaid"
+  ],
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
