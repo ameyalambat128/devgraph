@@ -2,79 +2,81 @@
 
 ## Overview
 
-DevGraph is a Turborepo monorepo (pnpm-first) with a Next.js app and a shared TypeScript CLI/lib that scans Markdown for `devgraph-*` fenced blocks, builds a project graph, and generates outputs like `graph.json`, `summary.md`, `AGENTS.md`, and `system.mmd/png` inside `.devgraph/`.
+DevGraph is a Turborepo monorepo (pnpm-first) that scans Markdown for `devgraph-*` fenced blocks, builds a project graph, and generates outputs like `graph.json`, `summary.md`, agent markdown files, and Mermaid diagrams inside `.devgraph/`.
 
-## Immediate Plan (v0.1)
-
-- Define block specs for `devgraph-service`, `devgraph-api`, and `devgraph-env` (YAML inside fenced Markdown).
-- Build parser to scan `.md` files, extract and validate blocks.
-- Assemble unified `graph.json` from parsed blocks (services, apis, env, dependencies).
-- Generators: `summary.md`, per-service `AGENTS.md`, `system.mmd` (Mermaid) → `system.png`.
-- CLI commands: `devgraph build` (end-to-end) and `devgraph validate` (schema checks only).
-- Diff engine: compare two `graph.json` files to emit `integration_notes.md`.
-- Docs/release: README, examples, badge, simple landing page, npm packaging.
-
-## Stack (pnpm + Turborepo + Next.js)
-
-- Package manager: pnpm (root `packageManager` set, lockfile committed).
-- Build system: Turborepo (`turbo` scripts at root).
-- Apps: Next.js app (in `apps/web`) for landing/docs/demo.
-- Shared code: TypeScript packages for CLI/core logic.
-- Markdown parsing: `remark`/`unified` or `markdown-it`.
-- YAML parsing: `yaml` npm package.
-- CLI: `tsx` + `commander` or lean runner.
-- Mermaid rendering: `@mermaid-js/mermaid-cli` for `system.png`.
-
-## Proposed Directory Layout
+## Package Structure
 
 ```
 apps/
-  web/                # Next.js app (landing/docs/demo)
+  web/                # Landing page (Next.js)
+  studio/             # Graph visualization app (Next.js, React Flow)
+                      # Built as static export, embedded in CLI
 packages/
-  devgraph-core/      # parsers, graph builder, generators, diff
-  devgraph-cli/       # CLI entrypoint wrapping core
-  config/             # shared eslint/prettier/turbo config
-  tsconfig/           # shared TS configs
-.devgraph/            # generated artifacts (graph.json, summary.md, system.mmd/png, AGENTS)
-turbo.json
-pnpm-workspace.yaml
-pnpm-lock.yaml
-package.json          # root scripts: turbo run build/dev/lint, packageManager=pnpm@x
+  devgraph-core/      # Parsers, graph builder, generators, diff
+  devgraph-cli/       # CLI entrypoint + embedded Studio server
+.devgraph/            # Generated outputs (gitignored)
 ```
 
-## Turborepo/Pnpm Defaults (from docs)
+## CLI Commands
 
-- `pnpm-workspace.yaml` globs: `apps/*`, `packages/*`.
-- Root scripts: `"build": "turbo run build"`, `"dev": "turbo run dev"`, `"lint": "turbo run lint"`.
-- DevDependency: `"turbo": "latest"`.
-- `packageManager`: pin pnpm version (e.g., `pnpm@9.x`).
+```bash
+devgraph validate [paths...]   # Validate devgraph blocks
+devgraph build [paths...]      # Build graph.json + outputs
+devgraph studio                # Start local Studio server (port 9111)
+```
 
-## Dev Workflow (once scaffolded)
+### Studio Command
 
-- Install deps: `pnpm install`.
-- Run build pipeline: `pnpm devgraph build` (or `pnpm devgraph validate`) via CLI package; for overall repo use `pnpm dev`/`pnpm build` (Turbo).
-- Outputs land in `.devgraph/` (`graph.json`, `summary.md`, `system.mmd`, `system.png`, generated `AGENTS.md` files). Keep repo root clean by treating `.devgraph/` as the canonical output folder.
+`devgraph studio` serves the embedded React app locally:
+- Graph visualization with React Flow
+- Click nodes to view service details
+- Edit and export graph.json
+- Static Next.js build bundled in CLI npm package
+
+## Stack
+
+- **Monorepo**: pnpm + Turborepo
+- **Apps**: Next.js 16, React 19, Tailwind CSS 4
+- **CLI**: Node.js, Commander
+- **Studio**: React Flow, Dagre layout, Zustand state
+- **UI**: shadcn/ui components
+
+## Dev Workflow
+
+```bash
+pnpm install           # Install deps
+pnpm dev               # Run all apps in dev mode
+pnpm build             # Build all packages
+pnpm build:cli-full    # Build CLI with embedded Studio
+pnpm devgraph build    # Generate .devgraph/ outputs
+pnpm devgraph studio   # Start Studio server
+```
+
+## Build Pipeline (Studio Embedding)
+
+1. `pnpm build:studio` → Next.js static export to `apps/studio/out/`
+2. `pnpm build:cli-full` → Copies static files to `packages/devgraph-cli/dist/studio-web/`
+3. CLI serves embedded files at `http://localhost:9111`
 
 ## Code Style
 
-- Component files: kebab-case, lowercase (e.g., `terminal.tsx`, `scene-3d.tsx`, `graph-background.tsx`).
-- Exports: use `export function` syntax, not `export const` for components.
+- Component files: kebab-case (e.g., `service-node.tsx`)
+- Use `export function` for components
+- Prefer descriptive names over comments
 
-## Notes for Agents
+## Key Files
 
-- Repo is currently empty; next step is to scaffold the TypeScript project per layout above.
-- Start by codifying schemas/interfaces for block types and `graph.json`.
-- Ensure parsers and generators are deterministic for CLI use.
-- Keep outputs Markdown/JSON-only; avoid network calls in core logic.
-- Enforce pnpm usage and Turborepo task graph in CI and scripts.
-- Docs approach: use Next.js built-in MDX (no Contentlayer). Add `@next/mdx`, configure `pageExtensions` for md/mdx, and keep docs in `apps/web/app/docs/*.mdx` with a shared layout.
-- Additional considerations: pin TS/ESLint/Prettier configs in `packages/config`, add `tsconfig` base in `packages/tsconfig`, set up CI to run `pnpm lint && pnpm test && pnpm build`, and leverage Turbo caching locally/CI.
-- Use Context7 MCP docs for Turborepo/Next/pnpm/MDX references; follow doc-recommended defaults and scaffold with Turborepo CLI patterns (pnpm-first).
-- Git workflow: conventional commits (`feat|fix|docs|ci|build|refactor|perf|style|test|chore`), concise messages; keep `.devgraph/` generated outputs ignored.
-- Local docs: `apps/web/app/docs` (MDX) for public-facing docs; `docs/DEVLOG.md` to summarize ongoing changes/status for contributors.
-- README maintenance: keep `README.md` concise and current whenever features land (what it is, how to install, how to run CLI, outputs in `.devgraph/`, links to docs).
-- Formatting/linting: Prettier via `pnpm format`, ESLint via root config (TS + Next override).
-- Testing: vitest in `@devgraph/core` (`pnpm --filter @devgraph/core test`). Add more as features land.
-- CLI: `pnpm devgraph build/validate ...`; `--compare <graph.json>` writes `integration_notes.md` diff.
-- `.devgraph/` stays git-ignored (generated artifacts only).
-- Formatting/linting: use Biome (`@biomejs/biome`), primary formatter/linter. Root scripts `pnpm fmt` (biome check --write) and `pnpm lint:biome`. Package-level `lint` uses Biome. Keep config in `biome.json`.
+| File | Purpose |
+|------|---------|
+| `packages/devgraph-cli/src/index.ts` | CLI entry, commands |
+| `packages/devgraph-cli/src/studio/server.ts` | HTTP server for Studio |
+| `packages/devgraph-core/src/index.ts` | Parser, graph builder, generators |
+| `apps/studio/src/app/page.tsx` | Studio main page |
+| `apps/studio/src/store/studio-store.ts` | Zustand state |
+
+## Notes for AI Agents
+
+- Generated `.devgraph/` outputs are gitignored
+- Studio static assets bundled in CLI for offline use
+- Graph types defined in `apps/studio/src/types/`
+- Use Context7 MCP for framework docs (Next.js, React Flow, etc.)
