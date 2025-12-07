@@ -51,3 +51,42 @@ export function useServiceHasChanges(serviceName: string): boolean {
 
   return JSON.stringify(original) !== JSON.stringify(edited);
 }
+
+/**
+ * Check if a node should be dimmed based on hover state or filtering
+ */
+export function useIsNodeDimmed(nodeId: string): boolean {
+  const hoveredNodeId = useStudioStore((state) => state.hoveredNodeId);
+  const editedGraph = useStudioStore((state) => state.editedGraph);
+  const searchQuery = useStudioStore((state) => state.searchQuery);
+  const serviceTypeFilter = useStudioStore((state) => state.serviceTypeFilter);
+
+  if (!editedGraph) return false;
+
+  // 1. Hover state takes precedence
+  if (hoveredNodeId) {
+    if (hoveredNodeId === nodeId) return false;
+
+    // Check if connected
+    const hoveredService = editedGraph.services[hoveredNodeId];
+    if (hoveredService?.depends?.includes(nodeId)) return false;
+
+    const nodeService = editedGraph.services[nodeId];
+    if (nodeService?.depends?.includes(hoveredNodeId)) return false;
+
+    return true;
+  }
+
+  // 2. Search and Filter state
+  if (searchQuery || serviceTypeFilter) {
+    const service = editedGraph.services[nodeId];
+    if (!service) return true;
+
+    const matchesSearch = !searchQuery || nodeId.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = !serviceTypeFilter || service.type === serviceTypeFilter;
+
+    return !(matchesSearch && matchesType);
+  }
+
+  return false;
+}

@@ -1,7 +1,8 @@
 'use client';
 
-import { ArrowRightLeft, ArrowUpDown, Filter } from 'lucide-react';
+import { ArrowRightLeft, ArrowUpDown, Filter, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -17,6 +18,8 @@ interface GraphControlsProps {
   serviceTypes: string[];
   selectedType: string | null;
   onTypeChange: (type: string | null) => void;
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
 }
 
 export function GraphControls({
@@ -25,9 +28,21 @@ export function GraphControls({
   serviceTypes,
   selectedType,
   onTypeChange,
+  searchQuery,
+  onSearchQueryChange,
 }: GraphControlsProps) {
   return (
     <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+      <div className="relative">
+        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search services..."
+          value={searchQuery}
+          onChange={(e) => onSearchQueryChange(e.target.value)}
+          className="pl-8 w-[200px] bg-background/80 backdrop-blur-sm h-9"
+        />
+      </div>
+
       <Button
         variant="outline"
         size="sm"
