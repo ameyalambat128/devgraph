@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
   buildGraph,
@@ -12,6 +12,8 @@ import {
   parseMarkdownFiles,
 } from '@devgraph/core';
 import { Command } from 'commander';
+import { startStudioServer } from './studio/server.js';
+import { openBrowser } from './studio/open-browser.js';
 
 const BANNER = `
 ╔══════════════════════════════════════╗
@@ -129,6 +131,44 @@ program
       `Built graph (${Object.keys(graph.services).length} services) from patterns: ${pats.join(', ')}`
     );
     console.log(`Outputs written to ${outDir}`);
+  });
+
+program
+  .command('studio')
+  .description('Start DevGraph Studio server to visualize and edit your graph')
+  .option('--port <port>', 'Port to run the server on', '9111')
+  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
+  .option('--no-open', 'Do not open browser automatically')
+  .action(async (options: { port: string; graph: string; open: boolean }) => {
+    const port = parseInt(options.port, 10);
+    const graphPath = path.resolve(workspaceRoot, options.graph);
+
+    // Check if graph.json exists
+    try {
+      await access(graphPath);
+    } catch {
+      console.error(`Graph file not found at: ${graphPath}`);
+      console.log('\nRun "devgraph build" first to generate graph.json');
+      process.exitCode = 1;
+      return;
+    }
+
+    console.log(BANNER);
+    console.log('Starting DevGraph Studio...\n');
+
+    try {
+      await startStudioServer({ port, graphPath });
+      console.log(`Studio server running at: http://localhost:${port}`);
+      console.log(`Graph API available at:   http://localhost:${port}/api/graph`);
+      console.log('\nPress Ctrl+C to stop the server.\n');
+
+      if (options.open) {
+        openBrowser(`http://localhost:${port}`);
+      }
+    } catch (error) {
+      console.error(`Failed to start server: ${(error as Error).message}`);
+      process.exitCode = 1;
+    }
   });
 
 program.parseAsync(process.argv);
