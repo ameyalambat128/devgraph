@@ -5,7 +5,8 @@ coverage
 .next
 out
 .devgraph  # generated outputs (graph.json, summary, agents, diagrams)
-docs/      # internal docs (specs, marketing, brand)
+# internal docs (specs, marketing, brand)
+docs/
 dist
 *.tsbuildinfo
 .DS_Store
