@@ -17,6 +17,10 @@ export interface StudioState {
   layoutDirection: LayoutDirection;
   /** Filter by service type */
   serviceTypeFilter: string | null;
+  /** Search query for filtering services */
+  searchQuery: string;
+  /** ID of the currently hovered node */
+  hoveredNodeId: string | null;
   /** Whether there are unsaved changes */
   hasUnsavedChanges: boolean;
 }
@@ -28,6 +32,8 @@ export interface StudioActions {
   resetGraph: () => void;
   /** Select a service by name */
   selectService: (name: string | null) => void;
+  /** Set the hovered node ID */
+  setHoveredNodeId: (id: string | null) => void;
   /** Update a service */
   updateService: (name: string, updates: Partial<ServiceWithDetails>) => void;
   /** Add a command to a service */
@@ -46,6 +52,8 @@ export interface StudioActions {
   setLayoutDirection: (direction: LayoutDirection) => void;
   /** Set service type filter */
   setServiceTypeFilter: (type: string | null) => void;
+  /** Set search query */
+  setSearchQuery: (query: string) => void;
 }
 
 export type StudioStore = StudioState & StudioActions;

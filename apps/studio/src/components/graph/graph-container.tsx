@@ -45,6 +45,8 @@ interface GraphContainerProps {
   onLayoutDirectionChange: (direction: LayoutDirection) => void;
   serviceTypeFilter: string | null;
   onServiceTypeFilterChange: (type: string | null) => void;
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
 }
 
 export function GraphContainer({
@@ -55,19 +57,16 @@ export function GraphContainer({
   onLayoutDirectionChange,
   serviceTypeFilter,
   onServiceTypeFilterChange,
+  searchQuery,
+  onSearchQueryChange,
 }: GraphContainerProps) {
   const graphData = useGraphData(graph);
   const serviceTypes = useMemo(() => getServiceTypes(graph), [graph]);
 
-  const filteredGraph = useMemo(() => {
-    if (!graphData) return null;
-    return filterByServiceType(graphData, serviceTypeFilter);
-  }, [graphData, serviceTypeFilter]);
-
   const layoutedGraph = useMemo(() => {
-    if (!filteredGraph) return null;
-    return applyDagreLayout(filteredGraph, { direction: layoutDirection });
-  }, [filteredGraph, layoutDirection]);
+    if (!graphData) return null;
+    return applyDagreLayout(graphData, { direction: layoutDirection });
+  }, [graphData, layoutDirection]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedGraph?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedGraph?.edges || []);
@@ -106,6 +105,8 @@ export function GraphContainer({
         serviceTypes={serviceTypes}
         selectedType={serviceTypeFilter}
         onTypeChange={onServiceTypeFilterChange}
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
       />
 
       <ReactFlow

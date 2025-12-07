@@ -13,6 +13,8 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   selectedServiceName: null,
   layoutDirection: 'horizontal',
   serviceTypeFilter: null,
+  searchQuery: '',
+  hoveredNodeId: null,
   hasUnsavedChanges: false,
 
   // Actions
@@ -21,6 +23,8 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       originalGraph: deepClone(graph),
       editedGraph: deepClone(graph),
       selectedServiceName: null,
+      searchQuery: '',
+      hoveredNodeId: null,
       hasUnsavedChanges: false,
     });
   },
@@ -31,12 +35,22 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
       set({
         editedGraph: deepClone(originalGraph),
         hasUnsavedChanges: false,
+        hoveredNodeId: null,
+        searchQuery: '',
       });
     }
   },
 
   selectService: (name: string | null) => {
     set({ selectedServiceName: name });
+  },
+
+  setHoveredNodeId: (id: string | null) => {
+    set({ hoveredNodeId: id });
+  },
+
+  setSearchQuery: (query: string) => {
+    set({ searchQuery: query });
   },
 
   updateService: (name: string, updates: Partial<ServiceWithDetails>) => {

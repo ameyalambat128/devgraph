@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStudioStore } from '@/store/studio-store';
 import { useSelectedService } from '@/store/studio-selectors';
 import { GraphLoader } from '@/components/graph-loader';
@@ -20,9 +20,31 @@ export default function StudioPage() {
   const setLayoutDirection = useStudioStore((state) => state.setLayoutDirection);
   const serviceTypeFilter = useStudioStore((state) => state.serviceTypeFilter);
   const setServiceTypeFilter = useStudioStore((state) => state.setServiceTypeFilter);
+  const searchQuery = useStudioStore((state) => state.searchQuery);
+  const setSearchQuery = useStudioStore((state) => state.setSearchQuery);
 
   const selectedService = useSelectedService();
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  // Auto-load graph from API
+  useEffect(() => {
+    async function tryAutoLoad() {
+      if (editedGraph) return;
+      
+      try {
+        const response = await fetch('/api/graph');
+        if (response.ok) {
+          const graph = await response.json();
+          loadGraph(graph);
+        }
+      } catch (error) {
+        console.log('Could not auto-load graph', error);
+      }
+    }
+    
+    tryAutoLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Show loader if no graph is loaded
   if (!editedGraph) {
@@ -39,6 +61,8 @@ export default function StudioPage() {
         onLayoutDirectionChange={setLayoutDirection}
         serviceTypeFilter={serviceTypeFilter}
         onServiceTypeFilterChange={setServiceTypeFilter}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
       />
 
       <ServiceDetailPanel
