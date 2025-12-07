@@ -8,6 +8,7 @@ out
 # internal marketing materials
 docs/marketing/
 docs/feedback/
+docs/spec/
 dist
 *.tsbuildinfo
 .DS_Store
