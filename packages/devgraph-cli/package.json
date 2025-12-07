@@ -29,10 +29,12 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
+    "build:with-studio": "tsc -p tsconfig.json && pnpm copy-studio",
+    "copy-studio": "node -e \"const fs=require('fs');const src='../../apps/studio/out';const dest='./dist/studio-web';if(fs.existsSync(src)){fs.cpSync(src,dest,{recursive:true});console.log('Copied studio assets to dist/studio-web')}else{console.log('Studio assets not found, skipping')}\"",
     "devgraph": "tsx src/index.ts",
     "lint": "pnpm --workspace-root exec eslint \"packages/devgraph-cli/src/**/*.{ts,tsx}\"",
     "test": "echo 'no tests yet'",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build:with-studio"
   },
   "dependencies": {
     "@devgraph/core": "^0.1.0",
