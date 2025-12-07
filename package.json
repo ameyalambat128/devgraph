@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:web": "pnpm --filter web dev",
+    "dev:studio": "pnpm --filter studio dev",
     "build": "turbo run build",
     "build:web": "pnpm --filter web build",
+    "build:studio": "pnpm --filter studio build",
     "build:core": "pnpm --filter @devgraph/core build",
     "build:cli": "pnpm --filter devgraph build",
+    "build:cli-full": "pnpm build:studio && pnpm --filter devgraph build:with-studio",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:core": "pnpm --filter @devgraph/core test",
@@ -18,7 +21,7 @@
     "devgraph": "pnpm exec tsx packages/devgraph-cli/src/index.ts",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm build:core && pnpm build:cli && changeset publish"
+    "release": "pnpm build:core && pnpm build:cli-full && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8",

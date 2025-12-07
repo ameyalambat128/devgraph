@@ -1,10 +1,55 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Static files are bundled at dist/studio-web/ relative to CLI package
+const STUDIO_DIR = path.resolve(__dirname, '../studio-web');
 
 interface StudioServerOptions {
   port: number;
   graphPath: string;
+}
+
+const MIME_TYPES: Record<string, string> = {
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.txt': 'text/plain',
+};
+
+function getMimeType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  return MIME_TYPES[ext] || 'application/octet-stream';
+}
+
+async function serveStaticFile(
+  res: ServerResponse,
+  filePath: string
+): Promise<boolean> {
+  try {
+    const stats = await stat(filePath);
+    if (stats.isFile()) {
+      const content = await readFile(filePath);
+      res.setHeader('Content-Type', getMimeType(filePath));
+      res.writeHead(200);
+      res.end(content);
+      return true;
+    }
+  } catch {
+    // File doesn't exist
+  }
+  return false;
 }
 
 export async function startStudioServer(options: StudioServerOptions): Promise<void> {
@@ -20,8 +65,18 @@ export async function startStudioServer(options: StudioServerOptions): Promise<v
     throw new Error(`Failed to read graph.json at ${graphPath}: ${(error as Error).message}`);
   }
 
+  // Check if studio assets exist
+  let hasStudioAssets = false;
+  try {
+    await stat(path.join(STUDIO_DIR, 'index.html'));
+    hasStudioAssets = true;
+  } catch {
+    // Studio assets not bundled
+  }
+
   const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
     const url = req.url || '/';
+    const urlPath = url.split('?')[0]; // Remove query string
 
     // CORS headers for local development
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -35,17 +90,50 @@ export async function startStudioServer(options: StudioServerOptions): Promise<v
     }
 
     // API endpoint: serve graph.json
-    if (url === '/api/graph') {
+    if (urlPath === '/api/graph') {
       res.setHeader('Content-Type', 'application/json');
       res.writeHead(200);
       res.end(graphData);
       return;
     }
 
-    // Redirect to external studio app
-    if (url === '/' || url === '/studio') {
+    // If studio assets are bundled, serve them
+    if (hasStudioAssets) {
+      // Try exact path
+      let filePath = path.join(STUDIO_DIR, urlPath);
+
+      // Handle trailing slash - look for index.html
+      if (urlPath.endsWith('/')) {
+        filePath = path.join(STUDIO_DIR, urlPath, 'index.html');
+      }
+
+      if (await serveStaticFile(res, filePath)) {
+        return;
+      }
+
+      // Try with .html extension
+      if (await serveStaticFile(res, `${filePath}.html`)) {
+        return;
+      }
+
+      // Try index.html in directory
+      if (await serveStaticFile(res, path.join(filePath, 'index.html'))) {
+        return;
+      }
+
+      // Fallback to index.html for client-side routing
+      if (!urlPath.startsWith('/_next') && !urlPath.startsWith('/api')) {
+        const indexPath = path.join(STUDIO_DIR, 'index.html');
+        if (await serveStaticFile(res, indexPath)) {
+          return;
+        }
+      }
+    }
+
+    // Fallback: show instructions if no studio assets
+    if (urlPath === '/' && !hasStudioAssets) {
       res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(getRedirectPage(port));
+      res.end(getFallbackPage(port));
       return;
     }
 
@@ -69,7 +157,7 @@ export async function startStudioServer(options: StudioServerOptions): Promise<v
   });
 }
 
-function getRedirectPage(port: number): string {
+function getFallbackPage(port: number): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -91,14 +179,8 @@ function getRedirectPage(port: number): string {
       text-align: center;
       padding: 2rem;
     }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    p {
-      color: #888;
-      margin-bottom: 1.5rem;
-    }
+    h1 { font-size: 2rem; margin-bottom: 1rem; }
+    p { color: #888; margin-bottom: 1.5rem; }
     .api-url {
       font-family: 'SF Mono', Monaco, 'Courier New', monospace;
       background: #111;
@@ -108,36 +190,13 @@ function getRedirectPage(port: number): string {
       margin-bottom: 1.5rem;
       border: 1px solid #333;
     }
-    .instructions {
-      text-align: left;
-      max-width: 600px;
-      margin: 0 auto;
-      background: #0a0a0a;
-      padding: 1.5rem;
+    .warning {
+      background: #1a1a00;
+      border: 1px solid #444400;
+      padding: 1rem;
       border-radius: 0.5rem;
-      border: 1px solid #222;
-    }
-    .instructions h2 {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      color: #fff;
-    }
-    .instructions ol {
-      padding-left: 1.5rem;
-      color: #888;
-    }
-    .instructions li {
-      margin-bottom: 0.5rem;
-    }
-    .instructions code {
-      background: #111;
-      padding: 0.2rem 0.4rem;
-      border-radius: 0.25rem;
-      font-size: 0.9em;
-    }
-    a {
-      color: #fff;
-      text-decoration: underline;
+      margin-top: 1rem;
+      color: #ffcc00;
     }
   </style>
 </head>
@@ -146,14 +205,9 @@ function getRedirectPage(port: number): string {
     <h1>DevGraph Studio</h1>
     <p>Your graph.json is being served at:</p>
     <div class="api-url">http://localhost:${port}/api/graph</div>
-
-    <div class="instructions">
-      <h2>How to use:</h2>
-      <ol>
-        <li>Open <a href="https://devgraph.ameyalambat.com/studio" target="_blank">DevGraph Studio</a></li>
-        <li>Paste your graph.json or fetch from the API above</li>
-        <li>Explore, edit, and export your codebase graph</li>
-      </ol>
+    <div class="warning">
+      Studio assets not found. This is a development build.<br>
+      Run the full build to embed the Studio UI.
     </div>
   </div>
 </body>
