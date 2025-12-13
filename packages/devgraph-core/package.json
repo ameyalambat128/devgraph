@@ -1,11 +1,13 @@
 {
   "name": "@devgraph/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Core parser and generators for DevGraph - build project graphs from Markdown",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ameyalambat128/devgraph",
@@ -14,7 +16,13 @@
   "homepage": "https://devgraph.ameyalambat.com",
   "author": "Ameya Lambat",
   "license": "MIT",
-  "keywords": ["devgraph", "documentation", "parser", "monorepo", "architecture"],
+  "keywords": [
+    "devgraph",
+    "documentation",
+    "parser",
+    "monorepo",
+    "architecture"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -w -p tsconfig.json --pretty",
