@@ -118,7 +118,24 @@ devgraph build docs/*.md
 
 # Build with diff against previous graph
 devgraph build docs/*.md --compare .devgraph/graph.json
+
+# Launch visual graph viewer
+devgraph studio
 ```
+
+## DevGraph Studio
+
+Visualize your project graph in a local web app:
+
+```bash
+devgraph studio
+```
+
+Opens at `http://localhost:9111` with:
+- Interactive graph visualization (React Flow)
+- Node details panel with service info
+- Search and filter by service type
+- Export and edit graph data
 
 ## Examples
 
@@ -142,9 +159,10 @@ pnpm test:core
 
 ## Structure
 
-- `apps/web`: Landing page and docs
+- `apps/web`: Landing page
+- `apps/studio`: Visual graph viewer (React Flow)
 - `packages/devgraph-core`: Parser, graph builder, generators
-- `packages/devgraph-cli`: CLI wrapper
+- `packages/devgraph-cli`: CLI + embedded Studio server
 - `.devgraph/`: Generated outputs (git-ignored)
 
 ## License

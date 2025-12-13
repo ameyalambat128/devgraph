@@ -4,7 +4,8 @@ coverage
 .turbo
 .next
 out
-.devgraph  # generated outputs (graph.json, summary, agents, diagrams)
+# generated outputs (graph.json, summary, agents, diagrams)
+.devgraph/
 # internal docs (specs, marketing, brand)
 docs/
 dist
