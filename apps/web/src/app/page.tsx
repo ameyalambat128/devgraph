@@ -48,7 +48,7 @@ export default function Home() {
               </a>
               <a
                 href="/docs"
-                className="inline-flex items-center gap-2 rounded-md border border-accent bg-transparent px-3 py-1.5 text-sm text-accent transition-colors hover:bg-accent/10"
+                className="inline-flex items-center gap-2 rounded-md border border-accent bg-black px-3 py-1.5 text-sm text-accent transition-colors hover:bg-neutral-900"
               >
                 <IconBookOpen className="h-4 w-4" />
                 Docs
