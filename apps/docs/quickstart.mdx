@@ -68,15 +68,23 @@ devgraph build docs/*.md
 
 Outputs are generated in `.devgraph/`:
 
-```
+```text
 .devgraph/
-├── graph.json      # Machine-readable project graph
-├── summary.md      # Human-readable overview
-├── agents/         # Per-service context files
+├── graph.json
+├── summary.md
+├── agents/
 │   └── api.md
-├── system.mmd      # Service dependency diagram
-└── codemap.mmd     # Repo structure diagram
+├── system.mmd
+└── codemap.mmd
 ```
+
+| File | Description |
+|------|-------------|
+| `graph.json` | Machine-readable project graph |
+| `summary.md` | Human-readable overview with tables |
+| `agents/*.md` | Per-service context files for LLMs |
+| `system.mmd` | Mermaid diagram of service dependencies |
+| `codemap.mmd` | Mermaid diagram of repo structure |
 
 ## 4. Visualize with Studio
 
