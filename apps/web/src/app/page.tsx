@@ -29,6 +29,13 @@ export default function Home() {
             </p>
             <div className="flex justify-center gap-3 lg:justify-start">
               <a
+                href="/docs"
+                className="inline-flex items-center gap-2 rounded-md border border-accent bg-accent px-3 py-1.5 text-sm text-white transition-colors hover:bg-accent/90"
+              >
+                <IconBookOpen className="h-4 w-4" />
+                Docs
+              </a>
+              <a
                 href="https://github.com/ameyalambat128/devgraph"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -45,13 +52,6 @@ export default function Home() {
               >
                 <IconX className="h-4 w-4" />
                 Follow on X
-              </a>
-              <a
-                href="/docs"
-                className="inline-flex items-center gap-2 rounded-md border border-accent bg-black px-3 py-1.5 text-sm text-accent transition-colors hover:bg-neutral-900"
-              >
-                <IconBookOpen className="h-4 w-4" />
-                Docs
               </a>
             </div>
             <p className="mt-4 text-sm text-gray-500">
