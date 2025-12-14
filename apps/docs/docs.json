@@ -22,6 +22,9 @@
     "light": "/logo.png"
   },
   "favicon": "/favicon.png",
+  "appearance": {
+    "default": "dark"
+  },
   "navigation": {
     "groups": [
       {
