@@ -1,0 +1,54 @@
+---
+title: devgraph studio
+description: "Launch the visual graph viewer"
+---
+
+## Usage
+
+```bash
+devgraph studio
+```
+
+## Description
+
+Launches DevGraph Studio, an interactive web-based graph viewer at [http://localhost:9111](http://localhost:9111).
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Interactive Graph" icon="diagram-project">
+    Visualize service dependencies with React Flow.
+  </Card>
+  <Card title="Node Details" icon="circle-info">
+    Click any node to view service info, commands, and dependencies.
+  </Card>
+  <Card title="Search" icon="magnifying-glass">
+    Find services quickly by name.
+  </Card>
+  <Card title="Type Filtering" icon="filter">
+    Filter nodes by service type (node, nextjs, python, etc.).
+  </Card>
+</CardGroup>
+
+## Prerequisites
+
+Before running Studio, build your graph:
+
+```bash
+devgraph build docs/*.md
+devgraph studio
+```
+
+Studio reads from `.devgraph/graph.json`.
+
+## Port
+
+Studio runs on port `9111` by default.
+
+## Screenshot
+
+Studio provides a clean, dark-themed interface for exploring your project architecture:
+
+- **Left panel**: Interactive graph with draggable nodes
+- **Right panel**: Selected service details
+- **Top bar**: Search and filter controls

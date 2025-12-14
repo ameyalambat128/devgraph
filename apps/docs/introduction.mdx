@@ -1,0 +1,50 @@
+---
+title: Introduction
+description: "One graph. Every repo. Context for humans and AI."
+---
+
+# What is DevGraph?
+
+DevGraph is a universal context layer for codebases. It scans Markdown files for service definitions, builds a project graph, and generates outputs like `graph.json`, `summary.md`, and agent-specific context files.
+
+One command to map your entire architecture—for humans and AI alike.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Markdown-First" icon="file-lines">
+    Define services, APIs, and environment variables in fenced code blocks within your existing docs.
+  </Card>
+  <Card title="Visual Graph" icon="diagram-project">
+    Launch DevGraph Studio to explore your architecture interactively.
+  </Card>
+  <Card title="AI-Ready Outputs" icon="robot">
+    Generate per-service context files optimized for LLMs and AI agents.
+  </Card>
+  <Card title="Mermaid Diagrams" icon="sitemap">
+    Auto-generate dependency and codebase structure diagrams.
+  </Card>
+</CardGroup>
+
+## Generated Outputs
+
+When you run `devgraph build`, the following files are created in `.devgraph/`:
+
+| File | Description |
+|------|-------------|
+| `graph.json` | Machine-readable project graph |
+| `summary.md` | Human-readable overview with tables |
+| `agents/*.md` | Per-service context files for LLMs |
+| `system.mmd` | Mermaid diagram of service dependencies |
+| `codemap.mmd` | Mermaid diagram of repo structure |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get up and running in 5 minutes.
+  </Card>
+  <Card title="CLI Commands" icon="terminal" href="/cli/build">
+    Learn all available commands.
+  </Card>
+</CardGroup>

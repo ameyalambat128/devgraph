@@ -1,0 +1,101 @@
+---
+title: devgraph-api
+description: "Define API routes for a service"
+---
+
+## Overview
+
+The `devgraph-api` block defines API routes for a service. Routes are associated with a parent service defined by `devgraph-service`.
+
+## Syntax
+
+````yaml
+```devgraph-api
+service: my-service
+routes:
+  GET /health: Health check endpoint
+  GET /api/users: List all users
+  POST /api/users: Create a new user
+  PUT /api/users/:id: Update a user
+  DELETE /api/users/:id: Delete a user
+```
+````
+
+## Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `service` | Yes | Name of the parent service |
+| `routes` | Yes | Object mapping routes to descriptions |
+
+## Route Format
+
+Routes are defined as `METHOD /path: description`:
+
+```yaml
+routes:
+  GET /path: Description of what this endpoint does
+  POST /path: Another endpoint description
+```
+
+### Supported Methods
+
+- `GET`
+- `POST`
+- `PUT`
+- `PATCH`
+- `DELETE`
+
+### Path Parameters
+
+Use `:param` syntax for path parameters:
+
+```yaml
+routes:
+  GET /users/:id: Get user by ID
+  PUT /posts/:postId/comments/:commentId: Update a comment
+```
+
+## Examples
+
+### REST API
+
+````yaml
+```devgraph-api
+service: api
+routes:
+  GET /health: Health check
+  GET /api/users: List users
+  GET /api/users/:id: Get user by ID
+  POST /api/users: Create user
+  PUT /api/users/:id: Update user
+  DELETE /api/users/:id: Delete user
+```
+````
+
+### Multiple API blocks
+
+You can split routes across multiple blocks:
+
+````yaml
+```devgraph-api
+service: api
+routes:
+  GET /api/users: List users
+  POST /api/users: Create user
+```
+
+```devgraph-api
+service: api
+routes:
+  GET /api/posts: List posts
+  POST /api/posts: Create post
+```
+````
+
+## Generated Output
+
+API routes appear in:
+- `graph.json` under the service's `api` field
+- `summary.md` in the routes table
+- `agents/{service}.md` context file

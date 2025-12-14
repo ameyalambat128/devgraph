@@ -1,0 +1,99 @@
+---
+title: Quickstart
+description: "Get started with DevGraph in 5 minutes"
+---
+
+## Installation
+
+Install DevGraph globally or use npx:
+
+<CodeGroup>
+```bash npm
+npm install -g devgraph
+```
+
+```bash pnpm
+pnpm add -g devgraph
+```
+
+```bash npx
+npx devgraph build docs/*.md
+```
+</CodeGroup>
+
+## 1. Add blocks to your Markdown
+
+In any `.md` file (e.g., `docs/architecture.md`), add devgraph blocks:
+
+```yaml
+## API Service
+
+```devgraph-service
+name: api
+type: node
+commands:
+  dev: npm run dev
+  build: npm run build
+depends:
+  - database
+```
+
+```devgraph-api
+service: api
+routes:
+  GET /health: Health check
+  GET /api/users: List users
+  POST /api/users: Create user
+```
+
+```devgraph-env
+service: api
+vars:
+  PORT: "3000"
+  DATABASE_URL: postgresql://localhost:5432/mydb
+```
+```
+
+## 2. Build the graph
+
+```bash
+devgraph build docs/*.md
+```
+
+## 3. Check outputs
+
+Outputs are generated in `.devgraph/`:
+
+```
+.devgraph/
+├── graph.json      # Machine-readable project graph
+├── summary.md      # Human-readable overview
+├── agents/         # Per-service context files
+│   └── api.md
+├── system.mmd      # Service dependency diagram
+└── codemap.mmd     # Repo structure diagram
+```
+
+## 4. Visualize with Studio
+
+Launch the interactive graph viewer:
+
+```bash
+devgraph studio
+```
+
+Opens at [http://localhost:9111](http://localhost:9111) with:
+- Interactive node exploration
+- Service details panel
+- Search and filter by type
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Block Types" icon="cube" href="/blocks/service">
+    Learn about all block types.
+  </Card>
+  <Card title="DevGraph Studio" icon="chart-network" href="/cli/studio">
+    Explore the visual graph viewer.
+  </Card>
+</CardGroup>
