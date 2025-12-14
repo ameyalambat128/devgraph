@@ -7,6 +7,16 @@
     "light": "#A78BFA",
     "dark": "#7C3AED"
   },
+  "fonts": {
+    "heading": {
+      "family": "Outfit",
+      "weight": 600
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 400
+    }
+  },
   "logo": {
     "dark": "/logo.png",
     "light": "/logo.png"
