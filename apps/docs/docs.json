@@ -18,8 +18,8 @@
     }
   },
   "logo": {
-    "dark": "/devgraph-wordmark.svg",
-    "light": "/devgraph-wordmark.svg"
+    "dark": "/devgraph-wordmark-dark.svg",
+    "light": "/devgraph-wordmark-light.svg"
   },
   "favicon": "/favicon.png",
   "appearance": {
