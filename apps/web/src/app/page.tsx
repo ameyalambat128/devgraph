@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Terminal } from '@/components/terminal';
 import { Scene3D } from '@/components/scene-3d';
-import { IconGithub, IconX } from '@/components/icons';
+import { IconGithub, IconX, IconBookOpen } from '@/components/icons';
 
 export default function Home() {
   return (
@@ -28,6 +28,13 @@ export default function Home() {
               Context for humans and AI.
             </p>
             <div className="flex justify-center gap-3 lg:justify-start">
+              <a
+                href="/docs"
+                className="inline-flex items-center gap-2 rounded-md border border-accent bg-accent px-3 py-1.5 text-sm text-white transition-colors hover:bg-accent/90"
+              >
+                <IconBookOpen className="h-4 w-4" />
+                Docs
+              </a>
               <a
                 href="https://github.com/ameyalambat128/devgraph"
                 target="_blank"
