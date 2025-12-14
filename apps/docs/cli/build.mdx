@@ -1,0 +1,55 @@
+---
+title: devgraph build
+description: "Build the project graph and generate outputs"
+---
+
+## Usage
+
+```bash
+devgraph build [paths...] [options]
+```
+
+## Arguments
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `paths` | Glob patterns for Markdown files | `**/*.md` |
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `--compare <file>` | Compare with previous graph.json for diff |
+| `--help` | Show help |
+
+## Examples
+
+Build from all Markdown files in docs:
+
+```bash
+devgraph build docs/*.md
+```
+
+Build from multiple directories:
+
+```bash
+devgraph build docs/*.md architecture/*.md
+```
+
+Build with diff comparison:
+
+```bash
+devgraph build docs/*.md --compare .devgraph/graph.json
+```
+
+## Output
+
+Creates the following in `.devgraph/`:
+
+| File | Description |
+|------|-------------|
+| `graph.json` | Machine-readable project graph |
+| `summary.md` | Human-readable overview with tables |
+| `agents/*.md` | Per-service context files for LLMs |
+| `system.mmd` | Mermaid diagram of service dependencies |
+| `codemap.mmd` | Mermaid diagram of repo structure |

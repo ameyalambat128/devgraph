@@ -1,0 +1,37 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "DevGraph",
+  "colors": {
+    "primary": "#8B5CF6",
+    "light": "#A78BFA",
+    "dark": "#7C3AED"
+  },
+  "logo": {
+    "dark": "/logo.png",
+    "light": "/logo.png"
+  },
+  "favicon": "/favicon.png",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": ["introduction", "quickstart"]
+      },
+      {
+        "group": "CLI Commands",
+        "pages": ["cli/build", "cli/validate", "cli/studio"]
+      },
+      {
+        "group": "Block Types",
+        "pages": ["blocks/service", "blocks/api", "blocks/env"]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/ameyalambat128/devgraph",
+      "x": "https://x.com/lambatameya"
+    }
+  }
+}

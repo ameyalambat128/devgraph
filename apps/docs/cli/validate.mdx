@@ -1,0 +1,48 @@
+---
+title: devgraph validate
+description: "Validate devgraph blocks without generating outputs"
+---
+
+## Usage
+
+```bash
+devgraph validate [paths...]
+```
+
+## Arguments
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `paths` | Glob patterns for Markdown files | `**/*.md` |
+
+## Description
+
+Validates all `devgraph-*` blocks in your Markdown files without generating any output files. Useful for CI/CD pipelines or pre-commit hooks.
+
+## Examples
+
+Validate docs directory:
+
+```bash
+devgraph validate docs/*.md
+```
+
+Validate all Markdown files:
+
+```bash
+devgraph validate "**/*.md"
+```
+
+## Exit Codes
+
+| Code | Description |
+|------|-------------|
+| `0` | All blocks valid |
+| `1` | Validation errors found |
+
+## What it validates
+
+- YAML syntax in all `devgraph-*` blocks
+- Required fields (`name`, `type` for services)
+- Service references in `devgraph-api` and `devgraph-env` blocks
+- Dependency references exist

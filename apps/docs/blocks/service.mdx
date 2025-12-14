@@ -1,0 +1,89 @@
+---
+title: devgraph-service
+description: "Define a service in your project"
+---
+
+## Overview
+
+The `devgraph-service` block defines a service in your project graph. This is the primary building block for DevGraph.
+
+## Syntax
+
+````yaml
+```devgraph-service
+name: my-service
+type: node
+commands:
+  dev: npm run dev
+  build: npm run build
+depends:
+  - other-service
+```
+````
+
+## Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique service identifier |
+| `type` | Yes | Service type (see below) |
+| `commands` | No | Object with command definitions |
+| `depends` | No | Array of service names this depends on |
+
+## Service Types
+
+| Type | Description |
+|------|-------------|
+| `node` | Node.js service |
+| `nextjs` | Next.js application |
+| `python` | Python service |
+| `go` | Go service |
+| `rust` | Rust service |
+| `database` | Database service |
+| `external` | External API or service |
+
+## Examples
+
+### Basic service
+
+````yaml
+```devgraph-service
+name: api
+type: node
+```
+````
+
+### Service with commands
+
+````yaml
+```devgraph-service
+name: web
+type: nextjs
+commands:
+  dev: pnpm dev
+  build: pnpm build
+  start: pnpm start
+```
+````
+
+### Service with dependencies
+
+````yaml
+```devgraph-service
+name: api
+type: node
+commands:
+  dev: npm run dev
+depends:
+  - database
+  - cache
+```
+````
+
+## Generated Output
+
+Services appear in:
+- `graph.json` as nodes
+- `summary.md` in the services table
+- `agents/{name}.md` as individual context files
+- `system.mmd` in the Mermaid diagram
