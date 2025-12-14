@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Terminal } from '@/components/terminal';
 import { Scene3D } from '@/components/scene-3d';
-import { IconGithub, IconX } from '@/components/icons';
+import { IconGithub, IconX, IconBookOpen } from '@/components/icons';
 
 export default function Home() {
   return (
@@ -45,6 +45,13 @@ export default function Home() {
               >
                 <IconX className="h-4 w-4" />
                 Follow on X
+              </a>
+              <a
+                href="/docs"
+                className="inline-flex items-center gap-2 rounded-md border border-accent bg-transparent px-3 py-1.5 text-sm text-accent transition-colors hover:bg-accent/10"
+              >
+                <IconBookOpen className="h-4 w-4" />
+                Docs
               </a>
             </div>
             <p className="mt-4 text-sm text-gray-500">

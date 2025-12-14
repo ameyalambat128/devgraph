@@ -49,3 +49,27 @@ export function IconX({
     </svg>
   );
 }
+
+interface IconBookOpenProps {
+  width?: number;
+  height?: number;
+  className?: string;
+}
+
+export function IconBookOpen({
+  width = 16,
+  height = 16,
+  className = '',
+}: IconBookOpenProps) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      className={className}
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18L19 6v5c0 4.55-3.03 9.11-7 10.27-3.97-1.16-7-5.72-7-10.27V6l7-2.82zM12 7a3 3 0 013 3v3l-2 2v-1H8v-2l-2 2v-1c0-.55.45-1 1-1h5z"/>
+    </svg>
+  );
+}
