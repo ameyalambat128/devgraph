@@ -15,7 +15,7 @@ DevGraph scans Markdown for `devgraph-*` fenced blocks and builds a unified proj
 ```bash
 npm install -g devgraph
 # or use npx
-npx devgraph build docs/*.md
+npx devgraph@latest build docs/*.md
 ```
 
 ### 1. Add blocks to your Markdown
