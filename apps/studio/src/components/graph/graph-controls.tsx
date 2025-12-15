@@ -33,6 +33,14 @@ export function GraphControls({
 }: GraphControlsProps) {
   return (
     <div className="flex flex-col gap-6 h-full p-4">
+      <div className="py-2">
+        <img
+          src="/devgraph-wordmark-dark.svg"
+          alt="DevGraph"
+          className="h-6"
+        />
+      </div>
+
       <div className="space-y-2">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
           Search
