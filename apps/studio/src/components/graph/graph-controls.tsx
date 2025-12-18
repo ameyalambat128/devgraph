@@ -32,50 +32,71 @@ export function GraphControls({
   onSearchQueryChange,
 }: GraphControlsProps) {
   return (
-    <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-      <div className="relative">
-        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search services..."
-          value={searchQuery}
-          onChange={(e) => onSearchQueryChange(e.target.value)}
-          className="pl-8 w-[200px] bg-background/80 backdrop-blur-sm h-9"
+    <div className="flex flex-col gap-6 h-full p-4">
+      <div className="py-2">
+        <img
+          src="/devgraph-wordmark-dark.svg"
+          alt="DevGraph"
+          className="h-6"
         />
       </div>
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() =>
-          onDirectionChange(
-            direction === 'horizontal' ? 'vertical' : 'horizontal'
-          )
-        }
-        className="bg-background/80 backdrop-blur-sm"
-      >
-        {direction === 'horizontal' ? (
-          <>
-            <ArrowRightLeft className="w-4 h-4 mr-1.5" />
-            Horizontal
-          </>
-        ) : (
-          <>
-            <ArrowUpDown className="w-4 h-4 mr-1.5" />
-            Vertical
-          </>
-        )}
-      </Button>
+      <div className="space-y-2">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Search
+        </span>
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search services..."
+            value={searchQuery}
+            onChange={(e) => onSearchQueryChange(e.target.value)}
+            className="pl-8 w-full bg-background/50"
+          />
+        </div>
+      </div>
 
-      {serviceTypes.length > 1 && (
+      <div className="space-y-2">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Layout
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            onDirectionChange(
+              direction === 'horizontal' ? 'vertical' : 'horizontal'
+            )
+          }
+          className="w-full justify-between bg-background/50"
+        >
+          <span className="flex items-center">
+            {direction === 'horizontal' ? (
+              <ArrowRightLeft className="w-4 h-4 mr-2" />
+            ) : (
+              <ArrowUpDown className="w-4 h-4 mr-2" />
+            )}
+            Direction
+          </span>
+          <span className="text-xs text-muted-foreground capitalize">{direction}</span>
+        </Button>
+      </div>
+
+      <div className="space-y-2">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Filter
+        </span>
         <Select
           value={selectedType || 'all'}
           onValueChange={(value) =>
             onTypeChange(value === 'all' ? null : value)
           }
         >
-          <SelectTrigger className="w-[140px] bg-background/80 backdrop-blur-sm">
-            <Filter className="w-4 h-4 mr-1.5" />
-            <SelectValue placeholder="Filter type" />
+          <SelectTrigger className="w-full bg-background/50">
+            <div className="flex items-center">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Filter type" />
+            </div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
@@ -86,7 +107,7 @@ export function GraphControls({
             ))}
           </SelectContent>
         </Select>
-      )}
+      </div>
     </div>
   );
 }

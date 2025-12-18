@@ -70,7 +70,7 @@ export function ServiceDetailPanel({
                 {service.name}
                 <Badge variant="secondary">{service.type}</Badge>
               </SheetTitle>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 mr-8">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -112,26 +112,38 @@ export function ServiceDetailPanel({
           <ScrollArea className="h-[calc(100vh-120px)]">
             <div className="p-6 pt-0">
               <Tabs defaultValue="commands" className="w-full">
-                <TabsList className="w-full grid grid-cols-4">
-                  <TabsTrigger value="commands" className="text-xs">
-                    <Terminal className="w-3.5 h-3.5 mr-1" />
+                <TabsList className="w-full flex justify-start border-b border-border/40 bg-transparent p-0 h-auto rounded-none">
+                  <TabsTrigger 
+                    value="commands" 
+                    className="flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  >
+                    <Terminal className="w-3.5 h-3.5 mr-2" />
                     Commands
                   </TabsTrigger>
-                  <TabsTrigger value="routes" className="text-xs">
-                    <Globe className="w-3.5 h-3.5 mr-1" />
+                  <TabsTrigger 
+                    value="routes" 
+                    className="flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  >
+                    <Globe className="w-3.5 h-3.5 mr-2" />
                     Routes
                   </TabsTrigger>
-                  <TabsTrigger value="env" className="text-xs">
-                    <Settings className="w-3.5 h-3.5 mr-1" />
+                  <TabsTrigger 
+                    value="env" 
+                    className="flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  >
+                    <Settings className="w-3.5 h-3.5 mr-2" />
                     Env
                   </TabsTrigger>
-                  <TabsTrigger value="deps" className="text-xs">
-                    <GitBranch className="w-3.5 h-3.5 mr-1" />
+                  <TabsTrigger 
+                    value="deps" 
+                    className="flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  >
+                    <GitBranch className="w-3.5 h-3.5 mr-2" />
                     Deps
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="commands" className="mt-4">
+                <TabsContent value="commands" className="mt-6">
                   {commands.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No commands defined</p>
                   ) : (
@@ -139,18 +151,21 @@ export function ServiceDetailPanel({
                       {commands.map(([key, value]) => (
                         <div
                           key={key}
-                          className="flex items-start justify-between p-3 rounded-lg bg-muted/50"
+                          className="grid grid-cols-[1fr_auto] gap-3 items-start p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors"
                         >
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm">{key}</p>
-                            <code className="text-xs text-muted-foreground font-mono break-all">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm mb-1.5 truncate" title={key}>{key}</p>
+                            <code 
+                              className="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-all block max-h-[100px] overflow-y-auto"
+                              title={value}
+                            >
                               {value}
                             </code>
                           </div>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 ml-2 shrink-0"
+                            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
                             onClick={() => copyToClipboard(value, `cmd-${key}`)}
                           >
                             {copiedItem === `cmd-${key}` ? (
@@ -165,7 +180,7 @@ export function ServiceDetailPanel({
                   )}
                 </TabsContent>
 
-                <TabsContent value="routes" className="mt-4">
+                <TabsContent value="routes" className="mt-6">
                   {routes.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No routes defined</p>
                   ) : (
@@ -173,12 +188,12 @@ export function ServiceDetailPanel({
                       {routes.map(({ route, description }, index) => (
                         <div
                           key={index}
-                          className="flex items-start justify-between p-3 rounded-lg bg-muted/50"
+                          className="grid grid-cols-[1fr_auto] gap-3 items-start p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors"
                         >
-                          <div className="flex-1 min-w-0">
-                            <code className="text-sm font-mono">{route}</code>
+                          <div className="min-w-0">
+                            <code className="text-sm font-mono block truncate" title={route}>{route}</code>
                             {description && (
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className="text-xs text-muted-foreground mt-1.5 truncate" title={description}>
                                 {description}
                               </p>
                             )}
@@ -186,7 +201,7 @@ export function ServiceDetailPanel({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 ml-2 shrink-0"
+                            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
                             onClick={() => copyToClipboard(route, `route-${index}`)}
                           >
                             {copiedItem === `route-${index}` ? (
@@ -201,7 +216,7 @@ export function ServiceDetailPanel({
                   )}
                 </TabsContent>
 
-                <TabsContent value="env" className="mt-4">
+                <TabsContent value="env" className="mt-6">
                   {envVars.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No env vars defined</p>
                   ) : (
@@ -209,19 +224,19 @@ export function ServiceDetailPanel({
                       {envVars.map(({ key, value }) => (
                         <div
                           key={key}
-                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                          className="grid grid-cols-[1fr_auto] gap-3 items-center p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <code className="text-sm font-mono font-medium">{key}</code>
-                            <span className="text-muted-foreground">=</span>
-                            <code className="text-sm font-mono text-muted-foreground truncate">
+                            <code className="text-sm font-mono font-medium shrink-0 truncate max-w-[40%]" title={key}>{key}</code>
+                            <span className="text-muted-foreground shrink-0">=</span>
+                            <code className="text-sm font-mono text-muted-foreground truncate flex-1" title={value}>
                               {value || '(empty)'}
                             </code>
                           </div>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 ml-2 shrink-0"
+                            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
                             onClick={() => copyToClipboard(`${key}=${value}`, `env-${key}`)}
                           >
                             {copiedItem === `env-${key}` ? (

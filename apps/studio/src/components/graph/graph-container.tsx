@@ -98,44 +98,48 @@ export function GraphContainer({
   }
 
   return (
-    <div className="w-full h-full relative">
-      <GraphControls
-        direction={layoutDirection}
-        onDirectionChange={onLayoutDirectionChange}
-        serviceTypes={serviceTypes}
-        selectedType={serviceTypeFilter}
-        onTypeChange={onServiceTypeFilterChange}
-        searchQuery={searchQuery}
-        onSearchQueryChange={onSearchQueryChange}
-      />
-
-      <ReactFlow
-        nodes={nodes.map((node) => ({
-          ...node,
-          selected: node.id === selectedService,
-        }))}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={handleNodeClick}
-        onPaneClick={handlePaneClick}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        defaultEdgeOptions={defaultEdgeOptions}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.1}
-        maxZoom={2}
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background color="hsl(var(--muted-foreground) / 0.2)" gap={20} />
-        <Controls className="!bg-background/80 !backdrop-blur-sm !border-border" />
-        <MiniMap
-          className="!bg-background/80 !backdrop-blur-sm !border-border"
-          nodeColor="hsl(var(--muted))"
-          maskColor="hsl(var(--background) / 0.8)"
+    <div className="w-full h-full flex">
+      <aside className="w-64 border-r bg-background/50 backdrop-blur-sm z-10">
+        <GraphControls
+          direction={layoutDirection}
+          onDirectionChange={onLayoutDirectionChange}
+          serviceTypes={serviceTypes}
+          selectedType={serviceTypeFilter}
+          onTypeChange={onServiceTypeFilterChange}
+          searchQuery={searchQuery}
+          onSearchQueryChange={onSearchQueryChange}
         />
-      </ReactFlow>
+      </aside>
+      
+      <div className="flex-1 h-full relative">
+        <ReactFlow
+          nodes={nodes.map((node) => ({
+            ...node,
+            selected: node.id === selectedService,
+          }))}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={handleNodeClick}
+          onPaneClick={handlePaneClick}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          defaultEdgeOptions={defaultEdgeOptions}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+          minZoom={0.1}
+          maxZoom={2}
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background color="hsl(var(--muted-foreground) / 0.2)" gap={20} />
+          <Controls className="!bg-background/80 !backdrop-blur-sm !border-border" />
+          <MiniMap
+            className="!bg-background/80 !backdrop-blur-sm !border-border"
+            nodeColor="hsl(var(--muted))"
+            maskColor="hsl(var(--background) / 0.8)"
+          />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

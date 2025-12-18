@@ -4,6 +4,10 @@
 
 DevGraph is a Turborepo monorepo (pnpm-first) that scans Markdown for `devgraph-*` fenced blocks, builds a project graph, and generates outputs like `graph.json`, `summary.md`, agent markdown files, and Mermaid diagrams inside `.devgraph/`.
 
+## Brand Guidelines
+
+/internal-docs/brand/README.md
+
 ## Package Structure
 
 ```
@@ -28,6 +32,7 @@ devgraph studio                # Start local Studio server (port 9111)
 ### Studio Command
 
 `devgraph studio` serves the embedded React app locally:
+
 - Graph visualization with React Flow
 - Click nodes to view service details
 - Edit and export graph.json
@@ -43,6 +48,8 @@ devgraph studio                # Start local Studio server (port 9111)
 
 ## Dev Workflow
 
+See `/internal-docs/DEVELOPMENT.md` for full details.
+
 ```bash
 pnpm install           # Install deps
 pnpm dev               # Run all apps in dev mode
@@ -50,6 +57,28 @@ pnpm build             # Build all packages
 pnpm build:cli-full    # Build CLI with embedded Studio
 pnpm devgraph build    # Generate .devgraph/ outputs
 pnpm devgraph studio   # Start Studio server
+```
+
+### Studio Dev Mode
+
+To run Studio in dev mode with hot reload using existing `.devgraph/`:
+
+```bash
+pnpm devgraph build examples/*.md   # Generate graph first
+pnpm dev:studio                      # http://localhost:3000
+```
+
+Studio dev reads from `.devgraph/graph.json` via `/api/graph` route.
+
+## Releasing
+
+See `/internal-docs/RELEASING.md` for full workflow.
+
+```bash
+pnpm changeset         # Create changeset for changes
+pnpm version-packages  # Bump versions, update CHANGELOGs
+pnpm release           # Build + publish to npm
+git tag vX.X.X && git push origin vX.X.X  # Tag release
 ```
 
 ## Build Pipeline (Studio Embedding)
@@ -66,13 +95,13 @@ pnpm devgraph studio   # Start Studio server
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `packages/devgraph-cli/src/index.ts` | CLI entry, commands |
-| `packages/devgraph-cli/src/studio/server.ts` | HTTP server for Studio |
-| `packages/devgraph-core/src/index.ts` | Parser, graph builder, generators |
-| `apps/studio/src/app/page.tsx` | Studio main page |
-| `apps/studio/src/store/studio-store.ts` | Zustand state |
+| File                                         | Purpose                           |
+| -------------------------------------------- | --------------------------------- |
+| `packages/devgraph-cli/src/index.ts`         | CLI entry, commands               |
+| `packages/devgraph-cli/src/studio/server.ts` | HTTP server for Studio            |
+| `packages/devgraph-core/src/index.ts`        | Parser, graph builder, generators |
+| `apps/studio/src/app/page.tsx`               | Studio main page                  |
+| `apps/studio/src/store/studio-store.ts`      | Zustand state                     |
 
 ## Notes for AI Agents
 
