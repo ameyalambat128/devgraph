@@ -70,7 +70,7 @@ export function ServiceDetailPanel({
                 {service.name}
                 <Badge variant="secondary">{service.type}</Badge>
               </SheetTitle>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 mr-8">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -112,31 +112,31 @@ export function ServiceDetailPanel({
           <ScrollArea className="h-[calc(100vh-120px)]">
             <div className="p-6 pt-0">
               <Tabs defaultValue="commands" className="w-full">
-                <TabsList className="w-full flex justify-start border-b border-border bg-transparent p-0 h-auto rounded-none">
+                <TabsList className="w-full flex justify-start border-b border-border/40 bg-transparent p-0 h-auto rounded-none">
                   <TabsTrigger 
                     value="commands" 
-                    className="flex-1 rounded-none border-b-2 border-transparent bg-transparent px-2 py-2 text-xs text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    className="flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                   >
                     <Terminal className="w-3.5 h-3.5 mr-2" />
                     Commands
                   </TabsTrigger>
                   <TabsTrigger 
                     value="routes" 
-                    className="flex-1 rounded-none border-b-2 border-transparent bg-transparent px-2 py-2 text-xs text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    className="flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                   >
                     <Globe className="w-3.5 h-3.5 mr-2" />
                     Routes
                   </TabsTrigger>
                   <TabsTrigger 
                     value="env" 
-                    className="flex-1 rounded-none border-b-2 border-transparent bg-transparent px-2 py-2 text-xs text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    className="flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                   >
                     <Settings className="w-3.5 h-3.5 mr-2" />
                     Env
                   </TabsTrigger>
                   <TabsTrigger 
                     value="deps" 
-                    className="flex-1 rounded-none border-b-2 border-transparent bg-transparent px-2 py-2 text-xs text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    className="flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                   >
                     <GitBranch className="w-3.5 h-3.5 mr-2" />
                     Deps
@@ -151,11 +151,14 @@ export function ServiceDetailPanel({
                       {commands.map(([key, value]) => (
                         <div
                           key={key}
-                          className="flex items-start justify-between p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors overflow-hidden"
+                          className="grid grid-cols-[1fr_auto] gap-3 items-start p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors"
                         >
-                          <div className="flex-1 min-w-0 mr-3">
-                            <p className="font-medium text-sm mb-1.5 truncate">{key}</p>
-                            <code className="text-xs text-muted-foreground font-mono break-all line-clamp-2 block">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm mb-1.5 truncate" title={key}>{key}</p>
+                            <code 
+                              className="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-all block max-h-[100px] overflow-y-auto"
+                              title={value}
+                            >
                               {value}
                             </code>
                           </div>
@@ -185,12 +188,12 @@ export function ServiceDetailPanel({
                       {routes.map(({ route, description }, index) => (
                         <div
                           key={index}
-                          className="flex items-start justify-between p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors overflow-hidden"
+                          className="grid grid-cols-[1fr_auto] gap-3 items-start p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors"
                         >
-                          <div className="flex-1 min-w-0 mr-3">
-                            <code className="text-sm font-mono block truncate">{route}</code>
+                          <div className="min-w-0">
+                            <code className="text-sm font-mono block truncate" title={route}>{route}</code>
                             {description && (
-                              <p className="text-xs text-muted-foreground mt-1.5 truncate">
+                              <p className="text-xs text-muted-foreground mt-1.5 truncate" title={description}>
                                 {description}
                               </p>
                             )}
@@ -221,10 +224,10 @@ export function ServiceDetailPanel({
                       {envVars.map(({ key, value }) => (
                         <div
                           key={key}
-                          className="flex items-center justify-between p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors overflow-hidden"
+                          className="grid grid-cols-[1fr_auto] gap-3 items-center p-3 rounded-lg border border-border bg-transparent hover:bg-muted/10 transition-colors"
                         >
-                          <div className="flex items-center gap-2 min-w-0 mr-3 overflow-hidden flex-1">
-                            <code className="text-sm font-mono font-medium shrink-0 truncate max-w-[45%]" title={key}>{key}</code>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <code className="text-sm font-mono font-medium shrink-0 truncate max-w-[40%]" title={key}>{key}</code>
                             <span className="text-muted-foreground shrink-0">=</span>
                             <code className="text-sm font-mono text-muted-foreground truncate flex-1" title={value}>
                               {value || '(empty)'}
