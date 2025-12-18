@@ -27,10 +27,10 @@ export default function Home() {
               <br />
               Context for humans and AI.
             </p>
-            <div className="flex justify-center gap-3 lg:justify-start">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <a
                 href="/docs"
-                className="inline-flex items-center gap-2 rounded-md border border-accent bg-accent px-3 py-1.5 text-sm text-white transition-colors hover:bg-accent/90"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-accent bg-accent px-3 py-2 text-sm text-white transition-colors hover:bg-accent/90 sm:px-3 sm:py-1.5"
               >
                 <IconBookOpen className="h-4 w-4" />
                 Docs
@@ -39,19 +39,21 @@ export default function Home() {
                 href="https://github.com/ameyalambat128/devgraph"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-white px-3 py-1.5 text-sm text-black transition-colors hover:bg-white/90"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-white/20 bg-white px-3 py-2 text-sm text-black transition-colors hover:bg-white/90 sm:px-3 sm:py-1.5"
               >
                 <IconGithub className="h-4 w-4" />
-                Star on GitHub
+                <span className="hidden sm:inline">Star on GitHub</span>
+                <span className="sm:hidden">GitHub</span>
               </a>
               <a
                 href="https://x.com/lambatameya"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md border border-neutral-600 bg-black px-3 py-1.5 text-sm text-white transition-colors hover:border-neutral-500 hover:bg-neutral-900"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-600 bg-black px-3 py-2 text-sm text-white transition-colors hover:border-neutral-500 hover:bg-neutral-900 sm:px-3 sm:py-1.5"
               >
                 <IconX className="h-4 w-4" />
-                Follow on X
+                <span className="hidden sm:inline">Follow on X</span>
+                <span className="sm:hidden">X</span>
               </a>
             </div>
             <p className="mt-4 text-sm text-gray-500">
