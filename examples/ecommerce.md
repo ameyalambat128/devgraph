@@ -34,6 +34,10 @@ depends:
   - order-service
   - product-service
   - user-service
+ports:
+  - 4000
+healthcheck:
+  http: http://localhost:4000/health
 ```
 
 ### Order Service
@@ -49,6 +53,10 @@ commands:
 depends:
   - product-service
   - payment-service
+ports:
+  - 4001
+healthcheck:
+  tcp: 4001
 ```
 
 ### Product Service
@@ -61,6 +69,10 @@ type: node
 commands:
   dev: pnpm dev --filter product-service
   build: pnpm build --filter product-service
+ports:
+  - 4002
+healthcheck:
+  http: http://localhost:4002/products
 ```
 
 ### User Service

@@ -5,10 +5,13 @@ import path from 'node:path';
 import {
   buildGraph,
   diffGraphs,
+  formatRunPlan,
   generateAgents,
   generateCodemapMermaid,
   generateMermaid,
+  generateRunbook,
   generateSummary,
+  getRunPlan,
   parseMarkdownFiles,
 } from '@devgraph/core';
 import { Command } from 'commander';
@@ -132,6 +135,123 @@ program
     );
     console.log(`Outputs written to ${outDir}`);
   });
+
+program
+  .command('run')
+  .description('Generate a run plan for a service and its dependencies')
+  .argument('<service>', 'Service name to run')
+  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
+  .option('--runbook', 'Generate a markdown runbook file for AI agents')
+  .option('--json', 'Output as JSON')
+  .option('--exec', 'Execute the run plan (start all services)')
+  .action(
+    async (
+      service: string,
+      options: { graph: string; runbook?: boolean; json?: boolean; exec?: boolean }
+    ) => {
+      const graphPath = path.resolve(workspaceRoot, options.graph);
+
+      // Load graph
+      let graphData;
+      try {
+        const raw = await readFile(graphPath, 'utf8');
+        graphData = JSON.parse(raw);
+      } catch {
+        console.error(`Graph file not found at: ${graphPath}`);
+        console.log('\nRun "devgraph build" first to generate graph.json');
+        process.exitCode = 1;
+        return;
+      }
+
+      // Generate run plan
+      const result = getRunPlan(graphData, service);
+
+      if (!result.ok) {
+        if (result.error === 'not_found') {
+          console.error(`Service not found: ${result.service}`);
+          console.log('\nAvailable services:');
+          for (const name of Object.keys(graphData.services)) {
+            console.log(`  - ${name}`);
+          }
+        } else if (result.error === 'cycle') {
+          console.error(`Dependency cycle detected: ${result.path.join(' → ')}`);
+        } else if (result.error === 'missing_dependency') {
+          console.error(
+            `Service "${result.service}" depends on "${result.missing}" which is not defined`
+          );
+        }
+        process.exitCode = 1;
+        return;
+      }
+
+      const { plan } = result;
+
+      // Output mode: JSON
+      if (options.json) {
+        console.log(JSON.stringify(plan, null, 2));
+        return;
+      }
+
+      // Output mode: Runbook
+      if (options.runbook) {
+        const runbookDir = path.join(path.dirname(graphPath), 'runbooks');
+        await mkdir(runbookDir, { recursive: true });
+        const runbookPath = path.join(runbookDir, `${service}.md`);
+        const runbookContent = generateRunbook(plan);
+        await writeFile(runbookPath, runbookContent);
+        console.log(`Runbook generated: ${runbookPath}`);
+        return;
+      }
+
+      // Output mode: Exec
+      if (options.exec) {
+        console.log(BANNER);
+        console.log(`Starting services for: ${service}\n`);
+
+        for (let i = 0; i < plan.steps.length; i++) {
+          const step = plan.steps[i];
+          console.log(`[${i + 1}/${plan.steps.length}] Starting ${step.service}...`);
+
+          if (!step.command) {
+            console.log(`      ⚠ No dev command defined, skipping`);
+            continue;
+          }
+
+          console.log(`      → ${step.command}`);
+
+          // For exec, we spawn the command in the background
+          // This is a simple implementation - real version might use proper process management
+          const proc = spawn(step.command, [], {
+            shell: true,
+            stdio: 'inherit',
+            detached: false,
+          });
+
+          // Wait a bit for the service to start
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Check if process died immediately
+          if (proc.exitCode !== null && proc.exitCode !== 0) {
+            console.log(`      ✗ Failed to start`);
+            process.exitCode = 1;
+            return;
+          }
+
+          console.log(`      ✓ Started`);
+        }
+
+        console.log(`\n✓ All ${plan.steps.length} services started`);
+        console.log('Press Ctrl+C to stop all.\n');
+
+        // Keep the process running
+        await new Promise(() => {});
+        return;
+      }
+
+      // Default: Print formatted plan
+      console.log(formatRunPlan(plan));
+    }
+  );
 
 program
   .command('studio')

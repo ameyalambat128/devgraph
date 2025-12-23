@@ -15,11 +15,19 @@ export interface DevgraphBlock<T = unknown> {
   data: T;
 }
 
+export interface HealthCheck {
+  http?: string;
+  tcp?: number;
+  command?: string;
+}
+
 export interface ServiceBlock {
   name: string;
   type: string;
   commands?: Record<string, string>;
   depends?: string[];
+  ports?: number[];
+  healthcheck?: HealthCheck;
 }
 
 export interface ApiBlock {
@@ -51,11 +59,19 @@ export interface ParseOptions {
   cwd?: string;
 }
 
+const healthCheckSchema = z.object({
+  http: z.string().optional(),
+  tcp: z.number().optional(),
+  command: z.string().optional(),
+});
+
 const serviceSchema = z.object({
   name: z.string().min(1),
   type: z.string().min(1),
   commands: z.record(z.string()).optional(),
   depends: z.array(z.string()).optional(),
+  ports: z.array(z.number()).optional(),
+  healthcheck: healthCheckSchema.optional(),
 });
 
 const apiSchema = z.object({
@@ -546,4 +562,273 @@ function collectRoutes(svc: ServiceBlock & { apis?: ApiBlock[] }): Set<string> {
     Object.keys(api.routes || {}).forEach((k) => routes.add(k));
   }
   return routes;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Run Plan
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface RunPlanStep {
+  service: string;
+  type: string;
+  command: string | null;
+  env: Record<string, string>;
+  ports?: number[];
+  healthcheck?: HealthCheck;
+}
+
+export interface RunPlan {
+  target: string;
+  steps: RunPlanStep[];
+}
+
+export type RunPlanResult =
+  | { ok: true; plan: RunPlan }
+  | { ok: false; error: 'not_found'; service: string }
+  | { ok: false; error: 'cycle'; path: string[] }
+  | { ok: false; error: 'missing_dependency'; service: string; missing: string };
+
+/**
+ * Collect all dependencies for a service (recursive).
+ */
+function collectDependencies(
+  graph: Devgraph,
+  serviceName: string,
+  visited: Set<string> = new Set(),
+  path: string[] = []
+): { deps: string[] } | { cycle: string[] } {
+  if (path.includes(serviceName)) {
+    return { cycle: [...path, serviceName] };
+  }
+  if (visited.has(serviceName)) {
+    return { deps: [] };
+  }
+
+  visited.add(serviceName);
+  const service = graph.services[serviceName];
+  if (!service) {
+    return { deps: [] };
+  }
+
+  const allDeps: string[] = [];
+  for (const dep of service.depends ?? []) {
+    const result = collectDependencies(graph, dep, visited, [...path, serviceName]);
+    if ('cycle' in result) {
+      return result;
+    }
+    allDeps.push(...result.deps, dep);
+  }
+
+  return { deps: allDeps };
+}
+
+/**
+ * Topological sort using Kahn's algorithm.
+ * Returns services in order they should be started (dependencies first).
+ */
+function topologicalSort(graph: Devgraph, services: string[]): string[] {
+  const serviceSet = new Set(services);
+  const inDegree = new Map<string, number>();
+  const adjacency = new Map<string, string[]>();
+
+  // Initialize
+  for (const name of services) {
+    inDegree.set(name, 0);
+    adjacency.set(name, []);
+  }
+
+  // Build adjacency and in-degree
+  for (const name of services) {
+    const svc = graph.services[name];
+    if (svc?.depends) {
+      for (const dep of svc.depends) {
+        if (serviceSet.has(dep)) {
+          adjacency.get(dep)!.push(name);
+          inDegree.set(name, (inDegree.get(name) ?? 0) + 1);
+        }
+      }
+    }
+  }
+
+  // Kahn's algorithm
+  const queue: string[] = [];
+  for (const [name, degree] of inDegree) {
+    if (degree === 0) queue.push(name);
+  }
+
+  const sorted: string[] = [];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    sorted.push(current);
+    for (const neighbor of adjacency.get(current) ?? []) {
+      const newDegree = (inDegree.get(neighbor) ?? 1) - 1;
+      inDegree.set(neighbor, newDegree);
+      if (newDegree === 0) {
+        queue.push(neighbor);
+      }
+    }
+  }
+
+  return sorted;
+}
+
+/**
+ * Generate a run plan for a service and all its dependencies.
+ */
+export function getRunPlan(graph: Devgraph, serviceName: string): RunPlanResult {
+  const service = graph.services[serviceName];
+  if (!service) {
+    return { ok: false, error: 'not_found', service: serviceName };
+  }
+
+  // Collect all dependencies
+  const depResult = collectDependencies(graph, serviceName);
+  if ('cycle' in depResult) {
+    return { ok: false, error: 'cycle', path: depResult.cycle };
+  }
+
+  // Check for missing dependencies
+  const allServices = new Set([serviceName, ...depResult.deps]);
+  for (const name of allServices) {
+    const svc = graph.services[name];
+    if (!svc) {
+      return { ok: false, error: 'missing_dependency', service: serviceName, missing: name };
+    }
+  }
+
+  // Topological sort
+  const sorted = topologicalSort(graph, [...allServices]);
+
+  // Build steps
+  const steps: RunPlanStep[] = sorted.map((name) => {
+    const svc = graph.services[name];
+    const envVars: Record<string, string> = {};
+    for (const env of svc.env ?? []) {
+      Object.assign(envVars, env.vars);
+    }
+
+    return {
+      service: name,
+      type: svc.type,
+      command: svc.commands?.dev ?? null,
+      env: envVars,
+      ports: svc.ports,
+      healthcheck: svc.healthcheck,
+    };
+  });
+
+  return {
+    ok: true,
+    plan: { target: serviceName, steps },
+  };
+}
+
+/**
+ * Format run plan as a human-readable string.
+ */
+export function formatRunPlan(plan: RunPlan): string {
+  const lines: string[] = [];
+  const width = 45;
+
+  lines.push(`╭${'─'.repeat(width)}╮`);
+  lines.push(`│  Run Plan: ${plan.target.padEnd(width - 14)}│`);
+  lines.push(`╰${'─'.repeat(width)}╯`);
+  lines.push('');
+  lines.push('Dependencies (run in order):');
+
+  // Calculate column widths
+  const maxServiceLen = Math.max(...plan.steps.map((s) => s.service.length), 7);
+  const maxCmdLen = Math.max(...plan.steps.map((s) => (s.command ?? 'not defined').length), 7);
+
+  // Header
+  lines.push(`┌───┬${'─'.repeat(maxServiceLen + 2)}┬${'─'.repeat(maxCmdLen + 2)}┐`);
+  lines.push(`│ # │ ${'Service'.padEnd(maxServiceLen)} │ ${'Command'.padEnd(maxCmdLen)} │`);
+  lines.push(`├───┼${'─'.repeat(maxServiceLen + 2)}┼${'─'.repeat(maxCmdLen + 2)}┤`);
+
+  // Rows
+  for (let i = 0; i < plan.steps.length; i++) {
+    const step = plan.steps[i];
+    const num = String(i + 1).padStart(1);
+    const cmd = step.command ?? 'not defined';
+    lines.push(`│ ${num} │ ${step.service.padEnd(maxServiceLen)} │ ${cmd.padEnd(maxCmdLen)} │`);
+  }
+
+  lines.push(`└───┴${'─'.repeat(maxServiceLen + 2)}┴${'─'.repeat(maxCmdLen + 2)}┘`);
+
+  // Environment variables
+  const servicesWithEnv = plan.steps.filter((s) => Object.keys(s.env).length > 0);
+  if (servicesWithEnv.length > 0) {
+    lines.push('');
+    lines.push('Environment Variables:');
+    for (const step of servicesWithEnv) {
+      const vars = Object.keys(step.env).join(', ');
+      lines.push(`  ${step.service}: ${vars}`);
+    }
+  }
+
+  lines.push('');
+  lines.push(`Run with: devgraph run ${plan.target} --exec`);
+
+  return lines.join('\n');
+}
+
+/**
+ * Generate a runbook markdown file for AI agents.
+ */
+export function generateRunbook(plan: RunPlan): string {
+  const lines: string[] = [];
+
+  lines.push(`# Runbook: Start ${plan.target}`);
+  lines.push('');
+  lines.push('> Auto-generated by DevGraph');
+  lines.push('');
+
+  lines.push('## Prerequisites');
+  lines.push('');
+  lines.push('- [ ] Required dependencies installed');
+  lines.push('- [ ] Environment variables configured');
+  lines.push('');
+
+  lines.push('## Steps');
+  lines.push('');
+
+  for (let i = 0; i < plan.steps.length; i++) {
+    const step = plan.steps[i];
+    lines.push(`### Step ${i + 1}: Start ${step.service}`);
+    lines.push('');
+
+    if (step.command) {
+      lines.push('```bash');
+      lines.push(step.command);
+      lines.push('```');
+    } else {
+      lines.push('> ⚠️ No dev command defined for this service.');
+    }
+    lines.push('');
+
+    if (step.healthcheck) {
+      if (step.healthcheck.http) {
+        lines.push(`**Wait for**: \`${step.healthcheck.http}\` returns 200`);
+      } else if (step.healthcheck.tcp) {
+        lines.push(`**Wait for**: Port ${step.healthcheck.tcp} accepting connections`);
+      } else if (step.healthcheck.command) {
+        lines.push(`**Wait for**: \`${step.healthcheck.command}\` exits 0`);
+      }
+      lines.push('');
+    }
+
+    if (Object.keys(step.env).length > 0) {
+      lines.push('**Environment:**');
+      for (const [key, value] of Object.entries(step.env)) {
+        lines.push(`- \`${key}=${value}\``);
+      }
+      lines.push('');
+    }
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push(`✅ **Success**: All ${plan.steps.length} services started for ${plan.target}`);
+
+  return lines.join('\n');
 }
