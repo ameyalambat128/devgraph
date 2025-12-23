@@ -1,5 +1,16 @@
 # devgraph
 
+## 0.3.0
+
+### Minor Changes
+
+- 50ae414: Add `devgraph run <service>` command for dependency-aware service startup plans
+
+### Patch Changes
+
+- Updated dependencies [50ae414]
+  - @devgraph/core@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
