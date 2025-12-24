@@ -68,6 +68,8 @@ Outputs are generated in `.devgraph/`:
 | `agents/*.md` | Per-service context files for LLMs |
 | `system.mmd` | Mermaid diagram of service dependencies |
 | `codemap.mmd` | Mermaid diagram of repo structure |
+| `integration_notes.md` | Diff summary when using `--compare` |
+| `runbooks/*.md` | AI-ready runbooks from `devgraph run --runbook` |
 
 ## Block Types
 
@@ -118,6 +120,16 @@ devgraph build docs/*.md
 
 # Build with diff against previous graph
 devgraph build docs/*.md --compare .devgraph/graph.json
+
+# Generate a dependency-aware run plan
+devgraph run api
+
+# Output run plan as JSON or a runbook
+devgraph run api --json
+devgraph run api --runbook
+
+# Execute the run plan (start all services)
+devgraph run api --exec
 
 # Launch visual graph viewer
 devgraph studio
