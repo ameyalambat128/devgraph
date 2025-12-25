@@ -588,6 +588,23 @@ export type RunPlanResult =
   | { ok: false; error: 'cycle'; path: string[] }
   | { ok: false; error: 'missing_dependency'; service: string; missing: string };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Impact Analysis (Blast Radius)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ImpactAnalysis {
+  target: string;
+  directConsumers: string[];
+  transitiveConsumers: string[];
+  totalAffectedCount: number;
+  affectedApiRouteCount: number;
+}
+
+export type ImpactAnalysisResult =
+  | { ok: true; impact: ImpactAnalysis }
+  | { ok: false; error: 'not_found'; service: string }
+  | { ok: false; error: 'cycle'; path: string[] };
+
 /**
  * Collect all dependencies for a service (recursive).
  */
@@ -829,6 +846,256 @@ export function generateRunbook(plan: RunPlan): string {
   lines.push('---');
   lines.push('');
   lines.push(`✅ **Success**: All ${plan.steps.length} services started for ${plan.target}`);
+
+  return lines.join('\n');
+}
+
+function buildReverseDepMap(graph: Devgraph): Map<string, string[]> {
+  const reverseMap = new Map<string, string[]>();
+
+  for (const serviceName of Object.keys(graph.services)) {
+    reverseMap.set(serviceName, []);
+  }
+
+  for (const [serviceName, service] of Object.entries(graph.services)) {
+    for (const dep of service.depends ?? []) {
+      const dependents = reverseMap.get(dep);
+      if (dependents) {
+        dependents.push(serviceName);
+      }
+    }
+  }
+
+  return reverseMap;
+}
+
+function collectDependents(
+  revMap: Map<string, string[]>,
+  name: string,
+  visited: Set<string> = new Set(),
+  path: string[] = []
+): { dependents: string[] } | { cycle: string[] } {
+  if (path.includes(name)) {
+    return { cycle: [...path, name] };
+  }
+  if (visited.has(name)) {
+    return { dependents: [] };
+  }
+
+  visited.add(name);
+  const direct = revMap.get(name) ?? [];
+  const all: string[] = [];
+
+  for (const dep of direct) {
+    const result = collectDependents(revMap, dep, visited, [...path, name]);
+    if ('cycle' in result) {
+      return result;
+    }
+    all.push(dep, ...result.dependents);
+  }
+
+  return { dependents: all };
+}
+
+export function getImpactAnalysis(
+  graph: Devgraph,
+  serviceName: string
+): ImpactAnalysisResult {
+  const service = graph.services[serviceName];
+  if (!service) {
+    return { ok: false, error: 'not_found', service: serviceName };
+  }
+
+  const reverseMap = buildReverseDepMap(graph);
+  const directConsumers = reverseMap.get(serviceName) ?? [];
+
+  const result = collectDependents(reverseMap, serviceName);
+  if ('cycle' in result) {
+    return { ok: false, error: 'cycle', path: result.cycle };
+  }
+
+  const directSet = new Set(directConsumers);
+  const transitiveConsumers = result.dependents.filter((name) => !directSet.has(name));
+
+  const allAffected = new Set([...directConsumers, ...transitiveConsumers]);
+  let affectedApiRouteCount = 0;
+  for (const affectedService of allAffected) {
+    const svc = graph.services[affectedService];
+    if (svc?.apis) {
+      for (const api of svc.apis) {
+        affectedApiRouteCount += Object.keys(api.routes || {}).length;
+      }
+    }
+  }
+
+  return {
+    ok: true,
+    impact: {
+      target: serviceName,
+      directConsumers: directConsumers.sort(),
+      transitiveConsumers: transitiveConsumers.sort(),
+      totalAffectedCount: allAffected.size,
+      affectedApiRouteCount,
+    },
+  };
+}
+
+export function formatImpactAnalysis(impact: ImpactAnalysis): string {
+  const lines: string[] = [];
+  const width = 50;
+
+  lines.push(`╭${'─'.repeat(width)}╮`);
+  lines.push(`│  Blast Radius: ${impact.target.padEnd(width - 18)}│`);
+  lines.push(`╰${'─'.repeat(width)}╯`);
+  lines.push('');
+
+  const riskLevel =
+    impact.totalAffectedCount === 0
+      ? 'LOW'
+      : impact.totalAffectedCount <= 2
+        ? 'MEDIUM'
+        : 'HIGH';
+
+  lines.push(`Risk Level: ${riskLevel}`);
+  lines.push(`  ${impact.totalAffectedCount} service(s) affected`);
+  lines.push(`  ${impact.affectedApiRouteCount} API route(s) potentially impacted`);
+  lines.push('');
+
+  if (impact.directConsumers.length === 0 && impact.transitiveConsumers.length === 0) {
+    lines.push('No services depend on this service.');
+    lines.push('Changes here have minimal blast radius.');
+    return lines.join('\n');
+  }
+
+  if (impact.directConsumers.length > 0) {
+    lines.push('Direct Consumers (immediate dependents):');
+    const maxLen = Math.max(...impact.directConsumers.map((s) => s.length), 7);
+    lines.push(`┌${'─'.repeat(maxLen + 4)}┐`);
+    for (const consumer of impact.directConsumers) {
+      lines.push(`│  ${consumer.padEnd(maxLen + 1)} │`);
+    }
+    lines.push(`└${'─'.repeat(maxLen + 4)}┘`);
+    lines.push('');
+  }
+
+  if (impact.transitiveConsumers.length > 0) {
+    lines.push('Transitive Consumers (indirect dependents):');
+    const maxLen = Math.max(...impact.transitiveConsumers.map((s) => s.length), 7);
+    lines.push(`┌${'─'.repeat(maxLen + 4)}┐`);
+    for (const consumer of impact.transitiveConsumers) {
+      lines.push(`│  ${consumer.padEnd(maxLen + 1)} │`);
+    }
+    lines.push(`└${'─'.repeat(maxLen + 4)}┘`);
+    lines.push('');
+  }
+
+  lines.push('Impact Chain:');
+  lines.push(`  ${impact.target} ──┬──> ${impact.directConsumers.join(', ') || '(none)'}`);
+  if (impact.transitiveConsumers.length > 0) {
+    lines.push(`${' '.repeat(impact.target.length + 2)}   └──>> ${impact.transitiveConsumers.join(', ')}`);
+  }
+
+  return lines.join('\n');
+}
+
+export function generateImpactRunbook(impact: ImpactAnalysis, graph: Devgraph): string {
+  const lines: string[] = [];
+  const timestamp = new Date().toISOString().split('T')[0];
+
+  lines.push(`# Impact Runbook: ${impact.target}`);
+  lines.push('');
+  lines.push(`> Auto-generated by DevGraph on ${timestamp}`);
+  lines.push('');
+
+  lines.push('## Summary');
+  lines.push('');
+  lines.push(
+    `Changes to **${impact.target}** affect **${impact.totalAffectedCount}** downstream service(s).`
+  );
+  lines.push('');
+
+  if (impact.totalAffectedCount === 0) {
+    lines.push('This service has no dependents. Changes are isolated.');
+    return lines.join('\n');
+  }
+
+  lines.push('## Risk Assessment');
+  lines.push('');
+  lines.push('| Metric | Value |');
+  lines.push('|--------|-------|');
+  lines.push(`| Direct Consumers | ${impact.directConsumers.length} |`);
+  lines.push(`| Transitive Consumers | ${impact.transitiveConsumers.length} |`);
+  lines.push(`| Total Affected Services | ${impact.totalAffectedCount} |`);
+  lines.push(`| Affected API Routes | ${impact.affectedApiRouteCount} |`);
+  lines.push('');
+
+  lines.push('## Affected Services');
+  lines.push('');
+
+  const allAffected = [...impact.directConsumers, ...impact.transitiveConsumers];
+  for (const serviceName of allAffected) {
+    const svc = graph.services[serviceName];
+    const isDirect = impact.directConsumers.includes(serviceName);
+    const relationship = isDirect ? 'Direct' : 'Transitive';
+
+    lines.push(`### ${serviceName} (${relationship})`);
+    lines.push('');
+    lines.push(`**Type:** ${svc?.type ?? 'unknown'}`);
+    lines.push('');
+
+    if (svc?.apis && svc.apis.length > 0) {
+      lines.push('**Exposed APIs:**');
+      for (const api of svc.apis) {
+        for (const route of Object.keys(api.routes || {})) {
+          lines.push(`- \`${route}\``);
+        }
+      }
+      lines.push('');
+    }
+
+    if (svc?.commands?.test) {
+      lines.push('**Test Command:**');
+      lines.push('```bash');
+      lines.push(svc.commands.test);
+      lines.push('```');
+      lines.push('');
+    }
+  }
+
+  lines.push('## Pre-Deployment Checklist');
+  lines.push('');
+  lines.push('Before deploying changes to this service:');
+  lines.push('');
+  lines.push(`- [ ] Run tests for ${impact.target}`);
+  for (const serviceName of allAffected) {
+    const svc = graph.services[serviceName];
+    if (svc?.commands?.test) {
+      lines.push(`- [ ] Run tests for ${serviceName}: \`${svc.commands.test}\``);
+    } else {
+      lines.push(`- [ ] Verify ${serviceName} compatibility`);
+    }
+  }
+  lines.push('- [ ] Review API contract changes');
+  lines.push('- [ ] Update dependent service configurations if needed');
+  lines.push('- [ ] Coordinate deployment order with affected teams');
+  lines.push('');
+
+  lines.push('## Suggested Deployment Order');
+  lines.push('');
+  lines.push('When deploying breaking changes, use this order:');
+  lines.push('');
+  lines.push(`1. Update **${impact.target}** with backward compatibility`);
+
+  let stepNumber = 2;
+  for (const consumer of impact.directConsumers) {
+    lines.push(`${stepNumber}. Update **${consumer}** to use new API`);
+    stepNumber++;
+  }
+  for (const consumer of impact.transitiveConsumers) {
+    lines.push(`${stepNumber}. Verify **${consumer}** still works`);
+    stepNumber++;
+  }
+  lines.push(`${stepNumber}. Remove backward compatibility from **${impact.target}**`);
 
   return lines.join('\n');
 }
