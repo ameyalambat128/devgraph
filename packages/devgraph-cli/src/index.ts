@@ -5,12 +5,15 @@ import path from 'node:path';
 import {
   buildGraph,
   diffGraphs,
+  formatImpactAnalysis,
   formatRunPlan,
   generateAgents,
   generateCodemapMermaid,
+  generateImpactRunbook,
   generateMermaid,
   generateRunbook,
   generateSummary,
+  getImpactAnalysis,
   getRunPlan,
   parseMarkdownFiles,
 } from '@devgraph/core';
@@ -250,6 +253,73 @@ program
 
       // Default: Print formatted plan
       console.log(formatRunPlan(plan));
+    }
+  );
+
+program
+  .command('impact')
+  .description('Analyze blast radius - what services are affected if this service changes')
+  .argument('<service>', 'Service name to analyze impact for')
+  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
+  .option('--json', 'Output as JSON')
+  .option('--runbook', 'Generate a markdown runbook file for AI agents')
+  .action(
+    async (
+      service: string,
+      options: { graph: string; json?: boolean; runbook?: boolean }
+    ) => {
+      const graphPath = path.resolve(workspaceRoot, options.graph);
+
+      // Load graph
+      let graphData;
+      try {
+        const raw = await readFile(graphPath, 'utf8');
+        graphData = JSON.parse(raw);
+      } catch {
+        console.error(`Graph file not found at: ${graphPath}`);
+        console.log('\nRun "devgraph build" first to generate graph.json');
+        process.exitCode = 1;
+        return;
+      }
+
+      // Generate impact analysis
+      const result = getImpactAnalysis(graphData, service);
+
+      if (!result.ok) {
+        if (result.error === 'not_found') {
+          console.error(`Service not found: ${result.service}`);
+          console.log('\nAvailable services:');
+          for (const name of Object.keys(graphData.services)) {
+            console.log(`  - ${name}`);
+          }
+        } else if (result.error === 'cycle') {
+          console.error(`Dependency cycle detected: ${result.path.join(' → ')}`);
+        }
+        process.exitCode = 1;
+        return;
+      }
+
+      const { impact } = result;
+
+      // Output mode: JSON
+      if (options.json) {
+        console.log(JSON.stringify(impact, null, 2));
+        return;
+      }
+
+      // Output mode: Runbook
+      if (options.runbook) {
+        const runbookDir = path.join(path.dirname(graphPath), 'runbooks');
+        await mkdir(runbookDir, { recursive: true });
+        const runbookPath = path.join(runbookDir, `impact-${service}.md`);
+        const runbookContent = generateImpactRunbook(impact, graphData);
+        await writeFile(runbookPath, runbookContent);
+        console.log(`Impact runbook generated: ${runbookPath}`);
+        return;
+      }
+
+      // Default: Print formatted analysis
+      console.log(formatImpactAnalysis(impact));
     }
   );
 
