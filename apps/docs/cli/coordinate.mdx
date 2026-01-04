@@ -1,0 +1,101 @@
+---
+title: devgraph coordinate
+description: "Plan cross-service coordination - what else must change"
+---
+
+## Usage
+
+```bash
+devgraph coordinate <service> [options]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `service` | Name of the service being changed |
+
+## Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--graph <path>` | Path to graph.json | `.devgraph/graph.json` |
+| `--json` | Output as JSON | - |
+| `--runbook` | Generate a markdown runbook for AI agents | - |
+
+## Description
+
+Generates a coordination plan for cross-service changes. Builds on `devgraph impact` to provide actionable information for each affected service:
+
+- **Commands**: dev, test, build commands per service
+- **Search terms**: Patterns to find integration points (e.g., `PRODUCT_SERVICE_URL`)
+- **Checklists**: Step-by-step tasks for updating each service
+- **Dependency paths**: How each service connects to the changed service
+
+## Examples
+
+Generate a coordination plan:
+
+```bash
+devgraph coordinate product-service
+```
+
+Output:
+
+```
+╭───────────────────────────────────────────────────────╮
+│  Coordination Plan: product-service                   │
+╰───────────────────────────────────────────────────────╯
+
+Changes to product-service require coordination with 3 downstream services.
+
+Summary:
+  2 direct consumer(s)
+  1 transitive consumer(s)
+
+Direct Consumers (update first):
+┌───────────────┬──────┐
+│ Service       │ Test │
+├───────────────┼──────┤
+│ api-gateway   │ none │
+│ order-service │ none │
+└───────────────┴──────┘
+
+Transitive Consumers (verify after):
+┌─────────┬────────────────────────┐
+│ Service │ Test                   │
+├─────────┼────────────────────────┤
+│ web     │ pnpm test --filter web │
+└─────────┴────────────────────────┘
+
+Search Terms:
+  product-service, PRODUCT_SERVICE_URL, PRODUCT_SERVICE_API_URL
+
+Generate runbook: devgraph coordinate product-service --runbook
+```
+
+Generate a coordination runbook:
+
+```bash
+devgraph coordinate product-service --runbook
+```
+
+Creates `.devgraph/coordination/product-service.md` with:
+
+- Summary of affected services
+- Search terms for finding integration points
+- Per-service sections with commands and checklists
+- Suggested coordination order
+- Final deployment checklist
+
+<Note>
+The generated runbook is designed to be used with AI coding agents like Codex or Claude. Copy the relevant section for each repo.
+</Note>
+
+## Output
+
+| Mode | Output |
+|------|--------|
+| Default | Formatted plan in terminal |
+| `--json` | JSON object with full task details |
+| `--runbook` | Markdown file at `.devgraph/coordination/<service>.md` |

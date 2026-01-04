@@ -1,0 +1,82 @@
+---
+title: devgraph run
+description: "Generate a run plan for a service and its dependencies"
+---
+
+## Usage
+
+```bash
+devgraph run <service> [options]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `service` | Name of the service to run |
+
+## Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--graph <path>` | Path to graph.json | `.devgraph/graph.json` |
+| `--json` | Output as JSON | - |
+| `--runbook` | Generate a markdown runbook for AI agents | - |
+| `--exec` | Execute the run plan (start all services) | - |
+
+## Description
+
+Generates a startup plan for a service, including all its dependencies in the correct order. Uses topological sorting to ensure dependencies start before dependents.
+
+## Examples
+
+Show the run plan for a service:
+
+```bash
+devgraph run api-gateway
+```
+
+Output:
+
+```
+╭─────────────────────────────────────────────╮
+│  Run Plan: api-gateway                      │
+╰─────────────────────────────────────────────╯
+
+Dependencies (run in order):
+┌───┬─────────────────┬─────────────────────────────┐
+│ # │ Service         │ Command                     │
+├───┼─────────────────┼─────────────────────────────┤
+│ 1 │ postgres        │ docker-compose up -d db     │
+│ 2 │ user-service    │ pnpm dev --filter user      │
+│ 3 │ product-service │ pnpm dev --filter product   │
+│ 4 │ api-gateway     │ pnpm dev --filter gateway   │
+└───┴─────────────────┴─────────────────────────────┘
+
+Run with: devgraph run api-gateway --exec
+```
+
+Generate a runbook for AI agents:
+
+```bash
+devgraph run api-gateway --runbook
+```
+
+Creates `.devgraph/runbooks/api-gateway.md` with step-by-step instructions.
+
+Execute all services:
+
+```bash
+devgraph run api-gateway --exec
+```
+
+Starts all services in dependency order with healthcheck waits.
+
+## Output
+
+| Mode | Output |
+|------|--------|
+| Default | Formatted table in terminal |
+| `--json` | JSON object with plan details |
+| `--runbook` | Markdown file at `.devgraph/runbooks/<service>.md` |
+| `--exec` | Spawns processes for each service |
