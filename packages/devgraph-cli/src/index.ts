@@ -5,14 +5,17 @@ import path from 'node:path';
 import {
   buildGraph,
   diffGraphs,
+  formatCoordinationPlan,
   formatImpactAnalysis,
   formatRunPlan,
   generateAgents,
   generateCodemapMermaid,
+  generateCoordinationRunbook,
   generateImpactRunbook,
   generateMermaid,
   generateRunbook,
   generateSummary,
+  getCoordinationPlan,
   getImpactAnalysis,
   getRunPlan,
   parseMarkdownFiles,
@@ -320,6 +323,68 @@ program
 
       // Default: Print formatted analysis
       console.log(formatImpactAnalysis(impact));
+    }
+  );
+
+program
+  .command('coordinate')
+  .description('Plan cross-service coordination - what else must change if this service changes')
+  .argument('<service>', 'Service name to coordinate changes for')
+  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
+  .option('--json', 'Output as JSON')
+  .option('--runbook', 'Generate a markdown runbook file for AI agents')
+  .action(
+    async (
+      service: string,
+      options: { graph: string; json?: boolean; runbook?: boolean }
+    ) => {
+      const graphPath = path.resolve(workspaceRoot, options.graph);
+
+      let graphData;
+      try {
+        const raw = await readFile(graphPath, 'utf8');
+        graphData = JSON.parse(raw);
+      } catch {
+        console.error(`Graph file not found at: ${graphPath}`);
+        console.log('\nRun "devgraph build" first to generate graph.json');
+        process.exitCode = 1;
+        return;
+      }
+
+      const result = getCoordinationPlan(graphData, service);
+
+      if (!result.ok) {
+        if (result.error === 'not_found') {
+          console.error(`Service not found: ${result.service}`);
+          console.log('\nAvailable services:');
+          for (const name of Object.keys(graphData.services)) {
+            console.log(`  - ${name}`);
+          }
+        } else if (result.error === 'cycle') {
+          console.error(`Dependency cycle detected: ${result.path.join(' → ')}`);
+        }
+        process.exitCode = 1;
+        return;
+      }
+
+      const { plan } = result;
+
+      if (options.json) {
+        console.log(JSON.stringify(plan, null, 2));
+        return;
+      }
+
+      if (options.runbook) {
+        const coordinationDir = path.join(path.dirname(graphPath), 'coordination');
+        await mkdir(coordinationDir, { recursive: true });
+        const runbookPath = path.join(coordinationDir, `${service}.md`);
+        const runbookContent = generateCoordinationRunbook(plan, graphData);
+        await writeFile(runbookPath, runbookContent);
+        console.log(`Coordination runbook generated: ${runbookPath}`);
+        return;
+      }
+
+      console.log(formatCoordinationPlan(plan));
     }
   );
 

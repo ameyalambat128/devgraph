@@ -605,6 +605,28 @@ export type ImpactAnalysisResult =
   | { ok: false; error: 'not_found'; service: string }
   | { ok: false; error: 'cycle'; path: string[] };
 
+export interface CoordinationTask {
+  service: string;
+  type: string;
+  relationship: 'direct' | 'transitive';
+  dependencyPath: string[];
+  commands: { dev: string | null; test: string | null; build: string | null };
+  searchTerms: string[];
+}
+
+export interface CoordinationPlan {
+  target: string;
+  targetType: string;
+  reason: string;
+  tasks: CoordinationTask[];
+  summary: { totalAffectedServices: number; directConsumers: number; transitiveConsumers: number };
+}
+
+export type CoordinationResult =
+  | { ok: true; plan: CoordinationPlan }
+  | { ok: false; error: 'not_found'; service: string }
+  | { ok: false; error: 'cycle'; path: string[] };
+
 /**
  * Collect all dependencies for a service (recursive).
  */
@@ -1096,6 +1118,306 @@ export function generateImpactRunbook(impact: ImpactAnalysis, graph: Devgraph): 
     stepNumber++;
   }
   lines.push(`${stepNumber}. Remove backward compatibility from **${impact.target}**`);
+
+  return lines.join('\n');
+}
+
+function findDependencyPath(
+  revMap: Map<string, string[]>,
+  from: string,
+  to: string
+): string[] {
+  const queue: string[][] = [[from]];
+  const visited = new Set<string>([from]);
+
+  while (queue.length > 0) {
+    const currentPath = queue.shift()!;
+    const currentNode = currentPath[currentPath.length - 1];
+
+    if (currentNode === to) {
+      return currentPath;
+    }
+
+    for (const dependent of revMap.get(currentNode) ?? []) {
+      if (!visited.has(dependent)) {
+        visited.add(dependent);
+        queue.push([...currentPath, dependent]);
+      }
+    }
+  }
+
+  return [from, to];
+}
+
+function generateSearchTerms(targetName: string, graph: Devgraph): string[] {
+  const terms: string[] = [targetName];
+  const envPrefix = targetName.toUpperCase().replace(/-/g, '_');
+  terms.push(`${envPrefix}_URL`, `${envPrefix}_API_URL`, `${envPrefix}_HOST`);
+
+  const targetService = graph.services[targetName];
+  if (targetService?.env) {
+    for (const env of targetService.env) {
+      for (const key of Object.keys(env.vars)) {
+        if (!terms.includes(key)) terms.push(key);
+      }
+    }
+  }
+
+  return terms;
+}
+
+export function getCoordinationPlan(
+  graph: Devgraph,
+  serviceName: string
+): CoordinationResult {
+  const targetService = graph.services[serviceName];
+  if (!targetService) {
+    return { ok: false, error: 'not_found', service: serviceName };
+  }
+
+  const impactResult = getImpactAnalysis(graph, serviceName);
+  if (!impactResult.ok) {
+    return impactResult;
+  }
+  const { impact } = impactResult;
+
+  const revMap = buildReverseDepMap(graph);
+  const tasks: CoordinationTask[] = [];
+  const searchTerms = generateSearchTerms(serviceName, graph);
+
+  for (const consumerName of impact.directConsumers) {
+    const svc = graph.services[consumerName];
+    tasks.push({
+      service: consumerName,
+      type: svc?.type ?? 'unknown',
+      relationship: 'direct',
+      dependencyPath: [serviceName, consumerName],
+      commands: {
+        dev: svc?.commands?.dev ?? null,
+        test: svc?.commands?.test ?? null,
+        build: svc?.commands?.build ?? null,
+      },
+      searchTerms,
+    });
+  }
+
+  for (const consumerName of impact.transitiveConsumers) {
+    const svc = graph.services[consumerName];
+    const depPath = findDependencyPath(revMap, serviceName, consumerName);
+    tasks.push({
+      service: consumerName,
+      type: svc?.type ?? 'unknown',
+      relationship: 'transitive',
+      dependencyPath: depPath,
+      commands: {
+        dev: svc?.commands?.dev ?? null,
+        test: svc?.commands?.test ?? null,
+        build: svc?.commands?.build ?? null,
+      },
+      searchTerms,
+    });
+  }
+
+  const reason =
+    impact.totalAffectedCount === 0
+      ? `Changes to ${serviceName} have no downstream impact.`
+      : impact.totalAffectedCount === 1
+        ? `Changes to ${serviceName} require coordination with 1 downstream service.`
+        : `Changes to ${serviceName} require coordination with ${impact.totalAffectedCount} downstream services.`;
+
+  return {
+    ok: true,
+    plan: {
+      target: serviceName,
+      targetType: targetService.type,
+      reason,
+      tasks,
+      summary: {
+        totalAffectedServices: impact.totalAffectedCount,
+        directConsumers: impact.directConsumers.length,
+        transitiveConsumers: impact.transitiveConsumers.length,
+      },
+    },
+  };
+}
+
+export function formatCoordinationPlan(plan: CoordinationPlan): string {
+  const lines: string[] = [];
+  const width = 55;
+
+  lines.push(`╭${'─'.repeat(width)}╮`);
+  lines.push(`│  Coordination Plan: ${plan.target.padEnd(width - 23)}│`);
+  lines.push(`╰${'─'.repeat(width)}╯`);
+  lines.push('');
+  lines.push(plan.reason);
+  lines.push('');
+
+  if (plan.tasks.length === 0) {
+    lines.push('No coordination needed. This service has no dependents.');
+    return lines.join('\n');
+  }
+
+  lines.push('Summary:');
+  lines.push(`  ${plan.summary.directConsumers} direct consumer(s)`);
+  lines.push(`  ${plan.summary.transitiveConsumers} transitive consumer(s)`);
+  lines.push('');
+
+  const directTasks = plan.tasks.filter((t) => t.relationship === 'direct');
+  const transitiveTasks = plan.tasks.filter((t) => t.relationship === 'transitive');
+
+  const formatTasksTable = (tasks: CoordinationTask[]): string[] => {
+    const tableLines: string[] = [];
+    const maxSvcLen = Math.max(...tasks.map((t) => t.service.length), 7);
+    const maxTestLen = Math.max(...tasks.map((t) => (t.commands.test ?? 'none').length), 4);
+
+    tableLines.push(`┌${'─'.repeat(maxSvcLen + 2)}┬${'─'.repeat(maxTestLen + 2)}┐`);
+    tableLines.push(`│ ${'Service'.padEnd(maxSvcLen)} │ ${'Test'.padEnd(maxTestLen)} │`);
+    tableLines.push(`├${'─'.repeat(maxSvcLen + 2)}┼${'─'.repeat(maxTestLen + 2)}┤`);
+
+    for (const task of tasks) {
+      const test = task.commands.test ?? 'none';
+      tableLines.push(`│ ${task.service.padEnd(maxSvcLen)} │ ${test.padEnd(maxTestLen)} │`);
+    }
+
+    tableLines.push(`└${'─'.repeat(maxSvcLen + 2)}┴${'─'.repeat(maxTestLen + 2)}┘`);
+    return tableLines;
+  };
+
+  if (directTasks.length > 0) {
+    lines.push('Direct Consumers (update first):');
+    lines.push(...formatTasksTable(directTasks));
+    lines.push('');
+  }
+
+  if (transitiveTasks.length > 0) {
+    lines.push('Transitive Consumers (verify after):');
+    lines.push(...formatTasksTable(transitiveTasks));
+    lines.push('');
+  }
+
+  const allTerms = new Set<string>();
+  for (const task of plan.tasks) {
+    for (const term of task.searchTerms) {
+      allTerms.add(term);
+    }
+  }
+  const uniqueTerms = [...allTerms].slice(0, 8);
+  lines.push('Search Terms:');
+  lines.push(`  ${uniqueTerms.join(', ')}`);
+  lines.push('');
+  lines.push(`Generate runbook: devgraph coordinate ${plan.target} --runbook`);
+
+  return lines.join('\n');
+}
+
+export function generateCoordinationRunbook(plan: CoordinationPlan, _graph: Devgraph): string {
+  const lines: string[] = [];
+  const timestamp = new Date().toISOString().split('T')[0];
+
+  lines.push(`# Coordination Runbook: ${plan.target}`);
+  lines.push('');
+  lines.push(`> Auto-generated by DevGraph on ${timestamp}`);
+  lines.push('');
+
+  lines.push('## Summary');
+  lines.push('');
+  lines.push(plan.reason);
+  lines.push('');
+  lines.push('| Metric | Count |');
+  lines.push('|--------|-------|');
+  lines.push(`| Direct Consumers | ${plan.summary.directConsumers} |`);
+  lines.push(`| Transitive Consumers | ${plan.summary.transitiveConsumers} |`);
+  lines.push(`| Total Affected | ${plan.summary.totalAffectedServices} |`);
+  lines.push('');
+
+  if (plan.tasks.length === 0) {
+    lines.push('No downstream services depend on this service.');
+    lines.push('Changes can be made without coordination.');
+    return lines.join('\n');
+  }
+
+  const allTerms = new Set<string>();
+  for (const task of plan.tasks) {
+    for (const term of task.searchTerms) {
+      allTerms.add(term);
+    }
+  }
+
+  lines.push('## Search Terms');
+  lines.push('');
+  lines.push('Use these terms to find integration points in dependent services:');
+  lines.push('');
+  for (const term of allTerms) {
+    lines.push(`- \`${term}\``);
+  }
+  lines.push('');
+
+  lines.push('## Affected Services');
+  lines.push('');
+
+  for (const task of plan.tasks) {
+    const relationshipLabel = task.relationship === 'direct' ? 'Direct Consumer' : 'Transitive Consumer';
+
+    lines.push(`### ${task.service}`);
+    lines.push('');
+    lines.push(`**Type:** ${task.type}`);
+    lines.push(`**Relationship:** ${relationshipLabel}`);
+    lines.push(`**Path:** ${task.dependencyPath.join(' → ')}`);
+    lines.push('');
+
+    lines.push('**Commands:**');
+    lines.push('');
+    if (task.commands.dev) lines.push(`- Dev: \`${task.commands.dev}\``);
+    if (task.commands.test) lines.push(`- Test: \`${task.commands.test}\``);
+    if (task.commands.build) lines.push(`- Build: \`${task.commands.build}\``);
+    if (!task.commands.dev && !task.commands.test && !task.commands.build) {
+      lines.push('- (No commands defined)');
+    }
+    lines.push('');
+
+    lines.push('**Checklist:**');
+    lines.push('');
+    lines.push(`- [ ] Search for \`${plan.target}\` references in ${task.service}`);
+    lines.push('- [ ] Update any type imports or interfaces');
+    lines.push('- [ ] Update API calls if contracts changed');
+    if (task.commands.test) {
+      lines.push(`- [ ] Run tests: \`${task.commands.test}\``);
+    } else {
+      lines.push('- [ ] Verify service works with changes');
+    }
+    lines.push('');
+  }
+
+  lines.push('## Suggested Coordination Order');
+  lines.push('');
+  lines.push(`1. Make changes to **${plan.target}** with backward compatibility`);
+  lines.push('');
+
+  let stepNumber = 2;
+  const directTasks = plan.tasks.filter((t) => t.relationship === 'direct');
+  const transitiveTasks = plan.tasks.filter((t) => t.relationship === 'transitive');
+
+  for (const task of directTasks) {
+    lines.push(`${stepNumber}. Update **${task.service}** to use new API`);
+    if (task.commands.test) lines.push(`   - Run: \`${task.commands.test}\``);
+    stepNumber++;
+  }
+
+  for (const task of transitiveTasks) {
+    lines.push(`${stepNumber}. Verify **${task.service}** still works`);
+    if (task.commands.test) lines.push(`   - Run: \`${task.commands.test}\``);
+    stepNumber++;
+  }
+
+  lines.push(`${stepNumber}. Remove backward compatibility from **${plan.target}**`);
+  lines.push('');
+
+  lines.push('## Final Checklist');
+  lines.push('');
+  lines.push('- [ ] All direct consumers updated');
+  lines.push('- [ ] All transitive consumers verified');
+  lines.push('- [ ] Integration tests passing');
+  lines.push('- [ ] Ready to deploy');
 
   return lines.join('\n');
 }
