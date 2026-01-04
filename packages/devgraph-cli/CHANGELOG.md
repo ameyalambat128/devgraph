@@ -1,5 +1,18 @@
 # devgraph
 
+## 0.4.0
+
+### Minor Changes
+
+- 97200e7: Add coordinate command for cross-service coordination planning
+- 1b70a15: Add impact command for blast radius analysis
+
+### Patch Changes
+
+- Updated dependencies [97200e7]
+- Updated dependencies [1b70a15]
+  - @devgraph/core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

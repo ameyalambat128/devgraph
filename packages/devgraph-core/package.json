@@ -1,6 +1,6 @@
 {
   "name": "@devgraph/core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Core parser and generators for DevGraph - build project graphs from Markdown",
   "main": "dist/index.js",
