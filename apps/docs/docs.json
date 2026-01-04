@@ -33,7 +33,7 @@
       },
       {
         "group": "CLI Commands",
-        "pages": ["cli/build", "cli/validate", "cli/studio"]
+        "pages": ["cli/build", "cli/validate", "cli/studio", "cli/run", "cli/impact", "cli/coordinate"]
       },
       {
         "group": "Block Types",

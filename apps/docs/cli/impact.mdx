@@ -1,0 +1,89 @@
+---
+title: devgraph impact
+description: "Analyze blast radius - what services are affected if this changes"
+---
+
+## Usage
+
+```bash
+devgraph impact <service> [options]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `service` | Name of the service to analyze |
+
+## Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--graph <path>` | Path to graph.json | `.devgraph/graph.json` |
+| `--json` | Output as JSON | - |
+| `--runbook` | Generate a markdown runbook for AI agents | - |
+
+## Description
+
+Analyzes the blast radius of a service change by traversing the reverse dependency graph. Shows which services consume (depend on) the target service, both directly and transitively.
+
+**Key concepts:**
+
+- **Direct consumers**: Services that directly depend on the target
+- **Transitive consumers**: Services that indirectly depend on the target through other services
+- **Risk level**: LOW (0 affected), MEDIUM (1-2), HIGH (3+)
+
+## Examples
+
+Analyze impact of changing a service:
+
+```bash
+devgraph impact product-service
+```
+
+Output:
+
+```
+╭──────────────────────────────────────────────────╮
+│  Blast Radius: product-service                   │
+╰──────────────────────────────────────────────────╯
+
+Risk Level: HIGH
+  3 service(s) affected
+  5 API route(s) potentially impacted
+
+Direct Consumers (immediate dependents):
+┌───────────────────┐
+│  api-gateway      │
+│  order-service    │
+└───────────────────┘
+
+Transitive Consumers (indirect dependents):
+┌───────────────────┐
+│  web              │
+└───────────────────┘
+
+Impact Chain:
+  product-service ──┬──> api-gateway, order-service
+                    └──>> web
+```
+
+Generate an impact runbook:
+
+```bash
+devgraph impact product-service --runbook
+```
+
+Creates `.devgraph/runbooks/impact-product-service.md` with:
+- Risk assessment table
+- Affected services with their APIs
+- Pre-deployment checklist
+- Suggested deployment order
+
+## Output
+
+| Mode | Output |
+|------|--------|
+| Default | Formatted analysis in terminal |
+| `--json` | JSON object with impact details |
+| `--runbook` | Markdown file at `.devgraph/runbooks/impact-<service>.md` |
