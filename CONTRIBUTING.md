@@ -30,10 +30,20 @@ packages/
   devgraph-cli/       # CLI + embedded Studio server
 ```
 
+## Code Quality (Pre-commit)
+
+To maintain a consistent codebase, we use **Husky** and **lint-staged**.
+When you commit changes, the following happens automatically:
+
+- **Linting:** Checks for code errors and style violations.
+- **Formatting:** Ensures the code follows our Prettier config.
+
+If the hook fails, check the terminal output, fix the issues, and try to commit again.
+
 ## Making Changes
 
 1. Fork the repo and create a feature branch from `main`
-2. Make your changes
+2. Make your changes (linting will run automatically on commit)
 3. Add a changeset: `pnpm changeset`
 4. Open a PR to `main`
 
