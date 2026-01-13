@@ -1,12 +1,12 @@
 ---
 title: devgraph validate
-description: "Validate devgraph blocks without generating outputs"
+description: "Validate devgraph blocks: schema, consistency, and architecture rules"
 ---
 
 ## Usage
 
 ```bash
-devgraph validate [paths...]
+devgraph validate [paths...] [options]
 ```
 
 ## Arguments
@@ -15,9 +15,23 @@ devgraph validate [paths...]
 |----------|-------------|---------|
 | `paths` | Glob patterns for Markdown files | `**/*.md` |
 
+## Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--json` | Output validation result as JSON | - |
+| `--config <path>` | Path to config file | `.devgraph/config.yaml` |
+| `--report <path>` | Write JSON report to file | - |
+
 ## Description
 
-Validates all `devgraph-*` blocks in your Markdown files without generating any output files. Useful for CI/CD pipelines or pre-commit hooks.
+Validates all `devgraph-*` blocks in your Markdown files without generating any output files. Runs three types of validation:
+
+1. **Schema validation**: YAML syntax, required fields, valid references
+2. **Consistency checks**: Missing dependencies, duplicates, orphans, cycles
+3. **Architecture rules**: Custom rules defined in your config file
+
+Useful for CI/CD pipelines or pre-commit hooks.
 
 ## Examples
 
@@ -39,10 +53,43 @@ devgraph validate "**/*.md"
 |------|-------------|
 | `0` | All blocks valid |
 | `1` | Validation errors found |
+| `2` | Tooling error (config not found, etc.) |
 
 ## What it validates
 
+### Schema Validation
 - YAML syntax in all `devgraph-*` blocks
 - Required fields (`name`, `type` for services)
 - Service references in `devgraph-api` and `devgraph-env` blocks
-- Dependency references exist
+- Line numbers included in error messages for easier debugging
+
+### Consistency Checks
+- **Missing dependencies**: Services reference non-existent dependencies
+- **Duplicate services**: Multiple blocks define the same service name
+- **Orphan blocks**: API/env blocks reference non-existent services
+- **Dependency cycles**: Circular dependency detection
+
+### Architecture Rules
+
+Define rules in `.devgraph/config.yaml`:
+
+```yaml
+rules:
+  - type: denyDependency
+    from: frontend-*
+    to: database
+    message: "Frontend services should not depend on database directly"
+```
+
+## CI Integration
+
+```bash
+# In your CI pipeline
+devgraph validate --json --report .devgraph/validation-report.json
+
+# Check exit code
+if [ $? -eq 1 ]; then
+  echo "Validation failed"
+  exit 1
+fi
+```

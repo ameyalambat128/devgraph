@@ -1,0 +1,105 @@
+---
+title: devgraph agents
+description: "Generate rich AGENTS.md files for AI coding assistants"
+---
+
+## Usage
+
+```bash
+devgraph agents [options]
+```
+
+## Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--graph <path>` | Path to graph.json | `.devgraph/graph.json` |
+| `--out-dir <dir>` | Output directory | `.devgraph/agents` |
+| `--service <name>` | Generate for a specific service only | - |
+| `--service-path <path>` | Base path to service directories for inference | - |
+| `--best-effort` | Generate even with missing data (mark as TODO) | - |
+| `--json` | Output result as JSON instead of writing files | - |
+
+## Description
+
+Generates rich `AGENTS.md` files for each service in your graph. These files help AI coding assistants (like Claude, Cursor, Copilot) understand your services better by providing context about commands, dependencies, APIs, and codebase structure.
+
+The command automatically infers information from:
+- **package.json scripts**: `dev`, `build`, `test`, `start`, `lint`
+- **Lockfiles**: Detects package manager (npm, pnpm, yarn, bun)
+- **Filesystem landmarks**: `src/`, `app/`, `lib/`, `components/`, `tests/`, etc.
+
+## Examples
+
+Generate agents for all services:
+
+```bash
+devgraph agents
+```
+
+Output:
+
+```
+Generated 3 AGENTS.md files:
+
+  .devgraph/agents/api-gateway.md
+  .devgraph/agents/user-service.md
+  .devgraph/agents/product-service.md
+```
+
+Generate for a specific service with inference from its directory:
+
+```bash
+devgraph agents --service api-gateway --service-path ./packages
+```
+
+This reads `./packages/api-gateway/package.json` to infer commands.
+
+Use best-effort mode for incomplete graphs:
+
+```bash
+devgraph agents --best-effort
+```
+
+Generates files even when some data is missing, marking gaps as `TODO`.
+
+## Output Format
+
+Each generated `AGENTS.md` includes:
+
+```markdown
+# api-gateway
+
+## Quick Reference
+- **Type**: node
+- **Package Manager**: pnpm
+
+## Commands
+| Task | Command |
+|------|---------|
+| dev | pnpm dev |
+| build | pnpm build |
+| test | pnpm test |
+
+## Dependencies
+- postgres (database)
+- user-service (node)
+
+## APIs Consumed
+- user-service: GET /users/:id, POST /users
+
+## Key Directories
+- `src/` - Source code
+- `tests/` - Test files
+
+## Search Terms
+api-gateway, gateway, routing
+```
+
+## Use Cases
+
+**AI-assisted development**: Drop `AGENTS.md` files in your repo so AI tools understand your services.
+
+**Onboarding**: New developers can quickly understand how to work with each service.
+
+**Documentation**: Auto-generate baseline documentation from your devgraph blocks.
