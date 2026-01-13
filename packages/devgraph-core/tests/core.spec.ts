@@ -48,7 +48,8 @@ vars:
     expect(graph.services.api.env?.[0].vars).toHaveProperty('PORT', '3000');
 
     const summary = generateSummary(graph);
-    expect(summary).toContain('api (node)');
+    expect(summary).toContain('**api**');
+    expect(summary).toContain('node');
 
     const mermaid = generateMermaid(graph);
     expect(mermaid).toContain('graph LR');

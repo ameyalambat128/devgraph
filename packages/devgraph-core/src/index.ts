@@ -12,6 +12,7 @@ export type DevgraphBlockType = 'service' | 'api' | 'env';
 export interface DevgraphBlock<T = unknown> {
   type: DevgraphBlockType;
   file: string;
+  line?: number;
   data: T;
 }
 
@@ -48,6 +49,8 @@ export interface Devgraph {
 export interface ParseError {
   file: string;
   message: string;
+  line?: number;
+  column?: number;
 }
 
 export interface ParseResult {
@@ -87,43 +90,44 @@ const envSchema = z.object({
 function parseBlock(
   lang: string | null | undefined,
   value: string,
-  file: string
+  file: string,
+  line?: number
 ): DevgraphBlock | ParseError | null {
   if (!lang || !lang.startsWith('devgraph-')) return null;
   const type = lang.replace('devgraph-', '') as DevgraphBlockType;
   if (!['service', 'api', 'env'].includes(type)) {
-    return { file, message: `Unknown devgraph block type "${type}"` };
+    return { file, line, message: `Unknown devgraph block type "${type}"` };
   }
 
   let data: unknown;
   try {
     data = yaml.parse(value);
   } catch (error) {
-    return { file, message: `YAML parse error: ${(error as Error).message}` };
+    return { file, line, message: `YAML parse error: ${(error as Error).message}` };
   }
 
   if (type === 'service') {
     const parsed = serviceSchema.safeParse(data);
     if (!parsed.success) {
-      return { file, message: `Invalid service block: ${parsed.error.message}` };
+      return { file, line, message: `Invalid service block: ${parsed.error.message}` };
     }
-    return { type, file, data: parsed.data };
+    return { type, file, line, data: parsed.data };
   }
 
   if (type === 'api') {
     const parsed = apiSchema.safeParse(data);
     if (!parsed.success) {
-      return { file, message: `Invalid api block: ${parsed.error.message}` };
+      return { file, line, message: `Invalid api block: ${parsed.error.message}` };
     }
-    return { type, file, data: parsed.data };
+    return { type, file, line, data: parsed.data };
   }
 
   if (type === 'env') {
     const parsed = envSchema.safeParse(data);
     if (!parsed.success) {
-      return { file, message: `Invalid env block: ${parsed.error.message}` };
+      return { file, line, message: `Invalid env block: ${parsed.error.message}` };
     }
-    return { type, file, data: parsed.data };
+    return { type, file, line, data: parsed.data };
   }
 
   return null;
@@ -143,7 +147,8 @@ export async function parseMarkdownFiles(
     const tree = unified().use(remarkParse).parse(content);
 
     visit(tree, 'code', (node: any) => {
-      const result = parseBlock(node.lang, node.value, path.relative(cwd, abs));
+      const line = node.position?.start?.line;
+      const result = parseBlock(node.lang, node.value, path.relative(cwd, abs), line);
       if (!result) return;
       if ('message' in result) {
         errors.push(result);
@@ -1421,3 +1426,9 @@ export function generateCoordinationRunbook(plan: CoordinationPlan, _graph: Devg
 
   return lines.join('\n');
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Validation Module Export
+// ─────────────────────────────────────────────────────────────────────────────
+
+export * from './validate/index.js';
