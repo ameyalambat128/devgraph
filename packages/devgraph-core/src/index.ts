@@ -569,6 +569,21 @@ function collectRoutes(svc: ServiceBlock & { apis?: ApiBlock[] }): Set<string> {
   return routes;
 }
 
+// Re-export agents module
+export {
+  generateAgentsEnhanced,
+  formatAgentsResult,
+  inferCommands,
+  inferLandmarks,
+  inferServiceData,
+} from './agents/index.js';
+export type {
+  GenerateAgentsOptions,
+  GenerateAgentsResult,
+  InferredCommands,
+  InferredData,
+} from './agents/index.js';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Run Plan
 // ─────────────────────────────────────────────────────────────────────────────
