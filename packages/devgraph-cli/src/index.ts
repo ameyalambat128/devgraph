@@ -8,6 +8,8 @@ import {
   formatCoordinationPlan,
   formatImpactAnalysis,
   formatRunPlan,
+  formatValidationResult,
+  formatValidationResultJson,
   generateAgents,
   generateCodemapMermaid,
   generateCoordinationRunbook,
@@ -19,6 +21,7 @@ import {
   getImpactAnalysis,
   getRunPlan,
   parseMarkdownFiles,
+  validate,
 } from '@devgraph/core';
 import { Command } from 'commander';
 import { startStudioServer } from './studio/server.js';
@@ -44,30 +47,69 @@ async function handleParse(patterns: string[]) {
 
 program
   .command('validate')
-  .description('Validate devgraph blocks in markdown files')
+  .description('Validate devgraph blocks: schema, consistency, and architecture rules')
   .argument('[paths...]', 'Markdown files or globs (default **/*.md)')
-  .action(async (paths: string[]) => {
-    const { pats, blocks, errors } = await handleParse(paths);
-    if (errors.length) {
-      console.error(`Found ${errors.length} error(s):`);
-      for (const err of errors) console.error(`- ${err.file}: ${err.message}`);
-      process.exitCode = 1;
-      return;
+  .option('--json', 'Output validation result as JSON')
+  .option('--config <path>', 'Path to config file (default: .devgraph/config.yaml)')
+  .option('--report <path>', 'Write JSON report to file')
+  .action(async (paths: string[], options: { json?: boolean; config?: string; report?: string }) => {
+    try {
+      const { pats, blocks, errors: parseErrors } = await handleParse(paths);
+
+      if (!blocks.length && parseErrors.length === 0) {
+        if (options.json) {
+          console.log(JSON.stringify({ ok: true, errors: [], warnings: [], message: 'No devgraph blocks found' }, null, 2));
+        } else {
+          console.log('No devgraph blocks found.\n');
+          console.log('Add blocks to your markdown like this:\n');
+          console.log('  ```devgraph-service');
+          console.log('  name: my-service');
+          console.log('  type: node');
+          console.log('  commands:');
+          console.log('    dev: npm run dev');
+          console.log('  ```\n');
+          console.log('Then run: devgraph build "**/*.md"\n');
+          console.log('Docs: https://devgraph.ameyalambat.com');
+        }
+        return;
+      }
+
+      // Build graph for consistency checks
+      const graph = buildGraph(blocks);
+
+      // Run full validation
+      const result = await validate(blocks, graph, parseErrors, {
+        configPath: options.config,
+      });
+
+      // Write report if requested
+      if (options.report) {
+        const reportDir = path.dirname(path.resolve(workspaceRoot, options.report));
+        await mkdir(reportDir, { recursive: true });
+        await writeFile(path.resolve(workspaceRoot, options.report), formatValidationResultJson(result));
+      }
+
+      // Output result
+      if (options.json) {
+        console.log(formatValidationResultJson(result));
+      } else {
+        console.log(formatValidationResult(result));
+        if (result.ok) {
+          console.log(`\nValidated ${blocks.length} block(s) from patterns: ${pats.join(', ')}`);
+        }
+      }
+
+      // Set exit code
+      process.exitCode = result.ok ? 0 : 1;
+    } catch (error) {
+      // Exit code 2 for tooling errors
+      if (options.json) {
+        console.log(JSON.stringify({ ok: false, errors: [{ code: 'TOOLING_ERROR', message: (error as Error).message }], warnings: [] }, null, 2));
+      } else {
+        console.error(`Tooling error: ${(error as Error).message}`);
+      }
+      process.exitCode = 2;
     }
-    if (!blocks.length) {
-      console.log('No devgraph blocks found.\n');
-      console.log('Add blocks to your markdown like this:\n');
-      console.log('  ```devgraph-service');
-      console.log('  name: my-service');
-      console.log('  type: node');
-      console.log('  commands:');
-      console.log('    dev: npm run dev');
-      console.log('  ```\n');
-      console.log('Then run: devgraph build "**/*.md"\n');
-      console.log('Docs: https://devgraph.ameyalambat.com');
-      return;
-    }
-    console.log(`Validated ${blocks.length} blocks from patterns: ${pats.join(', ')}`);
   });
 
 program
