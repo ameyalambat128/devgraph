@@ -1,0 +1,23 @@
+name: CI (Fork PRs)
+
+on:
+  pull_request:
+
+jobs:
+  build-and-test:
+    # Only run on fork PRs - your own PRs use Vercel checks
+    if: github.event.pull_request.head.repo.fork == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm lint
+      - run: pnpm build
+      - run: pnpm test
