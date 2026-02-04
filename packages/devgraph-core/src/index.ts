@@ -573,6 +573,8 @@ function collectRoutes(svc: ServiceBlock & { apis?: ApiBlock[] }): Set<string> {
 export {
   generateAgentsEnhanced,
   formatAgentsResult,
+  generateSkills,
+  formatSkillsResult,
   inferCommands,
   inferLandmarks,
   inferServiceData,
@@ -580,6 +582,9 @@ export {
 export type {
   GenerateAgentsOptions,
   GenerateAgentsResult,
+  GenerateSkillsOptions,
+  GenerateSkillsResult,
+  SkillFile,
   InferredCommands,
   InferredData,
 } from './agents/index.js';

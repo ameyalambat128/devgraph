@@ -66,6 +66,7 @@ Outputs are generated in `.devgraph/`:
 | `graph.json` | Machine-readable project graph |
 | `summary.md` | Human-readable overview with tables |
 | `agents/*.md` | Per-service context files for LLMs |
+| `.skills/` | [Agent Skills](https://agentskills.io) for 25+ AI tools (via `--format skills`) |
 | `system.mmd` | Mermaid diagram of service dependencies |
 | `codemap.mmd` | Mermaid diagram of repo structure |
 | `integration_notes.md` | Diff summary when using `--compare` |
@@ -131,9 +132,27 @@ devgraph run api --runbook
 # Execute the run plan (start all services)
 devgraph run api --exec
 
+# Generate Agent Skills for AI tools
+devgraph agents --format skills
+
 # Launch visual graph viewer
 devgraph studio
 ```
+
+## Agent Skills
+
+DevGraph generates [Agent Skills](https://agentskills.io) — the open standard supported by Claude Code, Cursor, Gemini CLI, VS Code, GitHub Copilot, and [25+ other tools](https://agentskills.io).
+
+```bash
+devgraph agents --format skills
+```
+
+This creates a `.skills/` directory with SKILL.md files that AI agents auto-discover at startup:
+
+- **Overview skill** — teaches agents your architecture and CLI commands (`devgraph impact`, `devgraph validate`, `devgraph run`)
+- **Per-service skills** — commands, dependencies, downstream consumers, API routes, and key directories for each service
+
+No MCP server. No running processes. Skills are static files committed to git — every agent session starts with full architectural context.
 
 ## DevGraph Studio
 

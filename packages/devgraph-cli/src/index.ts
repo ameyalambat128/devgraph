@@ -9,6 +9,7 @@ import {
   formatCoordinationPlan,
   formatImpactAnalysis,
   formatRunPlan,
+  formatSkillsResult,
   formatValidationResult,
   formatValidationResultJson,
   generateAgents,
@@ -18,6 +19,7 @@ import {
   generateImpactRunbook,
   generateMermaid,
   generateRunbook,
+  generateSkills,
   generateSummary,
   getCoordinationPlan,
   getImpactAnalysis,
@@ -434,9 +436,10 @@ program
 
 program
   .command('agents')
-  .description('Generate rich AGENTS.md files for AI coding assistants')
+  .description('Generate rich AGENTS.md files or Agent Skills for AI coding assistants')
   .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
-  .option('--out-dir <dir>', 'Output directory', '.devgraph/agents')
+  .option('--out-dir <dir>', 'Output directory')
+  .option('--format <format>', 'Output format: agents or skills', 'agents')
   .option('--service <name>', 'Generate for a specific service only')
   .option('--service-path <path>', 'Base path to service directories for inference')
   .option('--best-effort', 'Generate even with missing data (mark as TODO)')
@@ -444,7 +447,8 @@ program
   .action(
     async (options: {
       graph: string;
-      outDir: string;
+      outDir?: string;
+      format: string;
       service?: string;
       servicePath?: string;
       bestEffort?: boolean;
@@ -464,46 +468,82 @@ program
         return;
       }
 
-      // Generate agents
-      const result = generateAgentsEnhanced(graphData, {
-        servicePath: options.servicePath,
-        bestEffort: options.bestEffort,
-        services: options.service ? [options.service] : undefined,
-      });
+      if (options.format === 'skills') {
+        // Generate Agent Skills
+        const result = generateSkills(graphData, {
+          servicePath: options.servicePath,
+          bestEffort: options.bestEffort,
+          services: options.service ? [options.service] : undefined,
+        });
 
-      // JSON output mode
-      if (options.json) {
-        console.log(JSON.stringify(result, null, 2));
-        return;
-      }
-
-      // Check for warnings that prevented generation
-      if (Object.keys(result.agents).length === 0) {
-        if (result.warnings.length > 0) {
-          console.error('No agent files generated.\n');
-          console.error('Warnings:');
-          for (const warning of result.warnings) {
-            console.error(`  - ${warning}`);
-          }
-          console.log('\nTip: Use --best-effort to generate with TODO placeholders');
-          process.exitCode = 1;
-        } else {
-          console.log('No services found in graph.');
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2));
+          return;
         }
-        return;
+
+        if (result.files.length === 0) {
+          if (result.warnings.length > 0) {
+            console.error('No skill files generated.\n');
+            console.error('Warnings:');
+            for (const warning of result.warnings) {
+              console.error(`  - ${warning}`);
+            }
+            console.log('\nTip: Use --best-effort to generate with TODO placeholders');
+            process.exitCode = 1;
+          } else {
+            console.log('No services found in graph.');
+          }
+          return;
+        }
+
+        const outDir = path.resolve(workspaceRoot, options.outDir ?? '.skills');
+        for (const file of result.files) {
+          const filePath = path.join(outDir, file.relativePath);
+          await mkdir(path.dirname(filePath), { recursive: true });
+          await writeFile(filePath, file.content);
+        }
+
+        console.log(formatSkillsResult(result));
+        console.log(`\nOutput written to: ${outDir}`);
+      } else {
+        // Generate AGENTS.md (default)
+        const result = generateAgentsEnhanced(graphData, {
+          servicePath: options.servicePath,
+          bestEffort: options.bestEffort,
+          services: options.service ? [options.service] : undefined,
+        });
+
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2));
+          return;
+        }
+
+        if (Object.keys(result.agents).length === 0) {
+          if (result.warnings.length > 0) {
+            console.error('No agent files generated.\n');
+            console.error('Warnings:');
+            for (const warning of result.warnings) {
+              console.error(`  - ${warning}`);
+            }
+            console.log('\nTip: Use --best-effort to generate with TODO placeholders');
+            process.exitCode = 1;
+          } else {
+            console.log('No services found in graph.');
+          }
+          return;
+        }
+
+        const outDir = path.resolve(workspaceRoot, options.outDir ?? '.devgraph/agents');
+        await mkdir(outDir, { recursive: true });
+
+        for (const [name, content] of Object.entries(result.agents)) {
+          const filePath = path.join(outDir, `${name}.md`);
+          await writeFile(filePath, content);
+        }
+
+        console.log(formatAgentsResult(result));
+        console.log(`\nOutput written to: ${outDir}`);
       }
-
-      // Write files
-      const outDir = path.resolve(workspaceRoot, options.outDir);
-      await mkdir(outDir, { recursive: true });
-
-      for (const [name, content] of Object.entries(result.agents)) {
-        const filePath = path.join(outDir, `${name}.md`);
-        await writeFile(filePath, content);
-      }
-
-      console.log(formatAgentsResult(result));
-      console.log(`\nOutput written to: ${outDir}`);
     }
   );
 
