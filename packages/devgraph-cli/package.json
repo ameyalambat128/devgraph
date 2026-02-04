@@ -1,6 +1,6 @@
 {
   "name": "devgraph",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "description": "CLI that scans Markdown for devgraph-* blocks and builds a unified project graph",
   "bin": {
@@ -37,7 +37,7 @@
     "prepublishOnly": "pnpm build:with-studio"
   },
   "dependencies": {
-    "@devgraph/core": "^0.5.0",
+    "@devgraph/core": "^0.6.0",
     "@mermaid-js/mermaid-cli": "11.4.0",
     "commander": "12.1.0"
   },

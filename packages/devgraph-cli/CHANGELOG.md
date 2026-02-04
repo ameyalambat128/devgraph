@@ -1,5 +1,16 @@
 # devgraph
 
+## 0.6.0
+
+### Minor Changes
+
+- Add Agent Skills generation via `--format skills` flag on the `agents` command. Generates SKILL.md files compatible with the Agent Skills open standard (agentskills.io), supported by Claude Code, Cursor, Gemini CLI, VS Code, GitHub Copilot, and 25+ other AI tools.
+
+### Patch Changes
+
+- Updated dependencies
+  - @devgraph/core@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes
