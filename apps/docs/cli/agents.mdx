@@ -17,6 +17,7 @@ devgraph agents [options]
 | `--out-dir <dir>` | Output directory | `.devgraph/agents` |
 | `--service <name>` | Generate for a specific service only | - |
 | `--service-path <path>` | Base path to service directories for inference | - |
+| `--format <format>` | Output format: `agents` or `skills` | `agents` |
 | `--best-effort` | Generate even with missing data (mark as TODO) | - |
 | `--json` | Output result as JSON instead of writing files | - |
 
@@ -96,9 +97,55 @@ Each generated `AGENTS.md` includes:
 api-gateway, gateway, routing
 ```
 
+## Agent Skills Format
+
+Use `--format skills` to generate [Agent Skills](https://agentskills.io) — the open standard supported by Claude Code, Cursor, Gemini CLI, VS Code, GitHub Copilot, and 25+ other tools.
+
+```bash
+devgraph agents --format skills
+```
+
+Output:
+
+```
+Generated 6 skill file(s):
+  - querying-architecture/SKILL.md
+  - querying-architecture/references/ARCHITECTURE.md
+  - querying-architecture/references/SERVICES.md
+  - services/api-gateway-context/SKILL.md
+  - services/api-gateway-context/references/ROUTES.md
+  - services/user-service-context/SKILL.md
+
+Output written to: .skills
+```
+
+### Output Structure
+
+```
+.skills/
+├── querying-architecture/          # Overview skill
+│   ├── SKILL.md                    # CLI commands + when to use them
+│   └── references/
+│       ├── ARCHITECTURE.md         # Full dependency graph
+│       └── SERVICES.md             # Quick-reference index
+└── services/                       # Per-service skills
+    ├── api-gateway-context/
+    │   ├── SKILL.md                # Commands, deps, consumers
+    │   └── references/
+    │       └── ROUTES.md           # API route definitions
+    └── user-service-context/
+        └── SKILL.md
+```
+
+The **overview skill** teaches agents how to query the architecture using CLI commands (`devgraph impact`, `devgraph validate`, `devgraph run`).
+
+**Per-service skills** provide commands, dependencies, downstream consumers, API routes, and key directories for each service.
+
+Skills use **progressive disclosure** — agents load only the name and description at startup (~100 tokens), then read the full skill body only when the task is relevant.
+
 ## Use Cases
 
-**AI-assisted development**: Drop `AGENTS.md` files in your repo so AI tools understand your services.
+**AI-assisted development**: Drop `AGENTS.md` or Agent Skills files in your repo so AI tools understand your services.
 
 **Onboarding**: New developers can quickly understand how to work with each service.
 
