@@ -23,7 +23,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'DevGraph — One graph. Every repo.',
+  title: 'DevGraph',
   description:
     'A universal context layer for codebases. Human-readable documentation that AI agents can navigate. One command to map your entire architecture.',
   keywords: [
@@ -68,7 +68,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
       <body suppressHydrationWarning>
         {children}
         <Analytics />
