@@ -23,29 +23,11 @@ export function CodeWindow({ code, title, className, highlightedLines = [] }: Co
         <span
           dangerouslySetInnerHTML={{
             __html: line
+              // First escape HTML entities
               .replace(/&/g, '&amp;')
               .replace(/</g, '&lt;')
               .replace(/>/g, '&gt;')
-              .replace(
-                /(&lt;span class="text-accent"&gt;)(.*?)(&lt;\/span&gt;)/g,
-                '<span class="text-accent">$2</span>'
-              )
-              .replace(
-                /(&lt;span class="text-green-400"&gt;)(.*?)(&lt;\/span&gt;)/g,
-                '<span class="text-green-400">$2</span>'
-              )
-              .replace(
-                /(&lt;span class="text-gray-500"&gt;)(.*?)(&lt;\/span&gt;)/g,
-                '<span class="text-gray-500">$2</span>'
-              )
-              .replace(
-                /(&lt;span class="text-gray-400"&gt;)(.*?)(&lt;\/span&gt;)/g,
-                '<span class="text-gray-400">$2</span>'
-              )
-              .replace(
-                /(&lt;span class="text-blue-400"&gt;)(.*?)(&lt;\/span&gt;)/g,
-                '<span class="text-blue-400">$2</span>'
-              )
+              // Then apply syntax highlighting
               .replace(
                 /(import|const|from|await|return|function|export|class|interface|type)/g,
                 '<span class="text-accent">$1</span>'
