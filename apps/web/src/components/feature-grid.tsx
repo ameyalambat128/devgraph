@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import SpotlightCard from './spotlight-card';
 
 interface GridItem {
   icon: React.ReactNode;
@@ -43,31 +44,34 @@ export function FeatureGrid({ title, description, items, actionLink }: FeatureGr
         {/* Grid with Vertical Lines */}
         <div className="grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4 border-l border-white/10">
           {items.map((item, i) => (
-            <div
-              key={i}
+            <SpotlightCard
+              key={item.title}
               className="group relative bg-[#050505] p-8 transition-colors hover:bg-white/[0.02]"
+              spotlightColor="rgba(139, 92, 246, 0.15)" // Violet accent
             >
-              <div className="mb-12 flex items-start justify-between">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
-                  00{i + 1}
-                </span>
-                <div className="text-gray-400 group-hover:text-accent transition-colors">
-                  {item.icon}
+              <div className="relative z-10">
+                <div className="mb-12 flex items-start justify-between">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+                    00{i + 1}
+                  </span>
+                  <div className="text-gray-400 group-hover:text-accent transition-colors">
+                    {item.icon}
+                  </div>
                 </div>
-              </div>
 
-              <h3 className="mb-4 text-xl font-bold text-white tracking-tight">{item.title}</h3>
-              <p className="mb-8 text-sm leading-relaxed text-gray-400 min-h-[80px]">
-                {item.description}
-              </p>
-              <Link
-                href={item.linkUrl}
-                className="inline-flex items-center gap-2 text-xs font-medium text-accent opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0"
-              >
-                {item.linkText}
-                <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
+                <h3 className="mb-4 text-xl font-bold text-white tracking-tight">{item.title}</h3>
+                <p className="mb-8 text-sm leading-relaxed text-gray-400 min-h-[80px]">
+                  {item.description}
+                </p>
+                <Link
+                  href={item.linkUrl}
+                  className="inline-flex items-center gap-2 text-xs font-medium text-accent opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0"
+                >
+                  {item.linkText}
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </SpotlightCard>
           ))}
           {/* Right border closer for the grid */}
           <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-px bg-white/10" />

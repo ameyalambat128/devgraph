@@ -49,7 +49,7 @@ export function Terminal() {
           devgraph build
         </div>
         {visibleLines.map((line, i) => (
-          <div key={i} className="text-[#888]">
+          <div key={`${i}-${line.substring(0, 10)}`} className="text-[#888]">
             {line}
           </div>
         ))}

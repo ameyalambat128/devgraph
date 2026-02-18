@@ -39,7 +39,7 @@ export function FeatureSection({
           <p className="text-lg leading-relaxed text-gray-400 max-w-md font-light">{description}</p>
           <ul className="space-y-4 pt-2">
             {bullets.map((bullet, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-gray-300 font-medium">
+              <li key={bullet} className="flex items-start gap-3 text-sm text-gray-300 font-medium">
                 <span className="mt-1.5 h-1 w-1 rounded-full bg-white/40 shrink-0" />
                 {bullet}
               </li>

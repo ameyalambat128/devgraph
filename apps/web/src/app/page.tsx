@@ -50,7 +50,7 @@ export default function Home() {
             {/* Header Bar */}
             <div className="flex items-center justify-between mb-4 px-2">
               <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                session: local // graph //
+                {'session: local // graph //'}
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500/50" />
