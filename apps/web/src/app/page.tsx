@@ -3,7 +3,7 @@ import { FeatureSection } from '@/components/feature-section';
 import { FeatureGrid } from '@/components/feature-grid';
 import { Footer } from '@/components/footer';
 import { CodeWindow } from '@/components/code-window';
-import { Sparkles, Terminal, Database, Activity, GitBranch } from 'lucide-react';
+import { ArrowRight, Terminal, Database, Activity, GitBranch } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Home() {
@@ -41,12 +41,15 @@ export default function Home() {
               className="group inline-flex items-center justify-center rounded-sm border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white hover:text-black hover:border-white"
             >
               Start Here
-              <Sparkles className="ml-2 h-4 w-4 transition-transform group-hover:rotate-12" />
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
 
           {/* Hero Visual - Massive Code Window */}
-          <div className="relative w-full rounded-sm bg-[#1A1A1A] p-3 sm:p-6 shadow-2xl border border-white/5">
+          <div
+            className="relative w-full rounded-sm bg-[#1A1A1A] p-3 sm:p-6 shadow-2xl border border-white/5 animate-fade-in-up opacity-0"
+            style={{ animationDelay: '0.2s' }}
+          >
             {/* Header Bar */}
             <div className="flex items-center justify-between mb-4 px-2">
               <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">

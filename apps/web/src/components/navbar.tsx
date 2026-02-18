@@ -7,8 +7,15 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050505]/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 border-b border-white/5">
         <Link href="/" className="flex items-center gap-3">
-          <span className="text-white text-lg font-medium tracking-tight flex items-center gap-2">
-            <span className="text-accent">*</span> DevGraph
+          <Image
+            src="/icon.png"
+            alt="DevGraph Logo"
+            width={24}
+            height={24}
+            className="rounded-full"
+          />
+          <span className="bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent text-lg font-medium tracking-tight">
+            DevGraph
           </span>
         </Link>
 

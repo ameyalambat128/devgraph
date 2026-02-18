@@ -57,9 +57,9 @@ export function FeatureSection({
         </div>
 
         {/* Code Visual Container */}
-        <div className="flex-1 w-full lg:max-w-[600px]">
+        <div className="flex-1 w-full lg:max-w-[600px] transition-transform duration-500 hover:scale-[1.02]">
           {/* Gray Card Aesthetic */}
-          <div className="relative rounded-sm bg-[#CCCCCC] p-8 shadow-2xl">
+          <div className="relative rounded-sm bg-[#1A1A1A] p-8 shadow-2xl border border-white/5">
             <CodeWindow
               code={code}
               title={codeTitle}
