@@ -4,14 +4,15 @@ import { IconGithub } from '@/components/icons';
 
 export function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/icon.png" alt="DevGraph" width={32} height={32} className="rounded-full" />
-          <span className="font-bold tracking-tight text-white">DevGraph</span>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#050505]/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 border-b border-white/5">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="text-white text-lg font-medium tracking-tight flex items-center gap-2">
+            <span className="text-accent">*</span> Cruel
+          </span>
         </Link>
 
-        <div className="flex items-center gap-6 text-sm font-medium text-gray-400">
+        <div className="flex items-center gap-8 text-[13px] font-medium text-gray-400">
           <Link href="/docs" className="transition-colors hover:text-white">
             Docs
           </Link>
@@ -23,7 +24,7 @@ export function Navbar() {
             target="_blank"
             className="transition-colors hover:text-white"
           >
-            <IconGithub className="h-5 w-5" />
+            <IconGithub className="h-4 w-4" />
           </Link>
         </div>
       </div>
