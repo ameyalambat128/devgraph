@@ -9,53 +9,43 @@ import { IconGithub } from '@/components/icons';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-accent/20">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-accent/30">
       <Navbar />
 
-      <main className="pt-32">
+      <main className="pt-40 pb-20">
         {/* Hero Section */}
-        <section className="mx-auto max-w-7xl px-6 text-center">
-          <div className="mx-auto max-w-4xl">
-            <div className="mb-6 flex justify-center">
-              <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-accent backdrop-blur-sm">
-                <Sparkles className="mr-1.5 h-3 w-3" />
-                v0.1 Public Alpha
-              </span>
-            </div>
-            <h1 className="mb-6 text-5xl font-bold tracking-tighter sm:text-7xl">
-              Know your codebase
-              <br />
-              before you prompt.
+        <section className="mx-auto max-w-7xl px-6 mb-32">
+          {/* Hero Content - Left Aligned */}
+          <div className="max-w-3xl mb-16">
+            <h1 className="mb-6 text-6xl font-bold tracking-tighter text-white sm:text-7xl lg:text-8xl">
+              Know your codebase before you prompt.
             </h1>
-            <p className="mx-auto mb-10 max-w-2xl text-xl text-gray-400">
+            <p className="mb-10 text-xl text-gray-400 max-w-xl leading-relaxed">
               DevGraph turns architecture notes into a graph your team and AI agents can actually
-              use. Map your repo in minutes.
+              use.
             </p>
-            <div className="flex justify-center gap-4">
-              <Link
-                href="/docs"
-                className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-gray-200"
-              >
-                Read the docs
-                <Sparkles className="ml-2 h-4 w-4" />
-              </Link>
-              <Link
-                href="https://github.com/ameyalambat128/devgraph"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
-              >
-                View on GitHub
-                <IconGithub className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
+
+            <Link
+              href="/docs"
+              className="inline-flex items-center justify-center rounded-sm bg-white/10 border border-white/10 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white hover:text-black"
+            >
+              Start Here
+              <Sparkles className="ml-2 h-4 w-4" />
+            </Link>
           </div>
 
-          <div className="mt-20">
-            <div className="relative mx-auto max-w-5xl rounded-xl bg-gradient-to-b from-white/10 to-transparent p-1 backdrop-blur-2xl">
+          {/* Hero Visual - Massive Code Window */}
+          <div className="relative w-full rounded-sm bg-[#111] p-2 sm:p-4 shadow-2xl ring-1 ring-white/10">
+            {/* Window Controls */}
+            <div className="absolute top-4 right-4 flex gap-2">
+              <div className="h-2 w-2 rounded-full bg-green-500" />
+            </div>
+            <div className="absolute top-4 left-6 text-xs text-gray-500 font-mono">
+              session: devgraph-core // seed //
+            </div>
+
+            <div className="mt-8">
               <CodeWindow
-                title="ecommerce.md (architecture definition)"
-                className="shadow-2xl"
                 code={`# E-commerce Platform Architecture
 
 \`\`\`devgraph-service
@@ -70,6 +60,7 @@ ports:
 healthcheck:
   http: http://localhost:4000/health
 \`\`\``}
+                className="bg-transparent border-none shadow-none text-base sm:text-lg"
               />
             </div>
           </div>
@@ -153,14 +144,14 @@ ports:
         <FeatureGrid
           title="Connect your reality."
           description="DevGraph connects the sources that matter to your daily engineering work, creating a unified view of your system."
-          actionLink={{ text: 'Get Started', url: '/docs' }}
+          actionLink={{ text: 'Open workflow', url: '/docs' }}
           items={[
             {
               icon: <GitBranch className="h-6 w-6" />,
               title: 'Git & CI/CD',
               description:
                 'Integrate repository context, code owners, and pipeline status directly into your graph.',
-              linkText: 'Learn more',
+              linkText: 'Read Git integration',
               linkUrl: '#',
             },
             {
@@ -168,7 +159,7 @@ ports:
               title: 'API & Packages',
               description:
                 'Track OpenAPI specs, internal packages, and third-party dependencies automatically.',
-              linkText: 'Learn more',
+              linkText: 'Read API docs',
               linkUrl: '#',
             },
             {
@@ -176,7 +167,7 @@ ports:
               title: 'Infra & Observability',
               description:
                 'Link Terraform resources, Kubernetes manifests, and observability signals.',
-              linkText: 'Learn more',
+              linkText: 'Read Infra specs',
               linkUrl: '#',
             },
             {
@@ -184,38 +175,15 @@ ports:
               title: 'Docs & Decisions',
               description:
                 'Treat ADRs, product specs, and technical documentation as first-class graph citizens.',
-              linkText: 'Learn more',
+              linkText: 'Read Docs pattern',
               linkUrl: '#',
             },
           ]}
         />
 
         {/* Bottom CTA */}
-        <section className="border-t border-white/10 bg-gradient-to-b from-white/5 to-black py-24 text-center">
-          <div className="mx-auto max-w-3xl px-6">
-            <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">
-              Map your repo in minutes, not meetings.
-            </h2>
-            <p className="mb-10 text-lg text-gray-400">
-              Stop guessing how your services fit together. Start building with a shared
-              understanding.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link
-                href="/docs"
-                className="inline-flex items-center justify-center rounded-md bg-white px-8 py-3 text-sm font-medium text-black transition-colors hover:bg-gray-200"
-              >
-                Get Started
-              </Link>
-              <Link
-                href="#"
-                className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
-              >
-                Open Studio
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* Note: Reference doesn't emphasize a huge bottom CTA, but keeping a minimal one is good practice. 
+            I'll keep it minimal to match the footer vibe. */}
       </main>
 
       <Footer />

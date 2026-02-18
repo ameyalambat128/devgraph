@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { IconGithub } from '@/components/icons';
 
 export function Navbar() {
@@ -6,12 +7,7 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2">
-          {/* Simple Logo Placeholder */}
-          <div className="h-6 w-6 text-accent">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-              <path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z" />
-            </svg>
-          </div>
+          <Image src="/icon.png" alt="DevGraph" width={32} height={32} className="rounded-full" />
           <span className="font-bold tracking-tight text-white">DevGraph</span>
         </Link>
 
