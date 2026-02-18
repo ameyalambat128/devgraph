@@ -8,7 +8,7 @@ export function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 border-b border-white/5">
         <Link href="/" className="flex items-center gap-3">
           <span className="text-white text-lg font-medium tracking-tight flex items-center gap-2">
-            <span className="text-accent">*</span> Cruel
+            <span className="text-accent">*</span> DevGraph
           </span>
         </Link>
 

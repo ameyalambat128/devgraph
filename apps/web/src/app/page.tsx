@@ -27,12 +27,13 @@ export default function Home() {
               </span>
             </div>
             <h1 className="mb-8 text-6xl font-bold tracking-[-0.04em] leading-[0.95] text-white sm:text-7xl lg:text-[5.5rem]">
-              Ship resilient AI
+              Know your codebase
               <br />
-              and APIs.
+              before you prompt.
             </h1>
             <p className="mb-12 text-xl text-gray-400 max-w-xl leading-relaxed font-light">
-              Inject realistic failures into AI SDK flows and core async APIs before launch.
+              DevGraph turns architecture notes into a graph your team and AI agents can actually
+              use. Map your repo in minutes.
             </p>
 
             <Link
@@ -49,7 +50,7 @@ export default function Home() {
             {/* Header Bar */}
             <div className="flex items-center justify-between mb-4 px-2">
               <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                session 2: core // seed //
+                session: local // graph //
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500/50" />
@@ -61,26 +62,32 @@ export default function Home() {
 
             <div className="bg-black rounded-sm overflow-hidden border border-white/5">
               <CodeWindow
-                code={`import { devgraph } from "devgraph/sdk"
+                code={`# E-commerce Platform Architecture
 
-const api = devgraph.init({
-  fail: 0.1,
-  delay: [120, 300],
-  timeout: 3.05,
-})
-
-const res = await api.get("https://api.example.com")
-// request chaos injected...`}
+\`\`\`devgraph-service
+name: api-gateway
+type: node
+depends:
+  - order-service
+  - product-service
+  - user-service
+ports:
+  - 4000
+healthcheck:
+  http: http://localhost:4000/health
+\`\`\``}
                 className="bg-black border-none shadow-none text-base sm:text-lg leading-loose py-8"
               />
 
               {/* Footer Bar inside terminal */}
               <div className="flex items-center gap-4 px-6 py-3 border-t border-white/5 bg-white/[0.02]">
-                <span className="text-[10px] font-mono text-gray-600 uppercase">1: presets</span>
-                <span className="text-[10px] font-mono text-gray-400 uppercase bg-white/10 px-1.5 py-0.5 rounded-sm">
-                  +2: core
+                <span className="text-[10px] font-mono text-gray-600 uppercase">
+                  1: architecture
                 </span>
-                <span className="text-[10px] font-mono text-gray-600 uppercase">3: ai sdk</span>
+                <span className="text-[10px] font-mono text-gray-400 uppercase bg-white/10 px-1.5 py-0.5 rounded-sm">
+                  +2: graph
+                </span>
+                <span className="text-[10px] font-mono text-gray-600 uppercase">3: context</span>
               </div>
             </div>
           </div>
@@ -88,100 +95,120 @@ const res = await api.get("https://api.example.com")
 
         {/* Feature 1: Architecture */}
         <FeatureSection
-          title="Chaos presets that feel like production."
-          description="DevGraph gives you realistic failure timing, not just random errors. Use presets for quick coverage, then tune per-model and per-api options when you need precision."
+          title="Your architecture, structured."
+          description="DevGraph parses simple markdown blocks to map services, APIs, and dependencies. No complex YAML hell, just documentation that works."
           bullets={[
-            'realistic / unstable / harsh / nightmare / apocalypse',
-            'deterministic seeds for reproducible failures',
-            'hook into every chaos event via onChaos',
+            'Define service boundaries and types',
+            'Map API surface area and routes',
+            'Track environment variables across services',
           ]}
-          codeTitle="chaos-config.ts"
-          code={`// Add chaos to specific models
-import { devgraph } from "devgraph"
-
-const model = devgraph.model("gpt-4o", {
-  presets: "nightmare",
-  timeout: 8.2,
-})`}
-          linkText="Explore presets"
+          codeTitle="service-definition.md"
+          code={`\`\`\`devgraph-service
+name: order-service
+type: node
+commands:
+  dev: pnpm dev --filter order-service
+depends:
+  - product-service
+  - payment-service
+ports:
+  - 4001
+\`\`\``}
+          linkText="Explore service blocks"
+          linkUrl="/docs"
         />
 
-        {/* Feature 2: Streaming */}
+        {/* Feature 2: Map Repo */}
         <FeatureSection
           align="right"
-          title="Streaming chaos you can actually test."
-          description="Streaming fails differently. DevGraph can slow tokens, corrupt deltas, and cut streams mid-flight to prove your UI and service retry logic are solid."
+          title="Map your repo in minutes."
+          description="Just add markdown blocks to your existing docs. Run the build command. Get usable artifacts for your team and AI agents immediately."
           bullets={[
-            'slowTokens (typing under pressure)',
-            'corruptChunks (bad deltas, weird bytes)',
-            'streamCut (mid-transfer termination)',
+            'Add devgraph blocks to markdown',
+            "Run 'devgraph build' in your terminal",
+            'Visualize instantly in the local Studio',
           ]}
-          codeTitle="stream-test.ts"
-          code={`const result = await streamText({
-  model: devgraph.wrap(openai("gpt-4")),
-  onChunk: (chunk) => {
-    // Chaos injected into chunks
-    console.log(chunk)
-  }
-})`}
-          linkText="Learn streaming chaos"
+          codeTitle="terminal"
+          code={`$ devgraph build
+
+> Found 12 devgraph blocks in 4 files.
+> Building graph...
+> distinct nodes: 15
+> edges: 24
+> Generated .devgraph/graph.json
+> Generated .devgraph/summary.md for agents
+
+✨ Done in 0.4s.`}
+          linkText="See the CLI workflow"
+          linkUrl="/docs"
         />
 
-        {/* Feature 3: Diagnostics */}
+        {/* Feature 3: Context Graph */}
         <FeatureSection
-          title="Diagnostics your team can ship with."
-          description="Track chaos events per request, measure latency distribution, and spot resilience gaps with a clean timeline. DevGraph helps you fix real bugs in models and services."
+          title="From architecture to context."
+          description="Start with a clean architecture graph today. Evolve into a full context graph that tracks decisions, provenance, and operational history."
           bullets={[
-            'group events by request id',
-            'compute p50/p95/p99 latency',
-            'count retries and failures accurately',
+            'Today: Structure, relationships, and dependencies',
+            'Next: History, decisions (ADRs), and incidents',
+            'A graph you can query like a database',
           ]}
-          codeTitle="analytics.ts"
-          code={`const events = [] as string[]
-const api = devgraph.init({
-  onChaos: (event) => events.push(event.type)
-})
-
-await generateText({ model, prompt })
-console.table(events) // See what failed`}
-          linkText="See diagnostics"
+          codeTitle="graph.json (preview)"
+          code={`{
+  "nodes": [
+    {
+      "id": "api-gateway",
+      "type": "service",
+      "metadata": {
+        "language": "typescript",
+        "framework": "express",
+        "owner": "@platform-team"
+      },
+      "relationships": [
+        { "target": "order-service", "type": "depends_on" }
+      ]
+    }
+  ]
+}`}
+          linkText="View graph schema"
+          linkUrl="/docs"
         />
 
         {/* Grid Section: Connect Sources */}
         <FeatureGrid
-          title="Chaos infrastructure that ships."
-          description="We focus on production-grade failure simulation for AI apps and async backends, not synthetic demos."
+          title="Connect your reality."
+          description="DevGraph connects the sources that matter to your daily engineering work, creating a unified view of your system."
           actionLink={{ text: 'Open workflow', url: '/docs' }}
           items={[
             {
-              icon: <Activity className="h-6 w-6" />,
-              title: 'Chaos presets',
+              icon: <GitBranch className="h-6 w-6" />,
+              title: 'Git & CI/CD',
               description:
-                'Start from realistic presets, then tune options per provider, model, or API.',
-              linkText: 'Read chaos',
+                'Integrate repository context, code owners, and pipeline status directly into your graph.',
+              linkText: 'Read Git integration',
               linkUrl: '#',
             },
             {
-              icon: <Terminal className="h-6 w-6" />,
-              title: 'Core and AI SDK',
+              icon: <Activity className="h-6 w-6" />,
+              title: 'API & Packages',
               description:
-                'Wrap fetch and async functions with simple wrappers provided by the SDK.',
-              linkText: 'Read Core API',
+                'Track OpenAPI specs, internal packages, and third-party dependencies automatically.',
+              linkText: 'Read API docs',
               linkUrl: '#',
             },
             {
               icon: <Database className="h-6 w-6" />,
-              title: 'Stream drills',
+              title: 'Infra & Observability',
               description:
-                'Test slow tokens, chunk corruption, and stream cuts before shipping UI.',
-              linkText: 'Read streaming',
+                'Link Terraform resources, Kubernetes manifests, and observability signals.',
+              linkText: 'Read Infra specs',
               linkUrl: '#',
             },
             {
-              icon: <GitBranch className="h-6 w-6" />,
-              title: 'CI replay',
-              description: 'Seed chaos once and replay deterministic sequences in every pipeline.',
-              linkText: 'Read replay',
+              icon: <Terminal className="h-6 w-6" />,
+              title: 'Docs & Decisions',
+              description:
+                'Treat ADRs, product specs, and technical documentation as first-class graph citizens.',
+              linkText: 'Read Docs pattern',
               linkUrl: '#',
             },
           ]}
