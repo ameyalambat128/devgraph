@@ -1,6 +1,5 @@
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import SpotlightCard from './spotlight-card';
 
 interface GridItem {
@@ -20,7 +19,7 @@ interface FeatureGridProps {
 
 export function FeatureGrid({ title, description, items, actionLink }: FeatureGridProps) {
   return (
-    <div className="border-t border-white/10 bg-[#050505]">
+    <div className="bg-[#050505]">
       <div className="mx-auto max-w-7xl px-6 py-32">
         {/* Header - Split Layout */}
         <div className="mb-24 grid gap-10 lg:grid-cols-2 lg:gap-20">
@@ -42,7 +41,7 @@ export function FeatureGrid({ title, description, items, actionLink }: FeatureGr
         </div>
 
         {/* Grid with Vertical Lines */}
-        <div className="grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4 border-l border-white/10">
+        <div className="relative grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item, i) => (
             <SpotlightCard
               key={item.title}
@@ -73,8 +72,6 @@ export function FeatureGrid({ title, description, items, actionLink }: FeatureGr
               </div>
             </SpotlightCard>
           ))}
-          {/* Right border closer for the grid */}
-          <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-px bg-white/10" />
         </div>
       </div>
     </div>

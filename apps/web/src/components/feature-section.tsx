@@ -24,7 +24,7 @@ export function FeatureSection({
   align = 'left',
 }: FeatureSectionProps) {
   return (
-    <div className="border-t border-white/10 bg-[#050505]">
+    <div className="bg-[#050505]">
       <div
         className={cn(
           'mx-auto flex max-w-7xl flex-col gap-20 px-6 py-32 lg:flex-row lg:items-center',
@@ -38,7 +38,7 @@ export function FeatureSection({
           </h2>
           <p className="text-lg leading-relaxed text-gray-400 max-w-md font-light">{description}</p>
           <ul className="space-y-4 pt-2">
-            {bullets.map((bullet, i) => (
+            {bullets.map((bullet, _i) => (
               <li key={bullet} className="flex items-start gap-3 text-sm text-gray-300 font-medium">
                 <span className="mt-1.5 h-1 w-1 rounded-full bg-white/40 shrink-0" />
                 {bullet}

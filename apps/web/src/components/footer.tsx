@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-[#050505] py-20">
+    <footer className="bg-[#050505] py-20">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-8 gap-y-12 px-6 md:grid-cols-4">
         {/* Brand Column with vertical line */}
         <div className="pr-8 md:border-r md:border-white/10">
@@ -78,11 +78,12 @@ export function Footer() {
             Company
           </h3>
           <ul className="space-y-4 text-sm text-gray-400">
-            <li>
+            {/* Story/manifesto link disabled until page is ready */}
+            {/* <li>
               <Link href="#" className="hover:text-white transition-colors">
                 Manifesto
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link href="#" className="hover:text-white transition-colors">
                 Contact

@@ -37,15 +37,15 @@ export default function Home() {
               before you prompt.
             </h1>
             <p className="mb-12 text-xl text-gray-400 max-w-xl leading-relaxed font-light">
-              DevGraph turns architecture notes into a graph your team and AI agents can actually
-              use. Map your repo in minutes.
+              Start from existing READMEs across repos. Generate one architecture graph for the
+              whole project.
             </p>
 
             <Link
               href="/docs"
               className="group inline-flex items-center justify-center rounded-sm border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white hover:text-black hover:border-white"
             >
-              Start Here
+              Read docs
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
@@ -70,32 +70,47 @@ export default function Home() {
 
             <div className="bg-black rounded-sm overflow-hidden border border-white/5">
               <CodeWindow
-                code={`# E-commerce Platform Architecture
+                code={`# Multi-Repo Project Architecture
 
 \`\`\`devgraph-service
-name: api-gateway
-type: node
+# story placeholder:
+#   title: Cleft Care Research Platform
+#   repos:
+#     - github.com/ameyalambat128/cleftcare
+#     - github.com/ameyalambat128/cleftcare-dashboard
+#     - github.com/ameyalambat128/cleftcare-api
+#     - github.com/ameyalambat128/cleftcare-ohm-api
+name: mobile-app
+type: react-native
+repo: github.com/acme/mobile-app
 depends:
-  - order-service
-  - product-service
-  - user-service
-ports:
-  - 4000
-healthcheck:
-  http: http://localhost:4000/health
-\`\`\``}
+  - backend-api
+  - inference-api
+links:
+  web: github.com/acme/web-dashboard
+  api: github.com/acme/backend-api
+  inference: github.com/acme/inference-api
+dataflow:
+  - record audio in app
+  - upload samples via backend-api
+  - run analysis via inference-api
+\`\`\`
+
+$ devgraph build docs/architecture.md
+
+> Found services across 3 repositories
+> Wrote .devgraph/graph.json
+> Wrote .devgraph/summary.md and .devgraph/system.mmd`}
                 className="bg-black border-none shadow-none text-base sm:text-lg leading-loose py-8"
               />
 
               {/* Footer Bar inside terminal */}
-              <div className="flex items-center gap-4 px-6 py-3 border-t border-white/5 bg-white/[0.02]">
-                <span className="text-[10px] font-mono text-gray-600 uppercase">
-                  1: architecture
-                </span>
+              <div className="flex items-center gap-4 px-6 py-3 bg-white/[0.02]">
+                <span className="text-[10px] font-mono text-gray-600 uppercase">1: input</span>
                 <span className="text-[10px] font-mono text-gray-400 uppercase bg-white/10 px-1.5 py-0.5 rounded-sm">
-                  +2: graph
+                  +2: build
                 </span>
-                <span className="text-[10px] font-mono text-gray-600 uppercase">3: context</span>
+                <span className="text-[10px] font-mono text-gray-600 uppercase">3: outputs</span>
               </div>
             </div>
           </div>
@@ -103,124 +118,165 @@ healthcheck:
 
         {/* Feature 1: Architecture */}
         <FeatureSection
-          title="Your architecture, structured."
-          description="DevGraph parses simple markdown blocks to map services, APIs, and dependencies. No complex YAML hell, just documentation that works."
+          title="What DevGraph knows right now."
+          description="DevGraph turns architecture notes into a deterministic graph with outputs for humans and AI workflows."
           bullets={[
-            'Define service boundaries and types',
-            'Map API surface area and routes',
-            'Track environment variables across services',
+            'Service boundaries and cross-repo dependencies',
+            'API routes and environment variables',
+            'Generated artifacts for onboarding and automation',
           ]}
-          codeTitle="service-definition.md"
-          code={`\`\`\`devgraph-service
-name: order-service
-type: node
-commands:
-  dev: pnpm dev --filter order-service
-depends:
-  - product-service
-  - payment-service
-ports:
-  - 4001
-\`\`\``}
-          linkText="Explore service blocks"
+          codeTitle="summary.md (preview)"
+          code={`# Project Summary
+
+| Service | Repo | Depends On |
+| --- | --- | --- |
+| mobile-app | mobile-app | backend-api, inference-api |
+| web-dashboard | web-dashboard | backend-api |
+| backend-api | backend-api | postgres, s3 |
+| inference-api | inference-api | model-runtime |
+
+Generated files:
+- .devgraph/graph.json
+- .devgraph/summary.md
+- .devgraph/system.mmd
+- .devgraph/agents/*.md`}
+          linkText="See generated outputs"
           linkUrl="/docs"
         />
 
-        {/* Feature 2: Map Repo */}
+        {/* Feature 2: How It Works */}
         <FeatureSection
           align="right"
-          title="Map your repo in minutes."
-          description="Just add markdown blocks to your existing docs. Run the build command. Get usable artifacts for your team and AI agents immediately."
+          title="How it works in practice."
+          description="Annotate key services in existing READMEs, run one command, and use outputs in docs, Studio, and agent workflows."
           bullets={[
-            'Add devgraph blocks to markdown',
-            "Run 'devgraph build' in your terminal",
-            'Visualize instantly in the local Studio',
+            'Add devgraph blocks in Markdown docs',
+            "Run 'devgraph build docs/architecture.md'",
+            'Use outputs in .devgraph and open Studio',
           ]}
           codeTitle="terminal"
-          code={`$ devgraph build
+          code={`$ devgraph build docs/architecture.md
 
-> Found 12 devgraph blocks in 4 files.
+> Found 18 devgraph blocks in 6 files.
 > Building graph...
-> distinct nodes: 15
-> edges: 24
-> Generated .devgraph/graph.json
-> Generated .devgraph/summary.md for agents
+> services: 14
+> dependencies: 32
+> Wrote .devgraph/graph.json
+> Wrote .devgraph/summary.md
+> Wrote .devgraph/system.mmd
+> Wrote .devgraph/agents/mobile-app.md
 
 ✨ Done in 0.4s.`}
-          linkText="See the CLI workflow"
+          linkText="See the build workflow"
           linkUrl="/docs"
         />
 
-        {/* Feature 3: Context Graph */}
+        {/* Feature 3: Context Graphs */}
         <FeatureSection
-          title="From architecture to context."
-          description="Start with a clean architecture graph today. Evolve into a full context graph that tracks decisions, provenance, and operational history."
+          title="DevGraph and context graphs."
+          description="DevGraph gives you the architecture layer now. Context graph workflows extend it with decision history and operational provenance."
           bullets={[
             'Today: Structure, relationships, and dependencies',
-            'Next: History, decisions (ADRs), and incidents',
-            'A graph you can query like a database',
+            'Next: Decisions, incidents, and provenance',
+            'Build trustworthy context in layers',
           ]}
-          codeTitle="graph.json (preview)"
+          codeTitle="graph.json (context-ready preview)"
           code={`{
   "nodes": [
     {
-      "id": "api-gateway",
+      "id": "mobile-app",
       "type": "service",
       "metadata": {
-        "language": "typescript",
-        "framework": "express",
-        "owner": "@platform-team"
+        "framework": "react-native",
+        "repo": "github.com/acme/mobile-app"
       },
       "relationships": [
-        { "target": "order-service", "type": "depends_on" }
-      ]
+        { "target": "backend-api", "type": "depends_on" },
+        { "target": "inference-api", "type": "depends_on" }
+      ],
+      "context": {
+        "adrs": [],
+        "incidents": [],
+        "provenance": "planned"
+      }
     }
   ]
 }`}
-          linkText="View graph schema"
+          linkText="Read context graph direction"
           linkUrl="/docs"
         />
 
         {/* Grid Section: Connect Sources */}
         <FeatureGrid
-          title="Connect your reality."
-          description="DevGraph connects the sources that matter to your daily engineering work, creating a unified view of your system."
-          actionLink={{ text: 'Open workflow', url: '/docs' }}
+          title="Connectable sources."
+          description="Connect the sources developers already use and unify them into one graph that is easier to navigate and query."
+          actionLink={{ text: 'See integration roadmap', url: '/docs' }}
           items={[
             {
               icon: <GitBranch className="h-6 w-6" />,
-              title: 'Git & CI/CD',
+              title: 'Git & CODEOWNERS',
               description:
-                'Integrate repository context, code owners, and pipeline status directly into your graph.',
-              linkText: 'Read Git integration',
-              linkUrl: '#',
+                'Link repositories, ownership boundaries, and file-level context across services.',
+              linkText: 'Read source mapping',
+              linkUrl: '/docs',
             },
             {
               icon: <Activity className="h-6 w-6" />,
-              title: 'API & Packages',
+              title: 'Packages & API Specs',
               description:
-                'Track OpenAPI specs, internal packages, and third-party dependencies automatically.',
-              linkText: 'Read API docs',
-              linkUrl: '#',
+                'Track package manifests, OpenAPI contracts, and dependency edges in one place.',
+              linkText: 'Read dependency docs',
+              linkUrl: '/docs',
             },
             {
               icon: <Database className="h-6 w-6" />,
-              title: 'Infra & Observability',
+              title: 'CI/CD & Infra',
               description:
-                'Link Terraform resources, Kubernetes manifests, and observability signals.',
-              linkText: 'Read Infra specs',
-              linkUrl: '#',
+                'Connect pipelines and infra definitions from Terraform and Kubernetes manifests.',
+              linkText: 'Read pipeline docs',
+              linkUrl: '/docs',
             },
             {
               icon: <Terminal className="h-6 w-6" />,
-              title: 'Docs & Decisions',
+              title: 'Observability & ADRs',
               description:
-                'Treat ADRs, product specs, and technical documentation as first-class graph citizens.',
-              linkText: 'Read Docs pattern',
-              linkUrl: '#',
+                'Bring in traces, errors, runbooks, and ADRs to enrich architecture context.',
+              linkText: 'Read context docs',
+              linkUrl: '/docs',
             },
           ]}
         />
+
+        {/* Bottom CTA */}
+        <section className="bg-[#050505]">
+          <div className="mx-auto max-w-7xl px-6 py-24">
+            <div className="max-w-4xl pl-0 lg:pl-12">
+              <h2 className="mb-6 text-4xl font-bold tracking-[-0.03em] text-white sm:text-5xl leading-[1.1]">
+                Map your repo in minutes, not meetings.
+              </h2>
+              <p className="mb-10 text-lg leading-relaxed text-gray-400 max-w-2xl font-light">
+                Start with the docs you already have. Build once. Share architecture context with
+                your team and every agent session.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/docs"
+                  className="group inline-flex items-center justify-center rounded-sm border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white hover:text-black hover:border-white"
+                >
+                  Get started
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+                <Link
+                  href="https://github.com/ameyalambat128/devgraph"
+                  className="group inline-flex items-center justify-center rounded-sm border border-white/20 bg-transparent px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white hover:text-black hover:border-white"
+                >
+                  View on GitHub
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
