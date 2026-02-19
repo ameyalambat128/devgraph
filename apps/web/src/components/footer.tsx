@@ -14,9 +14,7 @@ export function Footer() {
             <br />
             Understand your codebase.
           </p>
-          <p className="mt-auto text-[10px] text-gray-600 font-mono">
-            © {new Date().getFullYear()} Visible.
-          </p>
+          <p className="mt-auto text-[10px] text-gray-600 font-mono">© 2026 Ameya Lambat</p>
         </div>
 
         <div className="pl-0 md:pl-8">
@@ -27,21 +25,6 @@ export function Footer() {
             <li>
               <Link href="/docs" className="hover:text-white transition-colors">
                 Docs
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-white transition-colors">
-                API Reference
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-white transition-colors">
-                Integrations
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-white transition-colors">
-                Enterprise
               </Link>
             </li>
           </ul>
@@ -61,12 +44,18 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="#" className="hover:text-white transition-colors">
+              <Link
+                href="https://github.com/ameyalambat128/devgraph/releases"
+                className="hover:text-white transition-colors"
+              >
                 Changelog
               </Link>
             </li>
             <li>
-              <Link href="#" className="hover:text-white transition-colors">
+              <Link
+                href="https://www.npmjs.com/package/devgraph"
+                className="hover:text-white transition-colors"
+              >
                 NPM Package
               </Link>
             </li>
@@ -75,21 +64,13 @@ export function Footer() {
 
         <div className="pl-0 md:pl-8">
           <h3 className="mb-6 text-[10px] font-mono uppercase tracking-widest text-gray-500">
-            Company
+            Contact
           </h3>
-          <ul className="space-y-4 text-sm text-gray-400">
-            {/* Story/manifesto link disabled until page is ready */}
-            {/* <li>
-              <Link href="#" className="hover:text-white transition-colors">
-                Manifesto
-              </Link>
-            </li> */}
-            <li>
-              <Link href="#" className="hover:text-white transition-colors">
-                Contact
-              </Link>
-            </li>
-          </ul>
+          <p className="text-sm text-gray-400">
+            <Link href="mailto:i@ameyalambat.com" className="hover:text-white transition-colors">
+              i@ameyalambat.com
+            </Link>
+          </p>
         </div>
       </div>
     </footer>
