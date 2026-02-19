@@ -11,11 +11,11 @@ export default function Home() {
     <div className="relative min-h-screen bg-[#050505] text-white selection:bg-accent/30 font-sans">
       {/* Global Guide Lines - Running through header and footer */}
       <div
-        className="pointer-events-none fixed inset-0 z-50 mx-auto max-w-7xl px-6"
+        className="pointer-events-none fixed inset-0 z-[60] mx-auto max-w-7xl"
         aria-hidden="true"
       >
-        <div className="absolute top-0 bottom-0 left-6 w-px bg-white/10 hidden lg:block" />
-        <div className="absolute top-0 bottom-0 right-6 w-px bg-white/10 hidden lg:block" />
+        <div className="absolute top-0 bottom-0 left-0 w-px bg-white/10 hidden lg:block" />
+        <div className="absolute top-0 bottom-0 right-0 w-px bg-white/10 hidden lg:block" />
       </div>
 
       <Navbar />
