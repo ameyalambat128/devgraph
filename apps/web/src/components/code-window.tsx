@@ -9,40 +9,60 @@ interface CodeWindowProps {
 }
 
 export function CodeWindow({ code, title, className, highlightedLines = [] }: CodeWindowProps) {
-  // Simple syntax highlighting simulation (very basic)
   const renderCode = (code: string) => {
-    return code.split('\n').map((line, i) => (
-      <div
-        key={`${i}-${line.substring(0, 10)}`}
-        className={cn(
-          'px-4 border-l-2 border-transparent',
-          highlightedLines.includes(i + 1) && 'bg-white/5 border-accent'
-        )}
-      >
-        <span className="text-gray-600 select-none mr-4 w-6 inline-block text-right">{i + 1}</span>
-        <span
-          dangerouslySetInnerHTML={{
-            __html: line
-              // First escape HTML entities
-              .replace(/&/g, '&amp;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              // Then apply syntax highlighting
-              .replace(
-                /(import|const|from|await|return|function|export|class|interface|type)/g,
-                '<span class="text-accent">$1</span>'
-              )
-              .replace(/('.*?'|".*?"|`.*?`)/g, '<span class="text-green-400">$1</span>')
-              .replace(/(\/\/.*|# .*)/g, '<span class="text-gray-500">$1</span>')
-              .replace(/({|}|\[|\]|\(|\))/g, '<span class="text-gray-400">$1</span>')
-              .replace(
-                /(name:|type:|commands:|depends:|ports:|healthcheck:|service:|routes:|vars:)/g,
-                '<span class="text-blue-400">$1</span>'
-              ),
-          }}
-        />
-      </div>
-    ));
+    return code.split('\n').map((line, i) => {
+      // 1. Escape HTML entities
+      let processedLine = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      // 2. Tokenize strings and comments to protect them from keyword replacement
+      const tokens: string[] = [];
+
+      // Store strings
+      processedLine = processedLine.replace(/('.*?'|".*?"|`.*?`)/g, (match) => {
+        tokens.push(`<span class="text-green-400">${match}</span>`);
+        return `__TOKEN_${tokens.length - 1}__`;
+      });
+
+      // Store comments (if any remaining after string extraction)
+      processedLine = processedLine.replace(/(\/\/.*|# .*)/g, (match) => {
+        tokens.push(`<span class="text-gray-500">${match}</span>`);
+        return `__TOKEN_${tokens.length - 1}__`;
+      });
+
+      // 3. Highlight keywords in the remaining text
+      // Note: We use \b to ensure whole word matches for keywords
+      processedLine = processedLine
+        .replace(
+          /\b(import|const|from|await|return|function|export|class|interface|type)\b/g,
+          '<span class="text-accent">$1</span>'
+        )
+        // Specific YAML/DevGraph keys - matching "key:" pattern
+        .replace(
+          /\b(name|type|commands|depends|ports|healthcheck|service|routes|vars):/g,
+          '<span class="text-blue-400">$1:</span>'
+        );
+
+      // 4. Restore tokens
+      processedLine = processedLine.replace(
+        /__TOKEN_(\d+)__/g,
+        (_, index) => tokens[parseInt(index)]
+      );
+
+      return (
+        <div
+          key={`${i}-${line.substring(0, 10)}`}
+          className={cn(
+            'px-4 border-l-2 border-transparent',
+            highlightedLines.includes(i + 1) && 'bg-white/5 border-accent'
+          )}
+        >
+          <span className="text-gray-600 select-none mr-4 w-6 inline-block text-right">
+            {i + 1}
+          </span>
+          <span dangerouslySetInnerHTML={{ __html: processedLine }} />
+        </div>
+      );
+    });
   };
 
   return (

@@ -8,16 +8,21 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-accent/30 font-sans">
+    <div className="relative min-h-screen bg-[#050505] text-white selection:bg-accent/30 font-sans">
+      {/* Global Guide Lines - Running through header and footer */}
+      <div
+        className="pointer-events-none absolute inset-0 z-40 mx-auto max-w-7xl px-6"
+        aria-hidden="true"
+      >
+        <div className="absolute top-0 bottom-0 left-6 w-px bg-white/5 hidden lg:block" />
+        <div className="absolute top-0 bottom-0 right-6 w-px bg-white/5 hidden lg:block" />
+      </div>
+
       <Navbar />
 
-      <main className="pt-32 pb-0">
+      <main className="pt-32 pb-0 relative z-10">
         {/* Hero Section */}
         <section className="mx-auto max-w-7xl px-6 mb-32 relative">
-          {/* Vertical Guide Lines */}
-          <div className="absolute top-0 bottom-0 left-6 w-px bg-white/5 hidden lg:block" />
-          <div className="absolute top-0 bottom-0 right-6 w-px bg-white/5 hidden lg:block" />
-
           {/* Hero Content - Left Aligned */}
           <div className="max-w-4xl mb-24 pl-0 lg:pl-12">
             <div className="mb-8 flex items-center gap-2">
@@ -47,13 +52,13 @@ export default function Home() {
 
           {/* Hero Visual - Massive Code Window */}
           <div
-            className="relative w-full rounded-sm bg-[#1A1A1A] p-3 sm:p-6 shadow-2xl border border-white/5 animate-fade-in-up opacity-0"
+            className="relative w-full rounded-sm bg-[#1A1A1A] p-3 sm:p-6 shadow-2xl border border-white/10 animate-fade-in-up opacity-0"
             style={{ animationDelay: '0.2s' }}
           >
             {/* Header Bar */}
             <div className="flex items-center justify-between mb-4 px-2">
               <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                {'session: local // graph //'}
+                {'session: local  //  graph  //'}
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500/50" />
