@@ -30,12 +30,12 @@ export function Navbar() {
             height={24}
             className="rounded-full"
           />
-          <span className="bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent text-lg font-medium tracking-tight">
+          <span className="bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent text-xl font-medium tracking-tight">
             DevGraph
           </span>
         </Link>
 
-        <div className="flex items-center gap-8 text-[13px] font-medium text-gray-400">
+        <div className="flex items-center gap-8 text-[15px] font-medium text-gray-400">
           <Link href="/docs" className="transition-colors hover:text-white">
             Docs
           </Link>
@@ -48,7 +48,7 @@ export function Navbar() {
             target="_blank"
             className="transition-colors hover:text-white"
           >
-            <IconGithub className="h-4 w-4" />
+            <IconGithub className="h-5 w-5" />
           </Link>
         </div>
       </div>
