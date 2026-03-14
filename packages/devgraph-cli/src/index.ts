@@ -30,6 +30,7 @@ import {
 import { Command } from 'commander';
 import { startStudioServer } from './studio/server.js';
 import { openBrowser } from './studio/open-browser.js';
+import { VERSION } from './version';
 
 const BANNER = `
 ╔══════════════════════════════════════╗
@@ -41,7 +42,7 @@ const BANNER = `
 const program = new Command();
 const workspaceRoot = process.env.PNPM_WORKSPACE_ROOT || process.cwd();
 
-program.name('devgraph').description(BANNER).version('0.1.0');
+program.name('devgraph').description(BANNER).version(VERSION);
 
 async function handleParse(patterns: string[]) {
   const pats = patterns.length ? patterns : ['**/*.md'];
@@ -56,65 +57,86 @@ program
   .option('--json', 'Output validation result as JSON')
   .option('--config <path>', 'Path to config file (default: .devgraph/config.yaml)')
   .option('--report <path>', 'Write JSON report to file')
-  .action(async (paths: string[], options: { json?: boolean; config?: string; report?: string }) => {
-    try {
-      const { pats, blocks, errors: parseErrors } = await handleParse(paths);
+  .action(
+    async (paths: string[], options: { json?: boolean; config?: string; report?: string }) => {
+      try {
+        const { pats, blocks, errors: parseErrors } = await handleParse(paths);
 
-      if (!blocks.length && parseErrors.length === 0) {
+        if (!blocks.length && parseErrors.length === 0) {
+          if (options.json) {
+            console.log(
+              JSON.stringify(
+                { ok: true, errors: [], warnings: [], message: 'No devgraph blocks found' },
+                null,
+                2
+              )
+            );
+          } else {
+            console.log('No devgraph blocks found.\n');
+            console.log('Add blocks to your markdown like this:\n');
+            console.log('  ```devgraph-service');
+            console.log('  name: my-service');
+            console.log('  type: node');
+            console.log('  commands:');
+            console.log('    dev: npm run dev');
+            console.log('  ```\n');
+            console.log('Then run: devgraph build "**/*.md"\n');
+            console.log('Docs: https://devgraph.ameyalambat.com');
+          }
+          return;
+        }
+
+        // Build graph for consistency checks
+        const graph = buildGraph(blocks);
+
+        // Run full validation
+        const result = await validate(blocks, graph, parseErrors, {
+          configPath: options.config,
+        });
+
+        // Write report if requested
+        if (options.report) {
+          const reportDir = path.dirname(path.resolve(workspaceRoot, options.report));
+          await mkdir(reportDir, { recursive: true });
+          await writeFile(
+            path.resolve(workspaceRoot, options.report),
+            formatValidationResultJson(result)
+          );
+        }
+
+        // Output result
         if (options.json) {
-          console.log(JSON.stringify({ ok: true, errors: [], warnings: [], message: 'No devgraph blocks found' }, null, 2));
+          console.log(formatValidationResultJson(result));
         } else {
-          console.log('No devgraph blocks found.\n');
-          console.log('Add blocks to your markdown like this:\n');
-          console.log('  ```devgraph-service');
-          console.log('  name: my-service');
-          console.log('  type: node');
-          console.log('  commands:');
-          console.log('    dev: npm run dev');
-          console.log('  ```\n');
-          console.log('Then run: devgraph build "**/*.md"\n');
-          console.log('Docs: https://devgraph.ameyalambat.com');
+          console.log(formatValidationResult(result));
+          if (result.ok) {
+            console.log(`\nValidated ${blocks.length} block(s) from patterns: ${pats.join(', ')}`);
+          }
         }
-        return;
-      }
 
-      // Build graph for consistency checks
-      const graph = buildGraph(blocks);
-
-      // Run full validation
-      const result = await validate(blocks, graph, parseErrors, {
-        configPath: options.config,
-      });
-
-      // Write report if requested
-      if (options.report) {
-        const reportDir = path.dirname(path.resolve(workspaceRoot, options.report));
-        await mkdir(reportDir, { recursive: true });
-        await writeFile(path.resolve(workspaceRoot, options.report), formatValidationResultJson(result));
-      }
-
-      // Output result
-      if (options.json) {
-        console.log(formatValidationResultJson(result));
-      } else {
-        console.log(formatValidationResult(result));
-        if (result.ok) {
-          console.log(`\nValidated ${blocks.length} block(s) from patterns: ${pats.join(', ')}`);
+        // Set exit code
+        process.exitCode = result.ok ? 0 : 1;
+      } catch (error) {
+        // Exit code 2 for tooling errors
+        if (options.json) {
+          console.log(
+            JSON.stringify(
+              {
+                ok: false,
+                errors: [{ code: 'TOOLING_ERROR', message: (error as Error).message }],
+                warnings: [],
+              },
+              null,
+              2
+            )
+          );
+        } else {
+          console.error(`Tooling error: ${(error as Error).message}`);
         }
+        process.exitCode = 2;
       }
-
-      // Set exit code
-      process.exitCode = result.ok ? 0 : 1;
-    } catch (error) {
-      // Exit code 2 for tooling errors
-      if (options.json) {
-        console.log(JSON.stringify({ ok: false, errors: [{ code: 'TOOLING_ERROR', message: (error as Error).message }], warnings: [] }, null, 2));
-      } else {
-        console.error(`Tooling error: ${(error as Error).message}`);
-      }
-      process.exitCode = 2;
     }
-  });
+  );
 
 program
   .command('build')
@@ -313,10 +335,7 @@ program
   .option('--json', 'Output as JSON')
   .option('--runbook', 'Generate a markdown runbook file for AI agents')
   .action(
-    async (
-      service: string,
-      options: { graph: string; json?: boolean; runbook?: boolean }
-    ) => {
+    async (service: string, options: { graph: string; json?: boolean; runbook?: boolean }) => {
       const graphPath = path.resolve(workspaceRoot, options.graph);
 
       // Load graph
@@ -380,10 +399,7 @@ program
   .option('--json', 'Output as JSON')
   .option('--runbook', 'Generate a markdown runbook file for AI agents')
   .action(
-    async (
-      service: string,
-      options: { graph: string; json?: boolean; runbook?: boolean }
-    ) => {
+    async (service: string, options: { graph: string; json?: boolean; runbook?: boolean }) => {
       const graphPath = path.resolve(workspaceRoot, options.graph);
 
       let graphData;
