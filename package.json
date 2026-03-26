@@ -13,6 +13,7 @@
     "build:core": "pnpm --filter @devgraph/core build",
     "build:cli": "pnpm --filter devgraph build",
     "build:cli-full": "pnpm build:studio && pnpm --filter devgraph build:with-studio",
+    "check": "pnpm --filter web build",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:core": "pnpm --filter @devgraph/core test",

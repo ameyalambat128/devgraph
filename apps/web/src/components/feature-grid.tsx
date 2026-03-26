@@ -22,9 +22,11 @@ export function FeatureGrid({ title, description, items, actionLink }: FeatureGr
     <div className="bg-[#050505]">
       <div className="mx-auto max-w-7xl px-6 py-32">
         {/* Header - Split Layout */}
-        <div className="mb-24 grid gap-10 lg:grid-cols-2 lg:gap-20">
-          <div>
-            <h2 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl">{title}</h2>
+        <div className="mb-24 grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-20">
+          <div className="flex items-center justify-center text-center">
+            <h2 className="max-w-xl text-4xl font-bold tracking-tighter text-white sm:text-5xl">
+              {title}
+            </h2>
           </div>
           <div className="flex flex-col items-start justify-end gap-8 border-l border-white/10 pl-8 lg:pl-12">
             <p className="text-lg text-gray-400 max-w-md leading-relaxed">{description}</p>

@@ -1,0 +1,35 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="900" fill="#050505"/>
+  <rect x="64" y="60" width="1272" height="780" rx="20" fill="#0F0F0F" stroke="#262626" stroke-width="2"/>
+  <rect x="64" y="60" width="1272" height="74" rx="20" fill="#181818"/>
+  <circle cx="112" cy="97" r="8" fill="#8B5CF6"/>
+  <circle cx="142" cy="97" r="8" fill="#2DD4BF" fill-opacity="0.75"/>
+  <circle cx="172" cy="97" r="8" fill="#F59E0B" fill-opacity="0.75"/>
+  <text x="214" y="104" fill="#EDEDED" font-family="SFMono-Regular, Menlo, monospace" font-size="24">DevGraph Studio</text>
+  <text x="1052" y="104" fill="#6B7280" font-family="SFMono-Regular, Menlo, monospace" font-size="18">graph capture</text>
+
+  <rect x="106" y="170" width="210" height="94" rx="18" fill="#121212" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="136" y="208" fill="#8B5CF6" font-family="SFMono-Regular, Menlo, monospace" font-size="16">frontend</text>
+  <text x="136" y="240" fill="#EDEDED" font-family="Outfit, Inter, sans-serif" font-size="28" font-weight="700">web-app</text>
+
+  <rect x="428" y="322" width="252" height="112" rx="18" fill="#121212" stroke="#2DD4BF" stroke-width="2"/>
+  <text x="462" y="364" fill="#2DD4BF" font-family="SFMono-Regular, Menlo, monospace" font-size="16">backend</text>
+  <text x="462" y="402" fill="#EDEDED" font-family="Outfit, Inter, sans-serif" font-size="30" font-weight="700">payments-api</text>
+
+  <rect x="804" y="188" width="244" height="104" rx="18" fill="#121212" stroke="#38BDF8" stroke-width="2"/>
+  <text x="838" y="228" fill="#38BDF8" font-family="SFMono-Regular, Menlo, monospace" font-size="16">service</text>
+  <text x="838" y="266" fill="#EDEDED" font-family="Outfit, Inter, sans-serif" font-size="30" font-weight="700">auth-api</text>
+
+  <rect x="834" y="488" width="256" height="112" rx="18" fill="#121212" stroke="#F59E0B" stroke-width="2"/>
+  <text x="868" y="530" fill="#F59E0B" font-family="SFMono-Regular, Menlo, monospace" font-size="16">storage</text>
+  <text x="868" y="568" fill="#EDEDED" font-family="Outfit, Inter, sans-serif" font-size="30" font-weight="700">postgres</text>
+
+  <path d="M316 216C362 216 386 216 428 250C476 288 474 315 512 322" stroke="#8B5CF6" stroke-width="4" stroke-linecap="round"/>
+  <path d="M680 350C748 350 740 242 804 240" stroke="#2DD4BF" stroke-width="4" stroke-linecap="round"/>
+  <path d="M680 406C760 430 762 520 834 544" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+
+  <rect x="106" y="642" width="1188" height="146" rx="18" fill="#111111" stroke="#262626"/>
+  <text x="144" y="688" fill="#6B7280" font-family="SFMono-Regular, Menlo, monospace" font-size="18">selected service</text>
+  <text x="144" y="736" fill="#EDEDED" font-family="Outfit, Inter, sans-serif" font-size="34" font-weight="700">payments-api</text>
+  <text x="420" y="736" fill="#9CA3AF" font-family="Inter, sans-serif" font-size="24">Depends on auth-api and postgres. Built from Markdown service blocks.</text>
+</svg>

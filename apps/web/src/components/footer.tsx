@@ -10,9 +10,9 @@ export function Footer() {
             DEVGRAPH
           </h3>
           <p className="text-sm leading-relaxed text-gray-400 mb-8 max-w-[200px]">
-            Graph-based context for humans and AI agents.
+            One graph. Every repo. Context for humans and AI.
             <br />
-            Understand your codebase.
+            Built from the Markdown your team already keeps.
           </p>
           <p className="mt-auto text-[10px] text-gray-600 font-mono">© 2026 Ameya Lambat</p>
         </div>

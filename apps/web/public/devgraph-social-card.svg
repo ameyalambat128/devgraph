@@ -1,0 +1,27 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#050505"/>
+  <rect x="40" y="40" width="1120" height="550" rx="28" fill="#090909" stroke="#262626" stroke-width="2"/>
+
+  <rect x="84" y="88" width="1032" height="68" rx="18" fill="#121212"/>
+  <circle cx="122" cy="122" r="8" fill="#8B5CF6"/>
+  <text x="150" y="128" fill="#EDEDED" font-family="Outfit, Inter, sans-serif" font-size="28" font-weight="700">DevGraph</text>
+  <text x="952" y="128" fill="#9CA3AF" font-family="SFMono-Regular, Menlo, monospace" font-size="16">devgraph.ameyalambat.com</text>
+
+  <text x="92" y="242" fill="#8B5CF6" font-family="SFMono-Regular, Menlo, monospace" font-size="16">ONE GRAPH. EVERY REPO.</text>
+  <text x="92" y="324" fill="#FFFFFF" font-family="Outfit, Inter, sans-serif" font-size="84" font-weight="700">DevGraph</text>
+  <text x="92" y="382" fill="#E5E7EB" font-family="Inter, sans-serif" font-size="34">Markdown-first architecture context for humans and AI.</text>
+  <text x="92" y="438" fill="#9CA3AF" font-family="Inter, sans-serif" font-size="28">Build graph.json, summary.md, Mermaid diagrams, and agent-ready context from one command.</text>
+
+  <rect x="92" y="486" width="240" height="58" rx="14" fill="#FFFFFF"/>
+  <text x="132" y="523" fill="#050505" font-family="Inter, sans-serif" font-size="24" font-weight="700">Read docs</text>
+
+  <rect x="714" y="218" width="340" height="250" rx="18" fill="#111111" stroke="#333333"/>
+  <text x="746" y="258" fill="#6B7280" font-family="SFMono-Regular, Menlo, monospace" font-size="16">outputs</text>
+  <text x="746" y="304" fill="#34D399" font-family="SFMono-Regular, Menlo, monospace" font-size="20">graph.json</text>
+  <text x="746" y="342" fill="#34D399" font-family="SFMono-Regular, Menlo, monospace" font-size="20">summary.md</text>
+  <text x="746" y="380" fill="#34D399" font-family="SFMono-Regular, Menlo, monospace" font-size="20">system.mmd</text>
+  <text x="746" y="418" fill="#34D399" font-family="SFMono-Regular, Menlo, monospace" font-size="20">agents/*.md</text>
+
+  <rect x="636" y="132" width="112" height="112" rx="24" fill="#101010" stroke="#333333"/>
+  <path d="M694 169L663 186.5V221.5L694 239L725 221.5V186.5L694 169Z" stroke="#8B5CF6" stroke-width="8"/>
+</svg>

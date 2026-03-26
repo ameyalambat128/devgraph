@@ -1,0 +1,30 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="900" fill="#050505"/>
+  <rect x="64" y="60" width="1272" height="780" rx="20" fill="#111111" stroke="#262626" stroke-width="2"/>
+  <rect x="64" y="60" width="1272" height="74" rx="20" fill="#181818"/>
+  <circle cx="112" cy="97" r="8" fill="#8B5CF6"/>
+  <circle cx="142" cy="97" r="8" fill="#2DD4BF" fill-opacity="0.75"/>
+  <circle cx="172" cy="97" r="8" fill="#F59E0B" fill-opacity="0.75"/>
+  <text x="214" y="104" fill="#EDEDED" font-family="SFMono-Regular, Menlo, monospace" font-size="24">devgraph build</text>
+  <text x="1076" y="104" fill="#6B7280" font-family="SFMono-Regular, Menlo, monospace" font-size="18">CLI capture</text>
+
+  <text x="112" y="194" fill="#8B5CF6" font-family="SFMono-Regular, Menlo, monospace" font-size="26">$</text>
+  <text x="148" y="194" fill="#EDEDED" font-family="SFMono-Regular, Menlo, monospace" font-size="26">devgraph build docs/architecture.md</text>
+
+  <text x="112" y="276" fill="#9CA3AF" font-family="SFMono-Regular, Menlo, monospace" font-size="24">&gt; Found 18 devgraph blocks in 6 files</text>
+  <text x="112" y="326" fill="#9CA3AF" font-family="SFMono-Regular, Menlo, monospace" font-size="24">&gt; services: 14</text>
+  <text x="112" y="376" fill="#9CA3AF" font-family="SFMono-Regular, Menlo, monospace" font-size="24">&gt; dependencies: 32</text>
+  <text x="112" y="426" fill="#34D399" font-family="SFMono-Regular, Menlo, monospace" font-size="24">&gt; Wrote .devgraph/graph.json</text>
+  <text x="112" y="476" fill="#34D399" font-family="SFMono-Regular, Menlo, monospace" font-size="24">&gt; Wrote .devgraph/summary.md</text>
+  <text x="112" y="526" fill="#34D399" font-family="SFMono-Regular, Menlo, monospace" font-size="24">&gt; Wrote .devgraph/system.mmd</text>
+  <text x="112" y="576" fill="#34D399" font-family="SFMono-Regular, Menlo, monospace" font-size="24">&gt; Wrote .devgraph/agents/payments-api.md</text>
+  <text x="112" y="660" fill="#8B5CF6" font-family="Outfit, Inter, sans-serif" font-size="54" font-weight="700">DevGraph</text>
+  <text x="112" y="710" fill="#E5E7EB" font-family="Inter, sans-serif" font-size="30">One graph. Every repo.</text>
+  <text x="112" y="758" fill="#9CA3AF" font-family="Inter, sans-serif" font-size="26">Build graph outputs from the Markdown your team already keeps.</text>
+
+  <rect x="958" y="618" width="286" height="116" rx="16" fill="#0B0B0B" stroke="#262626"/>
+  <text x="992" y="664" fill="#6B7280" font-family="SFMono-Regular, Menlo, monospace" font-size="16">outputs</text>
+  <text x="992" y="704" fill="#EDEDED" font-family="SFMono-Regular, Menlo, monospace" font-size="18">graph.json</text>
+  <text x="1114" y="704" fill="#6B7280" font-family="SFMono-Regular, Menlo, monospace" font-size="18">summary.md</text>
+  <text x="992" y="734" fill="#6B7280" font-family="SFMono-Regular, Menlo, monospace" font-size="18">system.mmd</text>
+</svg>
