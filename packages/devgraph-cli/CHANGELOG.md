@@ -1,5 +1,13 @@
 # devgraph
 
+## 0.6.1
+
+### Patch Changes
+
+- Fix the CLI version output to read from the shared VERSION constant instead of a hardcoded string.
+- Updated dependencies
+  - @devgraph/core@0.6.1
+
 ## 0.6.0
 
 ### Minor Changes
