@@ -22,12 +22,17 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-mono',
 });
 
+const siteUrl = 'https://devgraph.ameyalambat.com';
+const socialImage = `${siteUrl}/devgraph-social-card.png`;
+const description =
+  'DevGraph turns Markdown architecture notes into a graph your team, docs, and AI agents can actually use. Build graph.json, summary.md, Mermaid diagrams, and agent-ready context from one command.';
+
 export const metadata: Metadata = {
-  title: 'DevGraph',
-  description:
-    'A universal context layer for codebases. Human-readable documentation that AI agents can navigate. One command to map your entire architecture.',
+  title: 'DevGraph | One graph. Every repo.',
+  description,
   keywords: [
     'devgraph',
+    'architecture graph',
     'codebase',
     'documentation',
     'ai',
@@ -39,22 +44,32 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Ameya Lambat', url: 'https://x.com/lambatameya' }],
   creator: 'Ameya Lambat',
-  metadataBase: new URL('https://devgraph.ameyalambat.com'),
+  metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: siteUrl,
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://devgraph.ameyalambat.com',
+    url: siteUrl,
     siteName: 'DevGraph',
-    title: 'DevGraph — One graph. Every repo.',
-    description:
-      'A universal context layer for codebases. Human-readable documentation that AI agents can navigate.',
+    title: 'DevGraph | One graph. Every repo.',
+    description,
+    images: [
+      {
+        url: socialImage,
+        width: 1200,
+        height: 630,
+        alt: 'DevGraph social card with product branding and graph output preview',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'DevGraph — One graph. Every repo.',
-    description:
-      'A universal context layer for codebases. Human-readable documentation that AI agents can navigate.',
+    title: 'DevGraph | One graph. Every repo.',
+    description,
     creator: '@lambatameya',
+    images: [socialImage],
   },
   robots: {
     index: true,
