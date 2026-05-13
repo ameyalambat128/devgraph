@@ -3,7 +3,14 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import yaml from 'yaml';
 import { z } from 'zod';
-import type { Devgraph, DevgraphBlock, ParseError, ServiceBlock, ApiBlock, EnvBlock } from '../index.js';
+import type {
+  Devgraph,
+  DevgraphBlock,
+  ParseError,
+  ServiceBlock,
+  ApiBlock,
+  EnvBlock,
+} from '../index.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -58,7 +65,9 @@ export type DevgraphConfig = z.infer<typeof configSchema>;
 // Config Loading
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function loadConfig(configPath?: string): Promise<{ config: DevgraphConfig | null; error?: ValidationError }> {
+export async function loadConfig(
+  configPath?: string
+): Promise<{ config: DevgraphConfig | null; error?: ValidationError }> {
   const defaultPath = path.join(process.cwd(), '.devgraph', 'config.yaml');
   const targetPath = configPath ?? defaultPath;
 
@@ -101,10 +110,7 @@ export async function loadConfig(configPath?: string): Promise<{ config: Devgrap
 // Consistency Checks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function validateConsistency(
-  blocks: DevgraphBlock[],
-  graph: Devgraph
-): ValidationError[] {
+export function validateConsistency(blocks: DevgraphBlock[], graph: Devgraph): ValidationError[] {
   const errors: ValidationError[] = [];
 
   // Track service definitions for duplicate detection
@@ -123,7 +129,9 @@ export function validateConsistency(
   // Check for duplicate service names
   for (const [serviceName, definitions] of serviceDefinitions) {
     if (definitions.length > 1) {
-      const locations = definitions.map(d => d.line ? `${d.file}:${d.line}` : d.file).join(', ');
+      const locations = definitions
+        .map((d) => (d.line ? `${d.file}:${d.line}` : d.file))
+        .join(', ');
       errors.push({
         level: 'error',
         code: 'DUPLICATE_SERVICE',
@@ -357,7 +365,9 @@ export function formatValidationResult(result: ValidationResult): string {
   }
 
   const lines: string[] = [];
-  lines.push(`✗ DevGraph validation failed (${result.errors.length} error${result.errors.length === 1 ? '' : 's'})`);
+  lines.push(
+    `✗ DevGraph validation failed (${result.errors.length} error${result.errors.length === 1 ? '' : 's'})`
+  );
   lines.push('');
 
   for (let i = 0; i < result.errors.length; i++) {

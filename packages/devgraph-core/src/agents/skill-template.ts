@@ -25,7 +25,8 @@ export function renderOverviewSkillMd(graph: Devgraph): string {
   lines.push('  Use when checking service dependencies, analyzing blast radius of changes,');
   lines.push('  validating architecture rules, finding API routes between services,');
   lines.push('  or coordinating cross-service work. Also use before adding new');
-  lines.push('  dependencies or modifying service contracts.');
+  lines.push('  dependencies or modifying service contracts. Read GRAPH_REPORT first,');
+  lines.push('  then use devgraph query for focused retrieval.');
   lines.push(`  This project has ${serviceCount} service(s).`);
   lines.push('---');
   lines.push('');
@@ -73,9 +74,21 @@ export function renderOverviewSkillMd(graph: Devgraph): string {
 
   lines.push('## Full graph');
   lines.push('');
-  lines.push('See [references/ARCHITECTURE.md](references/ARCHITECTURE.md) for the complete service dependency graph.');
+  lines.push('Read `.devgraph/GRAPH_REPORT.md` before broad raw-file searching.');
   lines.push('');
-  lines.push('See [references/SERVICES.md](references/SERVICES.md) for a quick-reference of all services.');
+  lines.push('```bash');
+  lines.push('devgraph query "<question>"');
+  lines.push('```');
+  lines.push('');
+  lines.push('Returns a bounded subgraph with provenance and source paths.');
+  lines.push('');
+  lines.push(
+    'See [references/ARCHITECTURE.md](references/ARCHITECTURE.md) for the complete service dependency graph.'
+  );
+  lines.push('');
+  lines.push(
+    'See [references/SERVICES.md](references/SERVICES.md) for a quick-reference of all services.'
+  );
   lines.push('');
 
   return lines.join('\n');
@@ -142,12 +155,168 @@ export function renderServicesReference(
   return lines.join('\n');
 }
 
+function dedupeQuestions(questions: string[]) {
+  return Array.from(new Set(questions.map((question) => question.trim()).filter(Boolean)));
+}
+
+function getFallbackOrchestrationQuestions(graph: Devgraph) {
+  const serviceNames = Object.keys(graph.services).sort();
+  const firstService = serviceNames[0] ?? '<service>';
+  const firstDependentService =
+    serviceNames.find((serviceName) => (graph.services[serviceName].depends ?? []).length > 0) ??
+    firstService;
+
+  return [
+    `Which services does this task touch?`,
+    `Which files belong to ${firstService}?`,
+    `How does ${firstDependentService} connect to its dependencies?`,
+    `What APIs or environment variables define the contract?`,
+    `Which downstream consumers could be affected?`,
+    `What coverage gaps should another agent know before editing?`,
+  ];
+}
+
+export function getOrchestrationQuestions(graph: Devgraph) {
+  const analysis = graph.knowledgeGraph?.analysis;
+  const serviceNames = Object.keys(graph.services).sort();
+  const serviceQuestions = serviceNames.flatMap((serviceName) => {
+    const service = graph.services[serviceName];
+    const questions = [`Which files belong to ${serviceName}?`];
+
+    if ((service.depends ?? []).length > 0) {
+      questions.push(`How does ${serviceName} depend on ${(service.depends ?? []).join(', ')}?`);
+    }
+
+    if ((service.apis ?? []).length > 0) {
+      questions.push(`Which API routes belong to ${serviceName}?`);
+    }
+
+    return questions;
+  });
+
+  const graphQuestions = analysis
+    ? [
+        ...analysis.suggestedQuestions,
+        ...analysis.coverageGaps.map((gap) => `What should an agent verify about ${gap}?`),
+        ...serviceQuestions,
+      ]
+    : [...getFallbackOrchestrationQuestions(graph), ...serviceQuestions];
+
+  return dedupeQuestions(graphQuestions).slice(0, 6);
+}
+
+export function renderOrchestrationSkillMd(graph: Devgraph): string {
+  const lines: string[] = [];
+  const questions = getOrchestrationQuestions(graph);
+
+  lines.push('---');
+  lines.push('name: orchestrating-devgraph-context');
+  lines.push('description: >');
+  lines.push('  Builds compact agent handoff briefs from DevGraph context.');
+  lines.push('  Use when a user wants another agent to continue work, when planning');
+  lines.push('  cross-service changes, or when repo context should be gathered through');
+  lines.push('  GRAPH_REPORT and focused devgraph query prompts before implementation.');
+  lines.push('---');
+  lines.push('');
+
+  lines.push('# Orchestrating DevGraph Context');
+  lines.push('');
+  lines.push(
+    'Use this skill to ask focused repo questions, capture answers, and hand compact context to another agent.'
+  );
+  lines.push('');
+
+  lines.push('## Workflow');
+  lines.push('');
+  lines.push('1. Read `.devgraph/GRAPH_REPORT.md` before broad raw-file searching.');
+  lines.push('2. Choose 3 to 6 questions from this skill, the report, or the user goal.');
+  lines.push('3. Run `devgraph query "<question>"` for each chosen question.');
+  lines.push(
+    '4. Ask the user only for missing intent: goal, target service, constraints, and done criteria.'
+  );
+  lines.push('5. Produce a Markdown handoff brief using `references/HANDOFF_TEMPLATE.md`.');
+  lines.push('');
+
+  lines.push('## Starter Questions');
+  lines.push('');
+  for (const question of questions) {
+    lines.push(`- ${question}`);
+  }
+  lines.push('');
+
+  lines.push('## Handoff Rules');
+  lines.push('');
+  lines.push('- Keep brief grounded in graph evidence, file paths, services, and command output.');
+  lines.push('- Mark assumptions clearly when graph data is incomplete.');
+  lines.push('- Preserve open questions instead of inventing answers.');
+  lines.push('- Do not include implementation edits unless the user asked for them.');
+  lines.push('');
+
+  lines.push(
+    'See [references/HANDOFF_TEMPLATE.md](references/HANDOFF_TEMPLATE.md) for the output shape.'
+  );
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+export function renderHandoffTemplateReference(): string {
+  const lines: string[] = [];
+
+  lines.push('# Handoff Template');
+  lines.push('');
+  lines.push('> Auto-generated by DevGraph. Do not edit manually.');
+  lines.push('');
+
+  lines.push('## Goal');
+  lines.push('');
+  lines.push('<User goal and done criteria.>');
+  lines.push('');
+
+  lines.push('## Known Context');
+  lines.push('');
+  lines.push('- <Relevant services, files, ownership, dependencies, APIs, env, and constraints.>');
+  lines.push('');
+
+  lines.push('## Graph Evidence');
+  lines.push('');
+  lines.push('| Question | Evidence | Source |');
+  lines.push('|----------|----------|--------|');
+  lines.push('| `<devgraph query question>` | <Short finding> | `<file or graph node>` |');
+  lines.push('');
+
+  lines.push('## Decisions');
+  lines.push('');
+  lines.push('- <Confirmed user or repo decision.>');
+  lines.push('');
+
+  lines.push('## Open Questions');
+  lines.push('');
+  lines.push('- <Question another agent or user still needs to resolve.>');
+  lines.push('');
+
+  lines.push('## Suggested Next Agent Task');
+  lines.push('');
+  lines.push(
+    '<Concrete task prompt for the next agent, including target files and verification commands.>'
+  );
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 // --- Layer 2: Per-Service Skills ---
 
 export function renderServiceSkillMd(data: ServiceSkillTemplateData): string {
   const { service, graph, inferred, servicePath, bestEffort, downstreamConsumers } = data;
   const lines: string[] = [];
   const skillName = `${service.name}-context`;
+  const ownedPaths =
+    graph.knowledgeGraph?.edges
+      ?.filter((edge) => edge.relation === 'owns' && edge.source === `service:${service.name}`)
+      .map((edge) => graph.knowledgeGraph?.nodes.find((node) => node.id === edge.target)?.path)
+      .filter((value): value is string => Boolean(value))
+      .slice(0, 12) ?? [];
 
   // Frontmatter
   lines.push('---');
@@ -171,6 +340,8 @@ export function renderServiceSkillMd(data: ServiceSkillTemplateData): string {
   if (inferred.packageManager) quickRefParts.push(`Package manager: ${inferred.packageManager}`);
   if (servicePath) quickRefParts.push(`Location: ${servicePath}/`);
   lines.push(`- ${quickRefParts.join(' | ')}`);
+  lines.push('- Read `.devgraph/GRAPH_REPORT.md` before broad searches.');
+  lines.push('- Prefer `devgraph query "<question>"` when the graph exists.');
   lines.push('');
 
   // Commands table
@@ -238,9 +409,20 @@ export function renderServiceSkillMd(data: ServiceSkillTemplateData): string {
     lines.push('');
   }
 
+  if (ownedPaths.length > 0) {
+    lines.push('## Owned paths');
+    lines.push('');
+    for (const ownedPath of ownedPaths) {
+      lines.push(`- \`${ownedPath}\``);
+    }
+    lines.push('');
+  }
+
   // API routes — link to reference if present
-  const hasAPIs = service.apis && service.apis.length > 0 &&
-    service.apis.some(api => Object.keys(api.routes || {}).length > 0);
+  const hasAPIs =
+    service.apis &&
+    service.apis.length > 0 &&
+    service.apis.some((api) => Object.keys(api.routes || {}).length > 0);
   if (hasAPIs) {
     lines.push('## API routes');
     lines.push('');
@@ -262,9 +444,7 @@ export function renderServiceSkillMd(data: ServiceSkillTemplateData): string {
   return lines.join('\n');
 }
 
-export function renderRoutesReference(
-  service: ServiceBlock & { apis?: ApiBlock[] }
-): string {
+export function renderRoutesReference(service: ServiceBlock & { apis?: ApiBlock[] }): string {
   const lines: string[] = [];
 
   lines.push(`# ${service.name} — API Routes`);

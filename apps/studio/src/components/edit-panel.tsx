@@ -1,13 +1,7 @@
 'use client';
 
 import { Pencil } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -33,9 +27,10 @@ export function EditPanel({ service, open, onOpenChange }: EditPanelProps) {
     ? Object.entries(service.commands).map(([key, value]) => ({ key, value }))
     : [];
 
-  const envVars = service.env?.flatMap((env) =>
-    Object.entries(env.vars || {}).map(([key, value]) => ({ key, value }))
-  ) || [];
+  const envVars =
+    service.env?.flatMap((env) =>
+      Object.entries(env.vars || {}).map(([key, value]) => ({ key, value }))
+    ) || [];
 
   const dependencies = (service.depends || []).map((dep) => ({
     key: dep,

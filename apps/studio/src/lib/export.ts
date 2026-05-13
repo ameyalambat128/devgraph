@@ -24,7 +24,9 @@ export function generateSummary(graph: Devgraph): string {
     0
   );
 
-  lines.push(`**${services.length}** services | **${totalApis}** API routes | **${totalEnvVars}** env vars`);
+  lines.push(
+    `**${services.length}** services | **${totalApis}** API routes | **${totalEnvVars}** env vars`
+  );
   lines.push('');
   lines.push('---');
   lines.push('');
@@ -105,6 +107,8 @@ export function generateAgentContext(service: ServiceWithDetails, graph: Devgrap
   if (service.depends && service.depends.length) {
     lines.push(`This service depends on: ${service.depends.map((d) => `\`${d}\``).join(', ')}.`);
   }
+  lines.push('Read `.devgraph/GRAPH_REPORT.md` before broad raw-file searches.');
+  lines.push('Use `devgraph query "<question>"` for focused graph retrieval.');
   lines.push('');
 
   if (service.commands && Object.keys(service.commands).length) {
@@ -159,6 +163,22 @@ export function generateAgentContext(service: ServiceWithDetails, graph: Devgrap
       } else {
         lines.push(`- **${dep}**`);
       }
+    }
+    lines.push('');
+  }
+
+  const ownedPaths =
+    graph.knowledgeGraph?.edges
+      ?.filter((edge) => edge.relation === 'owns' && edge.source === `service:${service.name}`)
+      .map((edge) => graph.knowledgeGraph?.nodes.find((node) => node.id === edge.target)?.path)
+      .filter((value): value is string => Boolean(value))
+      .slice(0, 12) ?? [];
+
+  if (ownedPaths.length > 0) {
+    lines.push('## Owned Paths');
+    lines.push('');
+    for (const ownedPath of ownedPaths) {
+      lines.push(`- \`${ownedPath}\``);
     }
     lines.push('');
   }

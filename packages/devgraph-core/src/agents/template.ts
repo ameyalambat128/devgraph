@@ -38,6 +38,9 @@ export function renderAgentMarkdown(data: AgentTemplateData): string {
     lines.push(`| Package Manager | ${inferred.packageManager} |`);
   }
   lines.push('');
+  lines.push('Read `.devgraph/GRAPH_REPORT.md` before broad architecture searches.');
+  lines.push('Use `devgraph query "<question>"` for focused graph retrieval.');
+  lines.push('');
 
   // Run section (commands)
   const mergedCommands = mergeCommands(service.commands, inferred.commands);
@@ -88,8 +91,24 @@ export function renderAgentMarkdown(data: AgentTemplateData): string {
     lines.push('');
   }
 
+  const ownedPaths = graph.knowledgeGraph?.edges
+    ?.filter((edge) => edge.relation === 'owns' && edge.source === `service:${service.name}`)
+    .map((edge) => graph.knowledgeGraph?.nodes.find((node) => node.id === edge.target)?.path)
+    .filter((value): value is string => Boolean(value))
+    .slice(0, 12);
+
+  if (ownedPaths && ownedPaths.length > 0) {
+    lines.push('## Owned Paths');
+    lines.push('');
+    for (const ownedPath of ownedPaths) {
+      lines.push(`- \`${ownedPath}\``);
+    }
+    lines.push('');
+  }
+
   // Interfaces section
-  const hasConsumedAPIs = service.depends && service.depends.some((dep) => graph.services[dep]?.apis?.length);
+  const hasConsumedAPIs =
+    service.depends && service.depends.some((dep) => graph.services[dep]?.apis?.length);
   const hasExposedAPIs = service.apis && service.apis.length > 0;
 
   if (hasConsumedAPIs || hasExposedAPIs) {

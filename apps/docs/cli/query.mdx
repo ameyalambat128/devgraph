@@ -1,0 +1,62 @@
+---
+title: devgraph query
+description: 'Retrieve a focused subgraph from the built knowledge graph'
+---
+
+## Usage
+
+```bash
+devgraph query "<question>" [options]
+```
+
+## Options
+
+| Option           | Description                                                      | Default                |
+| ---------------- | ---------------------------------------------------------------- | ---------------------- |
+| `--graph <path>` | Path to `graph.json`                                             | `.devgraph/graph.json` |
+| `--budget <n>`   | Maximum amount of output to emit                                 | `200`                  |
+| `--dfs`          | Traverse with depth-first search instead of breadth-first search | `false`                |
+| `--help`         | Show help                                                        |
+
+## Description
+
+`devgraph query` works against the built `knowledgeGraph` inside `graph.json`.
+
+It ranks nodes using repo-grounded fields such as:
+
+- node label
+- file path
+- service name
+- extracted summary and tags when available
+
+The command then walks the graph from the best matches and emits a bounded text subgraph instead of freeform prose.
+
+## Example Questions
+
+```bash
+devgraph query "which files belong to api?"
+devgraph query "what documents auth?"
+devgraph query "how does studio depend on core?" --budget 300
+devgraph query "show bridge files around agents" --budget 250 --dfs
+```
+
+## Output Shape
+
+Query output includes:
+
+- node labels
+- node kinds
+- graph relations
+- provenance values
+- source paths or source locations when available
+
+This makes it useful as a retrieval surface for humans and coding agents that need a narrow, explainable slice of the graph.
+
+## Typical Workflow
+
+```bash
+devgraph build .
+devgraph query "which files belong to api?"
+```
+
+Use `GRAPH_REPORT.md` when you want a broad architectural read. Use `devgraph query` when you want a focused traversal through the built graph.

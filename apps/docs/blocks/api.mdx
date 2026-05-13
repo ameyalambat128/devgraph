@@ -1,11 +1,13 @@
 ---
 title: devgraph-api
-description: "Define API routes for a service"
+description: 'Define API routes for a service'
 ---
 
 ## Overview
 
-The `devgraph-api` block defines API routes for a service. Routes are associated with a parent service defined by `devgraph-service`.
+The `devgraph-api` block defines API routes for a service. Routes attach to a parent service defined by `devgraph-service`.
+
+In the hybrid build, API blocks enrich the authoritative service layer inside `graph.json`. They do not replace the repo scan or file-level graph.
 
 ## Syntax
 
@@ -23,10 +25,10 @@ routes:
 
 ## Fields
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `service` | Yes | Name of the parent service |
-| `routes` | Yes | Object mapping routes to descriptions |
+| Field     | Required | Description                           |
+| --------- | -------- | ------------------------------------- |
+| `service` | Yes      | Name of the parent service            |
+| `routes`  | Yes      | Object mapping routes to descriptions |
 
 ## Route Format
 
@@ -96,6 +98,8 @@ routes:
 ## Generated Output
 
 API routes appear in:
-- `graph.json` under the service's `api` field
-- `summary.md` in the routes table
-- `agents/{service}.md` context file
+
+- `graph.json` top-level `apis`
+- `graph.json` top-level `services` under the matching service
+- `summary.md` in the routes section
+- `agents/{service}.md` and generated skills

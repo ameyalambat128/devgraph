@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import dagre from '@dagrejs/dagre';
-import type { ReactFlowGraph, ServiceNode, DependencyEdge } from '@/types/graph';
+import type { GraphEdge, GraphNode, ReactFlowGraph } from '@/types/graph';
 import type { LayoutDirection } from '@/types/studio';
 
 const NODE_WIDTH = 280;
@@ -14,10 +14,7 @@ interface LayoutOptions {
 /**
  * Apply Dagre layout to React Flow nodes
  */
-export function applyDagreLayout(
-  graph: ReactFlowGraph,
-  options: LayoutOptions
-): ReactFlowGraph {
+export function applyDagreLayout(graph: ReactFlowGraph, options: LayoutOptions): ReactFlowGraph {
   const { direction } = options;
   const dagreGraph = new dagre.graphlib.Graph();
 
@@ -44,7 +41,7 @@ export function applyDagreLayout(
   dagre.layout(dagreGraph);
 
   // Apply positions to nodes
-  const layoutedNodes: ServiceNode[] = graph.nodes.map((node) => {
+  const layoutedNodes: GraphNode[] = graph.nodes.map((node) => {
     const dagreNode = dagreGraph.node(node.id);
     return {
       ...node,
@@ -78,11 +75,11 @@ export function useGraphLayout(
  * Hook to get layout callback for React Flow
  */
 export function useLayoutCallback(
-  setNodes: (nodes: ServiceNode[]) => void,
-  setEdges: (edges: DependencyEdge[]) => void
+  setNodes: (nodes: GraphNode[]) => void,
+  setEdges: (edges: GraphEdge[]) => void
 ) {
   return useCallback(
-    (nodes: ServiceNode[], edges: DependencyEdge[], direction: LayoutDirection) => {
+    (nodes: GraphNode[], edges: GraphEdge[], direction: LayoutDirection) => {
       const layouted = applyDagreLayout({ nodes, edges }, { direction });
       setNodes(layouted.nodes);
       setEdges(layouted.edges);

@@ -94,6 +94,81 @@ describe('generateSkills', () => {
     expect(servicesRef!.content).toContain('| postgres');
   });
 
+  it('generates orchestration skill and handoff template', () => {
+    const graph = makeGraph();
+    const result = generateSkills(graph);
+
+    const orchestrationSkill = result.files.find(
+      (f) => f.relativePath === 'orchestrating-devgraph-context/SKILL.md'
+    );
+    const handoffTemplate = result.files.find(
+      (f) => f.relativePath === 'orchestrating-devgraph-context/references/HANDOFF_TEMPLATE.md'
+    );
+
+    expect(orchestrationSkill).toBeDefined();
+    expect(orchestrationSkill!.content).toContain('name: orchestrating-devgraph-context');
+    expect(orchestrationSkill!.content).toContain('devgraph query "<question>"');
+    expect(orchestrationSkill!.content).toContain('references/HANDOFF_TEMPLATE.md');
+    expect(handoffTemplate).toBeDefined();
+  });
+
+  it('includes graph-derived orchestration questions when analysis exists', () => {
+    const graph = makeGraph({
+      knowledgeGraph: {
+        nodes: [],
+        edges: [],
+        communities: [],
+        analysis: {
+          godNodes: [],
+          bridgeNodes: [],
+          surprisingConnections: [],
+          suggestedQuestions: ['Why is api-gateway a bridge between graph regions?'],
+          coverageGaps: ['2 file(s) are not owned by any service'],
+        },
+      },
+    });
+    const result = generateSkills(graph);
+
+    const orchestrationSkill = result.files.find(
+      (f) => f.relativePath === 'orchestrating-devgraph-context/SKILL.md'
+    );
+
+    expect(orchestrationSkill!.content).toContain(
+      'Why is api-gateway a bridge between graph regions?'
+    );
+    expect(orchestrationSkill!.content).toContain(
+      'What should an agent verify about 2 file(s) are not owned by any service?'
+    );
+  });
+
+  it('uses fallback orchestration questions when graph analysis is missing', () => {
+    const graph = makeGraph();
+    const result = generateSkills(graph);
+
+    const orchestrationSkill = result.files.find(
+      (f) => f.relativePath === 'orchestrating-devgraph-context/SKILL.md'
+    );
+
+    expect(orchestrationSkill!.content).toContain('Which services does this task touch?');
+    expect(orchestrationSkill!.content).toContain('Which files belong to api-gateway?');
+  });
+
+  it('handoff template includes required sections', () => {
+    const graph = makeGraph();
+    const result = generateSkills(graph);
+
+    const handoffTemplate = result.files.find(
+      (f) => f.relativePath === 'orchestrating-devgraph-context/references/HANDOFF_TEMPLATE.md'
+    );
+
+    expect(handoffTemplate!.content).toContain('## Goal');
+    expect(handoffTemplate!.content).toContain('## Known Context');
+    expect(handoffTemplate!.content).toContain('## Graph Evidence');
+    expect(handoffTemplate!.content).toContain('## Decisions');
+    expect(handoffTemplate!.content).toContain('## Open Questions');
+    expect(handoffTemplate!.content).toContain('## Suggested Next Agent Task');
+  });
+
   it('generates per-service skill with correct frontmatter', () => {
     const graph = makeGraph();
     const result = generateSkills(graph);

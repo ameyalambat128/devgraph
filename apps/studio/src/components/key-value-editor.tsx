@@ -53,10 +53,7 @@ export function KeyValueEditor({
       {items.length > 0 && (
         <div className="space-y-2">
           {items.map(({ key, value }) => (
-            <div
-              key={key}
-              className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
-            >
+            <div key={key} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
               <div className="flex-1 min-w-0">
                 <code className="text-sm font-mono font-medium">{key}</code>
                 {value && (
@@ -100,12 +97,7 @@ export function KeyValueEditor({
             onKeyDown={handleKeyDown}
           />
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleAdd}
-          disabled={!newKey.trim()}
-        >
+        <Button variant="outline" size="icon" onClick={handleAdd} disabled={!newKey.trim()}>
           <Plus className="w-4 h-4" />
         </Button>
       </div>

@@ -11,13 +11,19 @@ export interface StudioState {
   originalGraph: Devgraph | null;
   /** Working copy with edits */
   editedGraph: Devgraph | null;
-  /** Currently selected service name */
-  selectedServiceName: string | null;
+  /** Currently selected node id */
+  selectedNodeId: string | null;
   /** Graph layout direction */
   layoutDirection: LayoutDirection;
-  /** Filter by service type */
-  serviceTypeFilter: string | null;
-  /** Search query for filtering services */
+  /** Filter by node kind */
+  nodeKindFilter: 'service' | 'file' | null;
+  /** Filter by community */
+  communityFilter: string | null;
+  /** Filter by provenance */
+  confidenceFilter: 'EXTRACTED' | 'INFERRED' | 'AMBIGUOUS' | null;
+  /** Filter by ownership */
+  ownershipFilter: 'owned' | 'unowned' | null;
+  /** Search query for filtering nodes */
   searchQuery: string;
   /** ID of the currently hovered node */
   hoveredNodeId: string | null;
@@ -30,8 +36,8 @@ export interface StudioActions {
   loadGraph: (graph: Devgraph) => void;
   /** Reset to original graph */
   resetGraph: () => void;
-  /** Select a service by name */
-  selectService: (name: string | null) => void;
+  /** Select a node by id */
+  selectNode: (id: string | null) => void;
   /** Set the hovered node ID */
   setHoveredNodeId: (id: string | null) => void;
   /** Update a service */
@@ -50,8 +56,14 @@ export interface StudioActions {
   removeDependency: (serviceName: string, dependency: string) => void;
   /** Set layout direction */
   setLayoutDirection: (direction: LayoutDirection) => void;
-  /** Set service type filter */
-  setServiceTypeFilter: (type: string | null) => void;
+  /** Set node kind filter */
+  setNodeKindFilter: (kind: 'service' | 'file' | null) => void;
+  /** Set community filter */
+  setCommunityFilter: (communityId: string | null) => void;
+  /** Set provenance filter */
+  setConfidenceFilter: (confidence: 'EXTRACTED' | 'INFERRED' | 'AMBIGUOUS' | null) => void;
+  /** Set ownership filter */
+  setOwnershipFilter: (ownership: 'owned' | 'unowned' | null) => void;
   /** Set search query */
   setSearchQuery: (query: string) => void;
 }

@@ -6,97 +6,143 @@
 
 One graph. Every repo. Context for humans and AI.
 
-DevGraph scans Markdown for `devgraph-*` fenced blocks and builds a unified project graph with human-readable and LLM-optimized outputs.
+DevGraph reads your repo, builds a hybrid project graph, and gives you back structure you can actually use. It maps services, files, dependencies, docs, and ownership into one graph so you can understand architecture faster, inspect change impact, and hand better context to coding agents.
+
+Run it on a whole workspace or targeted paths. DevGraph scans directories, files, and globs by default, then uses `devgraph-service`, `devgraph-api`, and `devgraph-env` blocks as the authoritative service layer on top of the repo scan.
+
+The result is a persistent graph plus analysis surfaces you can reuse across sessions:
+
+```text
+devgraph build .
+.devgraph/
+├── graph.json         machine-readable graph with services, apis, and knowledgeGraph
+├── summary.md         service overview
+├── GRAPH_REPORT.md    graph analysis, bridge nodes, surprising connections
+├── agents/            per-service context for coding assistants
+├── system.mmd         service relationship diagram
+└── codemap.mmd        owned paths and file relationship diagram
+```
 
 ## Quick Start
 
 ### Install
 
 ```bash
-npm install -g devgraph
-# or use npx
-npx devgraph@latest build docs/*.md
+# run without installing
+bunx devgraph@latest build .
+# or
+pnpm dlx devgraph@latest build .
+# or install globally
+pnpm add -g devgraph
+bun add -g devgraph
 ```
 
-### 1. Add blocks to your Markdown
+### 1. Add optional service metadata blocks
 
-In any `.md` file (e.g., `docs/architecture.md`):
+DevGraph can build a graph from the repo alone, but `devgraph-service`, `devgraph-api`, and `devgraph-env` blocks let you define the service layer explicitly.
 
-```markdown
+In any `.md` file such as `docs/architecture.md`:
+
+````markdown
 ## API Service
 
-\`\`\`devgraph-service
+```devgraph-service
 name: api
 type: node
+paths:
+  - apps/api
 commands:
-  dev: npm run dev
-  build: npm run build
+  dev: pnpm dev
+  build: pnpm build
 depends:
   - database
-\`\`\`
+```
 
-\`\`\`devgraph-api
+```devgraph-api
 service: api
 routes:
   GET /health: Health check
   GET /api/users: List users
   POST /api/users: Create user
-\`\`\`
+```
 
-\`\`\`devgraph-env
+```devgraph-env
 service: api
 vars:
   PORT: "3000"
   DATABASE_URL: postgresql://localhost:5432/mydb
-\`\`\`
 ```
+````
 
 ### 2. Build the graph
 
 ```bash
-devgraph build docs/*.md
+devgraph build .
 ```
+
+`build` accepts files, globs, and directories. With no arguments it scans the current workspace.
 
 ### 3. Check outputs
 
 Outputs are generated in `.devgraph/`:
 
-| File | Description |
-|------|-------------|
-| `graph.json` | Machine-readable project graph |
-| `summary.md` | Human-readable overview with tables |
-| `agents/*.md` | Per-service context files for LLMs |
-| `.skills/` | [Agent Skills](https://agentskills.io) for 25+ AI tools (via `--format skills`) |
-| `system.mmd` | Mermaid diagram of service dependencies |
-| `codemap.mmd` | Mermaid diagram of repo structure |
-| `integration_notes.md` | Diff summary when using `--compare` |
-| `runbooks/*.md` | AI-ready runbooks from `devgraph run --runbook` |
+| File                   | Description                                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| `graph.json`           | Machine-readable output containing top-level `services`, `apis`, and `knowledgeGraph`         |
+| `summary.md`           | Human-readable overview of the service layer plus hybrid graph counts                         |
+| `GRAPH_REPORT.md`      | Hybrid graph analysis with god nodes, surprising connections, bridge nodes, and coverage gaps |
+| `agents/*.md`          | Per-service context files for LLMs                                                            |
+| `system.mmd`           | Mermaid diagram of service dependencies                                                       |
+| `codemap.mmd`          | Mermaid diagram of hybrid graph relationships                                                 |
+| `integration_notes.md` | Diff summary when using `--compare`                                                           |
+
+At a high level, `graph.json` now includes:
+
+- top-level `services`
+- top-level `apis`
+- `knowledgeGraph.nodes`
+- `knowledgeGraph.edges`
+- `knowledgeGraph.communities`
+- `knowledgeGraph.analysis`
+
+## Build Model
+
+DevGraph builds a hybrid project graph from your repo:
+
+- **Whole-repo scanning**: `devgraph build` walks files, directories, and globs by default
+- **Authoritative service layer**: `devgraph-service` blocks define the service model, commands, APIs, env, and optional ownership paths
+- **Hybrid graph layer**: `knowledgeGraph` adds service and file nodes with typed edges such as `owns`, `references`, `documents`, `defined_in`, and `depends_on`
+- **Deterministic analysis**: `GRAPH_REPORT.md` and `devgraph query` operate on the built graph without requiring an external server
+
+`.devgraphignore` lets you exclude noise such as `node_modules`, build outputs, vendored code, and other generated artifacts.
 
 ## Block Types
 
-| Block | Purpose | Required Fields |
-|-------|---------|-----------------|
-| `devgraph-service` | Define a service | `name`, `type` |
-| `devgraph-api` | Define API routes | `service`, `routes` |
-| `devgraph-env` | Define env vars | `service`, `vars` |
+| Block              | Purpose           | Required Fields     |
+| ------------------ | ----------------- | ------------------- |
+| `devgraph-service` | Define a service  | `name`, `type`      |
+| `devgraph-api`     | Define API routes | `service`, `routes` |
+| `devgraph-env`     | Define env vars   | `service`, `vars`   |
 
 ### devgraph-service
 
 ```yaml
-name: my-service          # Service name (required)
-type: node                # Service type: node, nextjs, python, etc. (required)
-commands:                 # Optional commands
-  dev: npm run dev
-  build: npm run build
-depends:                  # Optional dependencies
+name: my-service
+type: node
+paths:
+  - apps/my-service
+commands:
+  dev: pnpm dev
+  build: pnpm build
+depends:
   - other-service
 ```
 
 ### devgraph-api
 
 ```yaml
-service: my-service       # Parent service name (required)
-routes:                   # Route definitions (required)
+service: my-service
+routes:
   GET /health: Health check
   POST /api/users: Create user
 ```
@@ -104,55 +150,76 @@ routes:                   # Route definitions (required)
 ### devgraph-env
 
 ```yaml
-service: my-service       # Parent service name (required)
-vars:                     # Environment variables (required)
-  PORT: "3000"
+service: my-service
+vars:
+  PORT: '3000'
   DATABASE_URL: postgresql://localhost:5432/db
 ```
 
 ## CLI Commands
 
 ```bash
-# Validate blocks without generating outputs
-devgraph validate docs/*.md
+# Build the hybrid project graph and outputs
+devgraph build .
 
-# Build graph and generate all outputs
-devgraph build docs/*.md
+# Build with diff against a previous graph snapshot
+devgraph build . --compare .devgraph/graph.json
 
-# Build with diff against previous graph
-devgraph build docs/*.md --compare .devgraph/graph.json
+# Query the built knowledge graph
+devgraph query "where does api connect to db?"
+devgraph query "which files document auth?" --budget 300 --dfs
+
+# Validate service blocks and architecture rules
+devgraph validate docs/**/*.md
 
 # Generate a dependency-aware run plan
 devgraph run api
-
-# Output run plan as JSON or a runbook
 devgraph run api --json
 devgraph run api --runbook
 
-# Execute the run plan (start all services)
-devgraph run api --exec
+# Analyze impact and coordination
+devgraph impact api --json
+devgraph coordinate api --json
 
 # Generate Agent Skills for AI tools
 devgraph agents --format skills
 
-# Launch visual graph viewer
+# Launch the visual graph viewer
 devgraph studio
 ```
 
+## Querying the Graph
+
+Use `devgraph query` to retrieve a focused subgraph instead of searching raw files broadly:
+
+```bash
+devgraph query "which files belong to api?"
+```
+
+The result includes:
+
+- matched node labels
+- relations between nodes
+- provenance such as `EXTRACTED`, `INFERRED`, or `AMBIGUOUS`
+- source paths and source locations when available
+
+`GRAPH_REPORT.md` and `devgraph query` are the primary analysis surfaces for the hybrid build.
+
 ## Agent Skills
 
-DevGraph generates [Agent Skills](https://agentskills.io) — the open standard supported by Claude Code, Cursor, Gemini CLI, VS Code, GitHub Copilot, and [25+ other tools](https://agentskills.io).
+DevGraph generates [Agent Skills](https://agentskills.io), the open standard supported by Claude Code, Cursor, Gemini CLI, VS Code, GitHub Copilot, and many other tools.
 
 ```bash
 devgraph agents --format skills
 ```
 
-This creates a `.skills/` directory with SKILL.md files that AI agents auto-discover at startup:
+This creates a `.skills/` directory with SKILL.md files that AI agents auto-discover at startup.
 
-- **Overview skill** — teaches agents your architecture and CLI commands (`devgraph impact`, `devgraph validate`, `devgraph run`)
-- **Per-service skills** — commands, dependencies, downstream consumers, API routes, and key directories for each service
+The overview skill now tells agents to:
 
-No MCP server. No running processes. Skills are static files committed to git — every agent session starts with full architectural context.
+- read `.devgraph/GRAPH_REPORT.md` before broad architecture searches
+- use `devgraph query "<question>"` for focused retrieval
+- use DevGraph CLI commands such as `impact`, `validate`, and `run` for service-aware workflows
 
 ## DevGraph Studio
 
@@ -163,14 +230,15 @@ devgraph studio
 ```
 
 Opens at `http://localhost:9111` with:
-- Interactive graph visualization (React Flow)
-- Node details panel with service info
-- Search and filter by service type
-- Export and edit graph data
+
+- interactive graph visualization for service and file nodes
+- a detail panel with path, ownership, provenance, and evidence
+- filters for node kind, community, provenance, and ownership
+- export and edit flows for the loaded graph
 
 ## Examples
 
-See [`examples/ecommerce.md`](examples/ecommerce.md) for a realistic multi-service example.
+See [`examples/ecommerce.md`](examples/ecommerce.md) for a realistic multi-service example with explicit service metadata blocks.
 
 ## Development
 
@@ -178,8 +246,11 @@ See [`examples/ecommerce.md`](examples/ecommerce.md) for a realistic multi-servi
 # Install dependencies
 pnpm install
 
-# Run CLI locally
-pnpm devgraph build examples/*.md
+# Run the hybrid build locally
+pnpm devgraph build .
+
+# Query the built graph
+pnpm devgraph query "which files belong to studio?"
 
 # Build packages
 pnpm build:core && pnpm build:cli
@@ -190,11 +261,11 @@ pnpm test:core
 
 ## Structure
 
-- `apps/web`: Landing page
-- `apps/studio`: Visual graph viewer (React Flow)
-- `packages/devgraph-core`: Parser, graph builder, generators
-- `packages/devgraph-cli`: CLI + embedded Studio server
-- `.devgraph/`: Generated outputs (git-ignored)
+- `apps/web`: Landing page and Mintlify docs
+- `apps/studio`: Visual graph viewer built on React Flow
+- `packages/devgraph-core`: Hybrid graph build pipeline, analyzers, generators, and query logic
+- `packages/devgraph-cli`: CLI entrypoint and embedded Studio server
+- `.devgraph/`: Generated outputs (gitignored)
 
 ## License
 

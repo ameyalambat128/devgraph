@@ -1,43 +1,38 @@
 ---
 title: Quickstart
-description: "Get started with DevGraph in 5 minutes"
+description: 'Get started with DevGraph in 5 minutes'
 ---
 
 ## Installation
 
-Install DevGraph globally or use npx:
+Install DevGraph globally or run it directly with `bunx`:
 
 <CodeGroup>
-```bash npm
-npm install -g devgraph
-```
-
 ```bash pnpm
 pnpm add -g devgraph
 ```
 
-```bash npx
-npx devgraph@latest build docs/*.md
+```bash bunx
+bunx devgraph@latest build .
 ```
+
 </CodeGroup>
 
-<Note>
-  Using `@latest` with npx ensures you always get the newest version.
-</Note>
+## 1. Add service blocks where they help
 
-## 1. Add blocks to your Markdown
+`devgraph build` scans your repo by default. Blocks are optional, but they are the authoritative service layer when you want named services, commands, APIs, environment variables, or explicit owned paths.
 
-In any `.md` file (e.g., `docs/architecture.md`), add devgraph blocks:
+Example:
 
-```yaml
-## API Service
-
+````yaml
 ```devgraph-service
 name: api
 type: node
+paths:
+  - services/api
 commands:
-  dev: npm run dev
-  build: npm run build
+  dev: pnpm dev
+  build: pnpm build
 depends:
   - database
 ```
@@ -56,12 +51,18 @@ vars:
   PORT: "3000"
   DATABASE_URL: postgresql://localhost:5432/mydb
 ```
-```
+````
 
 ## 2. Build the graph
 
 ```bash
-devgraph build docs/*.md
+devgraph build .
+```
+
+You can also pass specific directories, files, or globs:
+
+```bash
+devgraph build apps packages docs/**/*.md
 ```
 
 ## 3. Check outputs
@@ -72,21 +73,34 @@ Outputs are generated in `.devgraph/`:
 .devgraph/
   |- graph.json
   |- summary.md
+  |- GRAPH_REPORT.md
   |- agents/
     |- api.md
   |- system.mmd
   |- codemap.mmd
 ```
 
-| File | Description |
-|------|-------------|
-| `graph.json` | Machine-readable project graph |
-| `summary.md` | Human-readable overview with tables |
-| `agents/*.md` | Per-service context files for LLMs |
-| `system.mmd` | Mermaid diagram of service dependencies |
-| `codemap.mmd` | Mermaid diagram of repo structure |
+| File              | Description                                                                                   |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `graph.json`      | Machine-readable output containing top-level `services`, `apis`, and `knowledgeGraph`         |
+| `summary.md`      | Human-readable service overview                                                               |
+| `GRAPH_REPORT.md` | Hybrid graph analysis with god nodes, surprising connections, bridge nodes, and coverage gaps |
+| `agents/*.md`     | Per-service context files for coding assistants                                               |
+| `system.mmd`      | Mermaid diagram of the build pipeline and service relationships                               |
+| `codemap.mmd`     | Mermaid diagram of owned paths and file relationships                                         |
 
-## 4. Visualize with Studio
+## 4. Query the graph
+
+Use `devgraph query` when you want a focused answer from the built graph:
+
+```bash
+devgraph query "which files belong to api?"
+devgraph query "what documents auth?" --budget 250 --dfs
+```
+
+The output is a bounded text subgraph with node labels, relations, provenance, and source paths.
+
+## 5. Visualize with Studio
 
 Launch the interactive graph viewer:
 
@@ -94,18 +108,20 @@ Launch the interactive graph viewer:
 devgraph studio
 ```
 
-Opens at [http://localhost:9111](http://localhost:9111) with:
-- Interactive node exploration
-- Service details panel
-- Search and filter by type
+Studio opens at [http://localhost:9111](http://localhost:9111) and shows:
+
+- service and file nodes
+- search plus graph filters
+- community, provenance, and ownership views
+- node detail panels with evidence and neighbors
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Block Types" icon="cube" href="/blocks/service">
-    Learn about all block types.
+  <Card title="Build Command" icon="terminal" href="/cli/build">
+    Learn about `.devgraphignore`, `--compare`, and hybrid outputs.
   </Card>
-  <Card title="DevGraph Studio" icon="chart-network" href="/cli/studio">
-    Explore the visual graph viewer.
+  <Card title="Query Command" icon="magnifying-glass" href="/cli/query">
+    Use graph retrieval instead of broad file search.
   </Card>
 </CardGroup>

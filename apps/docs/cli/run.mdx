@@ -1,6 +1,6 @@
 ---
 title: devgraph run
-description: "Generate a run plan for a service and its dependencies"
+description: 'Generate a run plan for a service and its dependencies'
 ---
 
 ## Usage
@@ -11,18 +11,18 @@ devgraph run <service> [options]
 
 ## Arguments
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description                |
+| --------- | -------------------------- |
 | `service` | Name of the service to run |
 
 ## Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--graph <path>` | Path to graph.json | `.devgraph/graph.json` |
-| `--json` | Output as JSON | - |
-| `--runbook` | Generate a markdown runbook for AI agents | - |
-| `--exec` | Execute the run plan (start all services) | - |
+| Option           | Description                               | Default                |
+| ---------------- | ----------------------------------------- | ---------------------- |
+| `--graph <path>` | Path to graph.json                        | `.devgraph/graph.json` |
+| `--json`         | Output as JSON                            | -                      |
+| `--runbook`      | Generate a markdown runbook for AI agents | -                      |
+| `--exec`         | Execute the run plan (start all services) | -                      |
 
 ## Description
 
@@ -74,9 +74,9 @@ Starts all services in dependency order with healthcheck waits.
 
 ## Output
 
-| Mode | Output |
-|------|--------|
-| Default | Formatted table in terminal |
-| `--json` | JSON object with plan details |
+| Mode        | Output                                             |
+| ----------- | -------------------------------------------------- |
+| Default     | Formatted table in terminal                        |
+| `--json`    | JSON object with plan details                      |
 | `--runbook` | Markdown file at `.devgraph/runbooks/<service>.md` |
-| `--exec` | Spawns processes for each service |
+| `--exec`    | Spawns processes for each service                  |

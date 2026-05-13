@@ -1,11 +1,13 @@
 ---
 title: devgraph-service
-description: "Define a service in your project"
+description: 'Define the authoritative service layer for the hybrid graph'
 ---
 
 ## Overview
 
-The `devgraph-service` block defines a service in your project graph. This is the primary building block for DevGraph.
+The `devgraph-service` block defines a service in DevGraph. In the hybrid build, this block is the authoritative source for service identity, commands, dependencies, and optional owned paths.
+
+`devgraph build` still scans the rest of your repo for file-level structure, but service blocks define the service layer that the hybrid graph is built around.
 
 ## Syntax
 
@@ -13,9 +15,11 @@ The `devgraph-service` block defines a service in your project graph. This is th
 ```devgraph-service
 name: my-service
 type: node
+paths:
+  - services/my-service
 commands:
-  dev: npm run dev
-  build: npm run build
+  dev: pnpm dev
+  build: pnpm build
 depends:
   - other-service
 ```
@@ -23,23 +27,24 @@ depends:
 
 ## Fields
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | Yes | Unique service identifier |
-| `type` | Yes | Service type (see below) |
-| `commands` | No | Object with command definitions |
-| `depends` | No | Array of service names this depends on |
+| Field      | Required | Description                            |
+| ---------- | -------- | -------------------------------------- |
+| `name`     | Yes      | Unique service identifier              |
+| `type`     | Yes      | Service type                           |
+| `paths`    | No       | Repo paths owned by this service       |
+| `commands` | No       | Object with command definitions        |
+| `depends`  | No       | Array of service names this depends on |
 
 ## Service Types
 
-| Type | Description |
-|------|-------------|
-| `node` | Node.js service |
-| `nextjs` | Next.js application |
-| `python` | Python service |
-| `go` | Go service |
-| `rust` | Rust service |
-| `database` | Database service |
+| Type       | Description             |
+| ---------- | ----------------------- |
+| `node`     | Node.js service         |
+| `nextjs`   | Next.js application     |
+| `python`   | Python service          |
+| `go`       | Go service              |
+| `rust`     | Rust service            |
+| `database` | Database service        |
 | `external` | External API or service |
 
 ## Examples
@@ -53,12 +58,14 @@ type: node
 ```
 ````
 
-### Service with commands
+### Service with owned paths
 
 ````yaml
 ```devgraph-service
 name: web
 type: nextjs
+paths:
+  - apps/web
 commands:
   dev: pnpm dev
   build: pnpm build
@@ -72,8 +79,10 @@ commands:
 ```devgraph-service
 name: api
 type: node
+paths:
+  - services/api
 commands:
-  dev: npm run dev
+  dev: pnpm dev
 depends:
   - database
   - cache
@@ -82,8 +91,11 @@ depends:
 
 ## Generated Output
 
-Services appear in:
-- `graph.json` as nodes
-- `summary.md` in the services table
-- `agents/{name}.md` as individual context files
-- `system.mmd` in the Mermaid diagram
+Service blocks appear in:
+
+- `graph.json` top-level `services`
+- `graph.json` `knowledgeGraph.nodes` as service nodes
+- `graph.json` `knowledgeGraph.edges` through ownership and dependency edges
+- `summary.md` in the services overview
+- `agents/{name}.md` as service context files
+- `system.mmd` and `codemap.mmd`
