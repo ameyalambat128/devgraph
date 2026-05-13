@@ -1,6 +1,6 @@
 ---
 title: devgraph validate
-description: "Validate devgraph blocks: schema, consistency, and architecture rules"
+description: 'Validate devgraph blocks: schema, consistency, and architecture rules'
 ---
 
 ## Usage
@@ -11,21 +11,23 @@ devgraph validate [paths...] [options]
 
 ## Arguments
 
-| Argument | Description | Default |
-|----------|-------------|---------|
-| `paths` | Glob patterns for Markdown files | `**/*.md` |
+| Argument | Description                                   | Default   |
+| -------- | --------------------------------------------- | --------- |
+| `paths`  | Files or globs containing `devgraph-*` blocks | `**/*.md` |
 
 ## Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--json` | Output validation result as JSON | - |
-| `--config <path>` | Path to config file | `.devgraph/config.yaml` |
-| `--report <path>` | Write JSON report to file | - |
+| Option            | Description                      | Default                 |
+| ----------------- | -------------------------------- | ----------------------- |
+| `--json`          | Output validation result as JSON | -                       |
+| `--config <path>` | Path to config file              | `.devgraph/config.yaml` |
+| `--report <path>` | Write JSON report to file        | -                       |
 
 ## Description
 
-Validates all `devgraph-*` blocks in your Markdown files without generating any output files. Runs three types of validation:
+Validates `devgraph-*` blocks without generating build outputs. Validation focuses on the authoritative service layer that feeds the hybrid graph.
+
+Runs three types of validation:
 
 1. **Schema validation**: YAML syntax, required fields, valid references
 2. **Consistency checks**: Missing dependencies, duplicates, orphans, cycles
@@ -35,10 +37,10 @@ Useful for CI/CD pipelines or pre-commit hooks.
 
 ## Examples
 
-Validate docs directory:
+Validate a docs tree:
 
 ```bash
-devgraph validate docs/*.md
+devgraph validate docs/**/*.md
 ```
 
 Validate all Markdown files:
@@ -49,21 +51,23 @@ devgraph validate "**/*.md"
 
 ## Exit Codes
 
-| Code | Description |
-|------|-------------|
-| `0` | All blocks valid |
-| `1` | Validation errors found |
-| `2` | Tooling error (config not found, etc.) |
+| Code | Description                            |
+| ---- | -------------------------------------- |
+| `0`  | All blocks valid                       |
+| `1`  | Validation errors found                |
+| `2`  | Tooling error (config not found, etc.) |
 
 ## What it validates
 
 ### Schema Validation
+
 - YAML syntax in all `devgraph-*` blocks
 - Required fields (`name`, `type` for services)
 - Service references in `devgraph-api` and `devgraph-env` blocks
 - Line numbers included in error messages for easier debugging
 
 ### Consistency Checks
+
 - **Missing dependencies**: Services reference non-existent dependencies
 - **Duplicate services**: Multiple blocks define the same service name
 - **Orphan blocks**: API/env blocks reference non-existent services
@@ -78,7 +82,7 @@ rules:
   - type: denyDependency
     from: frontend-*
     to: database
-    message: "Frontend services should not depend on database directly"
+    message: 'Frontend services should not depend on database directly'
 ```
 
 ## CI Integration

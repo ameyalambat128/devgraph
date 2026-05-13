@@ -4,7 +4,9 @@ import type { Devgraph } from '../index.js';
 import { inferServiceData, type InferredData } from './inference.js';
 import {
   renderArchitectureReference,
+  renderHandoffTemplateReference,
   renderOverviewSkillMd,
+  renderOrchestrationSkillMd,
   renderRoutesReference,
   renderServiceSkillMd,
   renderServicesReference,
@@ -72,8 +74,8 @@ export function generateAgentsEnhanced(
     }
 
     // Check if we have enough data
-    const hasCommands = Object.keys(service.commands ?? {}).length > 0 ||
-                        Object.keys(inferred.commands).length > 0;
+    const hasCommands =
+      Object.keys(service.commands ?? {}).length > 0 || Object.keys(inferred.commands).length > 0;
 
     if (!hasCommands && !bestEffort) {
       result.warnings.push(
@@ -195,6 +197,14 @@ export function generateSkills(
     relativePath: 'querying-architecture/references/SERVICES.md',
     content: renderServicesReference(graph, inferredDataMap),
   });
+  result.files.push({
+    relativePath: 'orchestrating-devgraph-context/SKILL.md',
+    content: renderOrchestrationSkillMd(graph),
+  });
+  result.files.push({
+    relativePath: 'orchestrating-devgraph-context/references/HANDOFF_TEMPLATE.md',
+    content: renderHandoffTemplateReference(),
+  });
 
   // Layer 2: Per-service skills
   for (const serviceName of serviceNames) {
@@ -206,8 +216,8 @@ export function generateSkills(
 
     const inferred = inferredDataMap.get(serviceName) ?? { commands: {}, landmarks: [] };
 
-    const hasCommands = Object.keys(service.commands ?? {}).length > 0 ||
-                        Object.keys(inferred.commands).length > 0;
+    const hasCommands =
+      Object.keys(service.commands ?? {}).length > 0 || Object.keys(inferred.commands).length > 0;
 
     if (!hasCommands && !bestEffort) {
       result.warnings.push(
@@ -232,8 +242,10 @@ export function generateSkills(
     });
 
     // Generate routes reference if service has API routes
-    const hasAPIs = service.apis && service.apis.length > 0 &&
-      service.apis.some(api => Object.keys(api.routes || {}).length > 0);
+    const hasAPIs =
+      service.apis &&
+      service.apis.length > 0 &&
+      service.apis.some((api) => Object.keys(api.routes || {}).length > 0);
     if (hasAPIs) {
       result.files.push({
         relativePath: `services/${skillDirName}/references/ROUTES.md`,

@@ -10,9 +10,12 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
   // State
   originalGraph: null,
   editedGraph: null,
-  selectedServiceName: null,
+  selectedNodeId: null,
   layoutDirection: 'horizontal',
-  serviceTypeFilter: null,
+  nodeKindFilter: null,
+  communityFilter: null,
+  confidenceFilter: null,
+  ownershipFilter: null,
   searchQuery: '',
   hoveredNodeId: null,
   hasUnsavedChanges: false,
@@ -22,9 +25,13 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
     set({
       originalGraph: deepClone(graph),
       editedGraph: deepClone(graph),
-      selectedServiceName: null,
+      selectedNodeId: null,
       searchQuery: '',
       hoveredNodeId: null,
+      nodeKindFilter: null,
+      communityFilter: null,
+      confidenceFilter: null,
+      ownershipFilter: null,
       hasUnsavedChanges: false,
     });
   },
@@ -36,13 +43,14 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
         editedGraph: deepClone(originalGraph),
         hasUnsavedChanges: false,
         hoveredNodeId: null,
+        selectedNodeId: null,
         searchQuery: '',
       });
     }
   },
 
-  selectService: (name: string | null) => {
-    set({ selectedServiceName: name });
+  selectNode: (id: string | null) => {
+    set({ selectedNodeId: id });
   },
 
   setHoveredNodeId: (id: string | null) => {
@@ -169,7 +177,19 @@ export const useStudioStore = create<StudioStore>((set, get) => ({
     set({ layoutDirection: direction });
   },
 
-  setServiceTypeFilter: (type: string | null) => {
-    set({ serviceTypeFilter: type });
+  setNodeKindFilter: (kind: 'service' | 'file' | null) => {
+    set({ nodeKindFilter: kind });
+  },
+
+  setCommunityFilter: (communityId: string | null) => {
+    set({ communityFilter: communityId });
+  },
+
+  setConfidenceFilter: (confidence: 'EXTRACTED' | 'INFERRED' | 'AMBIGUOUS' | null) => {
+    set({ confidenceFilter: confidence });
+  },
+
+  setOwnershipFilter: (ownership: 'owned' | 'unowned' | null) => {
+    set({ ownershipFilter: ownership });
   },
 }));

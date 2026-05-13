@@ -28,6 +28,7 @@ export interface ServiceBlock {
   commands?: Record<string, string>;
   depends?: string[];
   ports?: number[];
+  paths?: string[];
   healthcheck?: HealthCheck;
 }
 
@@ -41,9 +42,81 @@ export interface EnvBlock {
   vars: Record<string, string>;
 }
 
+export type KnowledgeNodeKind = 'service' | 'file';
+export type KnowledgeEdgeRelation =
+  | 'owns'
+  | 'depends_on'
+  | 'references'
+  | 'documents'
+  | 'defined_in';
+export type KnowledgeConfidence = 'EXTRACTED' | 'INFERRED' | 'AMBIGUOUS';
+
+export interface KnowledgeGraphNode {
+  id: string;
+  kind: KnowledgeNodeKind;
+  label: string;
+  path?: string;
+  service?: string;
+  summary?: string;
+  community?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface KnowledgeGraphEdge {
+  source: string;
+  target: string;
+  relation: KnowledgeEdgeRelation;
+  confidence: KnowledgeConfidence;
+  sourcePath?: string;
+  sourceLocation?: string;
+  evidence?: string;
+}
+
+export interface KnowledgeCommunity {
+  id: string;
+  label: string;
+  nodeIds: string[];
+}
+
+export interface AnalysisNode {
+  id: string;
+  label: string;
+  kind: KnowledgeNodeKind;
+  path?: string;
+  degree: number;
+  betweenness: number;
+}
+
+export interface SurprisingConnection {
+  source: string;
+  target: string;
+  relation: string;
+  confidence: KnowledgeConfidence;
+  sourcePath?: string;
+  sourceLocation?: string;
+  evidence?: string;
+  note?: string;
+}
+
+export interface KnowledgeGraphAnalysis {
+  godNodes: AnalysisNode[];
+  bridgeNodes: AnalysisNode[];
+  surprisingConnections: SurprisingConnection[];
+  suggestedQuestions: string[];
+  coverageGaps: string[];
+}
+
+export interface KnowledgeGraph {
+  nodes: KnowledgeGraphNode[];
+  edges: KnowledgeGraphEdge[];
+  communities: KnowledgeCommunity[];
+  analysis: KnowledgeGraphAnalysis;
+}
+
 export interface Devgraph {
   services: Record<string, ServiceBlock & { apis?: ApiBlock[]; env?: EnvBlock[] }>;
   apis: Record<string, ApiBlock>;
+  knowledgeGraph?: KnowledgeGraph;
 }
 
 export interface ParseError {
@@ -74,6 +147,7 @@ const serviceSchema = z.object({
   commands: z.record(z.string()).optional(),
   depends: z.array(z.string()).optional(),
   ports: z.array(z.number()).optional(),
+  paths: z.array(z.string()).optional(),
   healthcheck: healthCheckSchema.optional(),
 });
 
@@ -199,6 +273,8 @@ export function generateSummary(graph: Devgraph): string {
   const lines: string[] = [];
   const services = Object.values(graph.services);
   const timestamp = new Date().toISOString().split('T')[0];
+  const fileNodes = graph.knowledgeGraph?.nodes.filter((node) => node.kind === 'file') ?? [];
+  const communityCount = graph.knowledgeGraph?.communities.length ?? 0;
 
   lines.push('# DevGraph Summary');
   lines.push('');
@@ -217,7 +293,13 @@ export function generateSummary(graph: Devgraph): string {
     0
   );
 
-  lines.push(`**${services.length}** services | **${totalApis}** API routes | **${totalEnvVars}** env vars`);
+  lines.push(
+    `**${services.length}** services | **${fileNodes.length}** files | **${totalApis}** API routes | **${totalEnvVars}** env vars`
+  );
+  if (communityCount > 0) {
+    lines.push('');
+    lines.push(`Hybrid graph communities: **${communityCount}**`);
+  }
   lines.push('');
   lines.push('---');
   lines.push('');
@@ -238,6 +320,17 @@ export function generateSummary(graph: Devgraph): string {
   }
   lines.push('');
 
+  if (graph.knowledgeGraph) {
+    lines.push('## Hybrid Graph');
+    lines.push('');
+    lines.push('| Metric | Value |');
+    lines.push('|--------|-------|');
+    lines.push(`| File nodes | ${fileNodes.length} |`);
+    lines.push(`| Graph edges | ${graph.knowledgeGraph.edges.length} |`);
+    lines.push(`| Communities | ${communityCount} |`);
+    lines.push('');
+  }
+
   // Per-service details
   for (const svc of services) {
     lines.push(`### ${svc.name}`);
@@ -251,6 +344,22 @@ export function generateSummary(graph: Devgraph): string {
       }
       lines.push('```');
       lines.push('');
+    }
+
+    if (graph.knowledgeGraph) {
+      const ownedPaths = graph.knowledgeGraph.edges
+        .filter((edge) => edge.relation === 'owns' && edge.source === `service:${svc.name}`)
+        .map((edge) => graph.knowledgeGraph?.nodes.find((node) => node.id === edge.target)?.path)
+        .filter((value): value is string => Boolean(value))
+        .slice(0, 8);
+
+      if (ownedPaths.length) {
+        lines.push('**Owned Paths:**');
+        for (const ownedPath of ownedPaths) {
+          lines.push(`- \`${ownedPath}\``);
+        }
+        lines.push('');
+      }
     }
 
     if (svc.apis && svc.apis.length) {
@@ -302,6 +411,9 @@ export function generateAgents(graph: Devgraph): Record<string, string> {
     if (svc.depends && svc.depends.length) {
       lines.push(`This service depends on: ${svc.depends.map((d) => `\`${d}\``).join(', ')}.`);
     }
+    lines.push(
+      'Before broad raw-file searching, read `.devgraph/GRAPH_REPORT.md` and use `devgraph query "<question>"` when the graph exists.'
+    );
     lines.push('');
 
     // Quick Start (commands as code block)
@@ -344,6 +456,22 @@ export function generateAgents(graph: Devgraph): Record<string, string> {
         for (const [key, val] of Object.entries(env.vars)) {
           lines.push(`| \`${key}\` | \`${val}\` |`);
         }
+      }
+      lines.push('');
+    }
+
+    const ownedPaths =
+      graph.knowledgeGraph?.edges
+        .filter((edge) => edge.relation === 'owns' && edge.source === `service:${svc.name}`)
+        .map((edge) => graph.knowledgeGraph?.nodes.find((node) => node.id === edge.target)?.path)
+        .filter((value): value is string => Boolean(value))
+        .slice(0, 10) ?? [];
+
+    if (ownedPaths.length) {
+      lines.push('## Owned Paths');
+      lines.push('');
+      for (const ownedPath of ownedPaths) {
+        lines.push(`- \`${ownedPath}\``);
       }
       lines.push('');
     }
@@ -414,45 +542,47 @@ export function generateServiceMermaid(graph: Devgraph): string {
 
 export function generateCodemapMermaid(graph: Devgraph): string {
   const lines: string[] = ['graph LR'];
+  push(lines, 'build["devgraph build"] --> graphjson[".devgraph/graph.json"]');
+  push(lines, 'build --> summary[".devgraph/summary.md"]');
+  push(lines, 'build --> report[".devgraph/GRAPH_REPORT.md"]');
+  push(lines, 'build --> system[".devgraph/system.mmd"]');
+  push(lines, 'build --> codemap[".devgraph/codemap.mmd"]');
 
-  // Monorepo-level view (apps/packages/docs/examples).
-  push(lines, 'repo[devgraph (turborepo)]');
-  push(lines, 'repo --> pkg_core["@devgraph/core"]');
-  push(lines, 'repo --> pkg_cli["devgraph-cli"]');
-  push(lines, 'repo --> pkg_web["apps/web (docs)"]');
-  push(lines, 'repo --> pkg_config["packages/tsconfig + config"]');
-  push(lines, 'repo --> pkg_examples["examples/*.md"]');
-  push(lines, 'repo --> pkg_docs["docs/DEVLOG.md"]');
-
-  // Relationships between packages.
-  push(lines, 'pkg_cli --> pkg_core');
-  push(lines, 'pkg_web --> pkg_core');
-
-  // Pipeline view (Markdown -> parser -> outputs).
-  push(lines, 'md[Markdown (*.md)] --> blocks[devgraph-* blocks]');
-  push(lines, 'pkg_examples --> md');
-  push(lines, 'blocks --> parser["@devgraph/core (parser/graph)"]');
-  push(lines, 'cli["devgraph-cli"] --> parser');
-  push(lines, 'parser --> graphjson[.devgraph/graph.json]');
-  push(lines, 'parser --> summary[.devgraph/summary.md]');
-  push(lines, 'parser --> agents[.devgraph/agents/*.md]');
-  push(lines, 'parser --> mmd[.devgraph/system.mmd/png]');
-  push(lines, 'parser --> codemap[.devgraph/codemap.mmd/png]');
-  push(lines, 'parser --> diff[.devgraph/integration_notes.md]');
-
-  // Service-level overlay (if any).
   const services = Object.keys(graph.services).sort();
   for (const name of services) {
     const svc = graph.services[name];
     const id = sanitizeId(`svc_${name}`);
     push(lines, `${id}["${name} (${svc.type})"]`);
     push(lines, `graphjson --> ${id}`);
-    if (svc.depends && svc.depends.length) {
-      for (const dep of [...svc.depends].sort()) {
-        const depId = sanitizeId(`svc_${dep}`);
-        push(lines, `${id} --> ${depId}`);
-      }
+    for (const dep of [...(svc.depends ?? [])].sort()) {
+      push(lines, `${id} --> ${sanitizeId(`svc_${dep}`)}`);
     }
+  }
+
+  const ownershipEdges =
+    graph.knowledgeGraph?.edges.filter((edge) => edge.relation === 'owns').slice(0, 24) ?? [];
+
+  for (const edge of ownershipEdges) {
+    const source = graph.knowledgeGraph?.nodes.find((node) => node.id === edge.source);
+    const target = graph.knowledgeGraph?.nodes.find((node) => node.id === edge.target);
+    if (!source || !target) continue;
+
+    const sourceId = sanitizeId(source.id);
+    const targetId = sanitizeId(target.id);
+    push(lines, `${sourceId}["${source.label}"]`);
+    push(lines, `${targetId}["${target.label}"]`);
+    push(lines, `${sourceId} -->|owns| ${targetId}`);
+  }
+
+  const referenceEdges =
+    graph.knowledgeGraph?.edges.filter((edge) => edge.relation === 'references').slice(0, 24) ?? [];
+
+  for (const edge of referenceEdges) {
+    const source = graph.knowledgeGraph?.nodes.find((node) => node.id === edge.source);
+    const target = graph.knowledgeGraph?.nodes.find((node) => node.id === edge.target);
+    if (!source || !target) continue;
+
+    push(lines, `${sanitizeId(source.id)} -.->|references| ${sanitizeId(target.id)}`);
   }
 
   return uniqueLines(lines).join('\n') + '\n';
@@ -549,6 +679,54 @@ export function diffGraphs(newGraph: Devgraph, oldGraph: Devgraph): string {
     }
   }
 
+  const oldKnowledgeNodes = new Set(oldGraph.knowledgeGraph?.nodes.map((node) => node.id) ?? []);
+  const newKnowledgeNodes = new Set(newGraph.knowledgeGraph?.nodes.map((node) => node.id) ?? []);
+  const addedKnowledgeNodes = [...newKnowledgeNodes].filter(
+    (nodeId) => !oldKnowledgeNodes.has(nodeId)
+  );
+  const removedKnowledgeNodes = [...oldKnowledgeNodes].filter(
+    (nodeId) => !newKnowledgeNodes.has(nodeId)
+  );
+
+  const oldKnowledgeEdges = new Set(
+    oldGraph.knowledgeGraph?.edges.map(
+      (edge) => `${edge.source}|${edge.target}|${edge.relation}`
+    ) ?? []
+  );
+  const newKnowledgeEdges = new Set(
+    newGraph.knowledgeGraph?.edges.map(
+      (edge) => `${edge.source}|${edge.target}|${edge.relation}`
+    ) ?? []
+  );
+  const addedKnowledgeEdges = [...newKnowledgeEdges].filter(
+    (edgeKey) => !oldKnowledgeEdges.has(edgeKey)
+  );
+  const removedKnowledgeEdges = [...oldKnowledgeEdges].filter(
+    (edgeKey) => !newKnowledgeEdges.has(edgeKey)
+  );
+
+  if (
+    addedKnowledgeNodes.length ||
+    removedKnowledgeNodes.length ||
+    addedKnowledgeEdges.length ||
+    removedKnowledgeEdges.length
+  ) {
+    lines.push('## Knowledge Graph');
+    if (addedKnowledgeNodes.length) {
+      lines.push(`- Added nodes: ${addedKnowledgeNodes.length}`);
+    }
+    if (removedKnowledgeNodes.length) {
+      lines.push(`- Removed nodes: ${removedKnowledgeNodes.length}`);
+    }
+    if (addedKnowledgeEdges.length) {
+      lines.push(`- Added edges: ${addedKnowledgeEdges.length}`);
+    }
+    if (removedKnowledgeEdges.length) {
+      lines.push(`- Removed edges: ${removedKnowledgeEdges.length}`);
+    }
+    lines.push('');
+  }
+
   if (lines.length === 2) lines.push('No changes detected.');
   return lines.join('\n').trim() + '\n';
 }
@@ -588,6 +766,12 @@ export type {
   InferredCommands,
   InferredData,
 } from './agents/index.js';
+export { buildProjectGraph, generateGraphReport, queryGraph } from './hybrid.js';
+export type {
+  BuildProjectGraphOptions,
+  BuildProjectGraphResult,
+  QueryGraphOptions,
+} from './hybrid.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Run Plan
@@ -944,10 +1128,7 @@ function collectDependents(
   return { dependents: all };
 }
 
-export function getImpactAnalysis(
-  graph: Devgraph,
-  serviceName: string
-): ImpactAnalysisResult {
+export function getImpactAnalysis(graph: Devgraph, serviceName: string): ImpactAnalysisResult {
   const service = graph.services[serviceName];
   if (!service) {
     return { ok: false, error: 'not_found', service: serviceName };
@@ -997,11 +1178,7 @@ export function formatImpactAnalysis(impact: ImpactAnalysis): string {
   lines.push('');
 
   const riskLevel =
-    impact.totalAffectedCount === 0
-      ? 'LOW'
-      : impact.totalAffectedCount <= 2
-        ? 'MEDIUM'
-        : 'HIGH';
+    impact.totalAffectedCount === 0 ? 'LOW' : impact.totalAffectedCount <= 2 ? 'MEDIUM' : 'HIGH';
 
   lines.push(`Risk Level: ${riskLevel}`);
   lines.push(`  ${impact.totalAffectedCount} service(s) affected`);
@@ -1039,7 +1216,9 @@ export function formatImpactAnalysis(impact: ImpactAnalysis): string {
   lines.push('Impact Chain:');
   lines.push(`  ${impact.target} ──┬──> ${impact.directConsumers.join(', ') || '(none)'}`);
   if (impact.transitiveConsumers.length > 0) {
-    lines.push(`${' '.repeat(impact.target.length + 2)}   └──>> ${impact.transitiveConsumers.join(', ')}`);
+    lines.push(
+      `${' '.repeat(impact.target.length + 2)}   └──>> ${impact.transitiveConsumers.join(', ')}`
+    );
   }
 
   return lines.join('\n');
@@ -1147,11 +1326,7 @@ export function generateImpactRunbook(impact: ImpactAnalysis, graph: Devgraph): 
   return lines.join('\n');
 }
 
-function findDependencyPath(
-  revMap: Map<string, string[]>,
-  from: string,
-  to: string
-): string[] {
+function findDependencyPath(revMap: Map<string, string[]>, from: string, to: string): string[] {
   const queue: string[][] = [[from]];
   const visited = new Set<string>([from]);
 
@@ -1191,10 +1366,7 @@ function generateSearchTerms(targetName: string, graph: Devgraph): string[] {
   return terms;
 }
 
-export function getCoordinationPlan(
-  graph: Devgraph,
-  serviceName: string
-): CoordinationResult {
+export function getCoordinationPlan(graph: Devgraph, serviceName: string): CoordinationResult {
   const targetService = graph.services[serviceName];
   if (!targetService) {
     return { ok: false, error: 'not_found', service: serviceName };
@@ -1381,7 +1553,8 @@ export function generateCoordinationRunbook(plan: CoordinationPlan, _graph: Devg
   lines.push('');
 
   for (const task of plan.tasks) {
-    const relationshipLabel = task.relationship === 'direct' ? 'Direct Consumer' : 'Transitive Consumer';
+    const relationshipLabel =
+      task.relationship === 'direct' ? 'Direct Consumer' : 'Transitive Consumer';
 
     lines.push(`### ${task.service}`);
     lines.push('');

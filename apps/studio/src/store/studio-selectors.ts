@@ -1,92 +1,79 @@
 import { useStudioStore } from './studio-store';
-import type { ServiceWithDetails } from '@/types/graph';
+import type { SelectedNodeDetails } from '@/types/graph';
 
-/**
- * Get the currently selected service
- */
-export function useSelectedService(): ServiceWithDetails | null {
-  const selectedServiceName = useStudioStore((state) => state.selectedServiceName);
+export function useSelectedNode(): SelectedNodeDetails | null {
+  const selectedNodeId = useStudioStore((state) => state.selectedNodeId);
   const editedGraph = useStudioStore((state) => state.editedGraph);
 
-  if (!selectedServiceName || !editedGraph) return null;
-  return editedGraph.services[selectedServiceName] || null;
+  if (!selectedNodeId || !editedGraph?.knowledgeGraph) return null;
+
+  const node = editedGraph.knowledgeGraph.nodes.find((value) => value.id === selectedNodeId);
+  if (!node) return null;
+
+  return {
+    node,
+    service: node.kind === 'service' ? (editedGraph.services[node.label] ?? null) : null,
+    incoming: editedGraph.knowledgeGraph.edges.filter((edge) => edge.target === selectedNodeId),
+    outgoing: editedGraph.knowledgeGraph.edges.filter((edge) => edge.source === selectedNodeId),
+    community:
+      editedGraph.knowledgeGraph.communities.find((community) => community.id === node.community) ??
+      null,
+  };
 }
 
-/**
- * Get all service names
- */
-export function useServiceNames(): string[] {
+export function useCommunities() {
   const editedGraph = useStudioStore((state) => state.editedGraph);
-  if (!editedGraph) return [];
-  return Object.keys(editedGraph.services).sort();
+  return editedGraph?.knowledgeGraph?.communities ?? [];
 }
 
-/**
- * Get service types for filtering
- */
-export function useServiceTypes(): string[] {
-  const editedGraph = useStudioStore((state) => state.editedGraph);
-  if (!editedGraph) return [];
-
-  const types = new Set<string>();
-  for (const service of Object.values(editedGraph.services)) {
-    types.add(service.type);
-  }
-  return Array.from(types).sort();
-}
-
-/**
- * Check if a specific service has changes
- */
-export function useServiceHasChanges(serviceName: string): boolean {
-  const originalGraph = useStudioStore((state) => state.originalGraph);
-  const editedGraph = useStudioStore((state) => state.editedGraph);
-
-  if (!originalGraph || !editedGraph) return false;
-
-  const original = originalGraph.services[serviceName];
-  const edited = editedGraph.services[serviceName];
-
-  if (!original || !edited) return false;
-
-  return JSON.stringify(original) !== JSON.stringify(edited);
-}
-
-/**
- * Check if a node should be dimmed based on hover state or filtering
- */
-export function useIsNodeDimmed(nodeId: string): boolean {
+export function useIsNodeDimmed(nodeId: string) {
   const hoveredNodeId = useStudioStore((state) => state.hoveredNodeId);
   const editedGraph = useStudioStore((state) => state.editedGraph);
   const searchQuery = useStudioStore((state) => state.searchQuery);
-  const serviceTypeFilter = useStudioStore((state) => state.serviceTypeFilter);
+  const nodeKindFilter = useStudioStore((state) => state.nodeKindFilter);
+  const communityFilter = useStudioStore((state) => state.communityFilter);
+  const confidenceFilter = useStudioStore((state) => state.confidenceFilter);
+  const ownershipFilter = useStudioStore((state) => state.ownershipFilter);
 
-  if (!editedGraph) return false;
+  if (!editedGraph?.knowledgeGraph) return false;
 
-  // 1. Hover state takes precedence
   if (hoveredNodeId) {
     if (hoveredNodeId === nodeId) return false;
-
-    // Check if connected
-    const hoveredService = editedGraph.services[hoveredNodeId];
-    if (hoveredService?.depends?.includes(nodeId)) return false;
-
-    const nodeService = editedGraph.services[nodeId];
-    if (nodeService?.depends?.includes(hoveredNodeId)) return false;
-
-    return true;
+    const isConnected = editedGraph.knowledgeGraph.edges.some(
+      (edge) =>
+        (edge.source === hoveredNodeId && edge.target === nodeId) ||
+        (edge.target === hoveredNodeId && edge.source === nodeId)
+    );
+    return !isConnected;
   }
 
-  // 2. Search and Filter state
-  if (searchQuery || serviceTypeFilter) {
-    const service = editedGraph.services[nodeId];
-    if (!service) return true;
+  const node = editedGraph.knowledgeGraph.nodes.find((value) => value.id === nodeId);
+  if (!node) return true;
 
-    const matchesSearch = !searchQuery || nodeId.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = !serviceTypeFilter || service.type === serviceTypeFilter;
+  const owned = editedGraph.knowledgeGraph.edges.some(
+    (edge) => edge.relation === 'owns' && edge.target === nodeId
+  );
 
-    return !(matchesSearch && matchesType);
-  }
+  const matchesSearch =
+    !searchQuery ||
+    node.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    node.path?.toLowerCase().includes(searchQuery.toLowerCase());
+  const matchesKind = !nodeKindFilter || node.kind === nodeKindFilter;
+  const matchesCommunity = !communityFilter || node.community === communityFilter;
+  const matchesOwnership = !ownershipFilter || (ownershipFilter === 'owned' ? owned : !owned);
+  const matchesConfidence =
+    !confidenceFilter ||
+    editedGraph.knowledgeGraph.edges.some(
+      (edge) =>
+        edge.confidence === confidenceFilter && (edge.source === nodeId || edge.target === nodeId)
+    ) ||
+    node.kind === 'service';
 
-  return false;
+  return !(
+    matchesSearch &&
+    matchesKind &&
+    matchesCommunity &&
+    matchesOwnership &&
+    matchesConfidence
+  );
 }

@@ -13,9 +13,7 @@ export function UnsavedBanner({ onReset, onExport }: UnsavedBannerProps) {
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
       <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-orange-500/10 border border-orange-500/30 shadow-lg backdrop-blur-sm">
         <AlertCircle className="w-4 h-4 text-orange-500" />
-        <span className="text-sm font-medium text-orange-500">
-          Unsaved changes
-        </span>
+        <span className="text-sm font-medium text-orange-500">Unsaved changes</span>
         <div className="flex items-center gap-2 ml-2">
           <Button
             variant="ghost"
@@ -26,11 +24,7 @@ export function UnsavedBanner({ onReset, onExport }: UnsavedBannerProps) {
             <RotateCcw className="w-4 h-4 mr-1" />
             Reset
           </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={onExport}
-          >
+          <Button variant="default" size="sm" onClick={onExport}>
             <Download className="w-4 h-4 mr-1" />
             Export
           </Button>

@@ -1,6 +1,6 @@
 ---
 title: devgraph coordinate
-description: "Plan cross-service coordination - what else must change"
+description: 'Plan cross-service coordination - what else must change'
 ---
 
 ## Usage
@@ -11,17 +11,17 @@ devgraph coordinate <service> [options]
 
 ## Arguments
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description                       |
+| --------- | --------------------------------- |
 | `service` | Name of the service being changed |
 
 ## Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--graph <path>` | Path to graph.json | `.devgraph/graph.json` |
-| `--json` | Output as JSON | - |
-| `--runbook` | Generate a markdown runbook for AI agents | - |
+| Option           | Description                               | Default                |
+| ---------------- | ----------------------------------------- | ---------------------- |
+| `--graph <path>` | Path to graph.json                        | `.devgraph/graph.json` |
+| `--json`         | Output as JSON                            | -                      |
+| `--runbook`      | Generate a markdown runbook for AI agents | -                      |
 
 ## Description
 
@@ -89,13 +89,14 @@ Creates `.devgraph/coordination/product-service.md` with:
 - Final deployment checklist
 
 <Note>
-The generated runbook is designed to be used with AI coding agents like Codex or Claude. Copy the relevant section for each repo.
+  The generated runbook is designed to be used with AI coding agents like Codex or Claude. Copy the
+  relevant section for each repo.
 </Note>
 
 ## Output
 
-| Mode | Output |
-|------|--------|
-| Default | Formatted plan in terminal |
-| `--json` | JSON object with full task details |
+| Mode        | Output                                                 |
+| ----------- | ------------------------------------------------------ |
+| Default     | Formatted plan in terminal                             |
+| `--json`    | JSON object with full task details                     |
 | `--runbook` | Markdown file at `.devgraph/coordination/<service>.md` |

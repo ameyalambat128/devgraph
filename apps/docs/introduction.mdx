@@ -1,50 +1,89 @@
 ---
 title: Introduction
-description: "One graph. Every repo. Context for humans and AI."
+description: 'One graph. Every repo. Context for humans and AI.'
 ---
 
 # What is DevGraph?
 
-DevGraph is a universal context layer for codebases. It scans Markdown files for service definitions, builds a project graph, and generates outputs like `graph.json`, `summary.md`, and agent-specific context files.
+DevGraph builds a hybrid project graph from your repo. It scans folders, files, and mixed repo assets, preserves `devgraph-*` blocks as the authoritative service layer, and emits a graph that works for humans, CLIs, Studio, and coding agents.
 
-One command to map your entire architecture—for humans and AI alike.
+One command gives you service metadata, file-level structure, and graph analysis surfaces that stay grounded in the repo.
 
 ## Key Features
 
 <CardGroup cols={2}>
-  <Card title="Markdown-First" icon="file-lines">
-    Define services, APIs, and environment variables in fenced code blocks within your existing docs.
+  <Card title="Hybrid Build" icon="folder-tree">
+    Build a graph from directories, files, and globs with service and file nodes in one output.
   </Card>
-  <Card title="Visual Graph" icon="diagram-project">
-    Launch DevGraph Studio to explore your architecture interactively.
+  <Card title="Service Layer" icon="cube">
+    Use `devgraph-service`, `devgraph-api`, and `devgraph-env` blocks to define authoritative
+    service metadata.
   </Card>
-  <Card title="AI-Ready Outputs" icon="robot">
-    Generate per-service context files optimized for LLMs and AI agents.
+  <Card title="Graph Analysis" icon="sparkles">
+    Review `GRAPH_REPORT.md` and use `devgraph query` for focused architecture retrieval.
   </Card>
-  <Card title="Mermaid Diagrams" icon="sitemap">
-    Auto-generate dependency and codebase structure diagrams.
+  <Card title="Agent Handoffs" icon="wand-magic-sparkles">
+    Generate skills that guide agents through graph questions, focused queries, and Markdown handoff
+    briefs.
+  </Card>
+  <Card title="Studio" icon="diagram-project">
+    Explore service and file nodes interactively with filters for community, provenance, and
+    ownership.
   </Card>
 </CardGroup>
 
 ## Generated Outputs
 
-When you run `devgraph build`, the following files are created in `.devgraph/`:
+When you run `devgraph build`, DevGraph writes the following files to `.devgraph/`:
 
-| File | Description |
-|------|-------------|
-| `graph.json` | Machine-readable project graph |
-| `summary.md` | Human-readable overview with tables |
-| `agents/*.md` | Per-service context files for LLMs |
-| `system.mmd` | Mermaid diagram of service dependencies |
-| `codemap.mmd` | Mermaid diagram of repo structure |
+| File              | Description                                                                                   |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `graph.json`      | Machine-readable output containing top-level `services`, `apis`, and `knowledgeGraph`         |
+| `summary.md`      | Human-readable service overview                                                               |
+| `GRAPH_REPORT.md` | Hybrid graph analysis with god nodes, surprising connections, bridge nodes, and coverage gaps |
+| `agents/*.md`     | Per-service context files for coding assistants                                               |
+| `system.mmd`      | Mermaid diagram of the build pipeline and service relationships                               |
+| `codemap.mmd`     | Mermaid diagram of owned paths and file relationships                                         |
+
+At a high level, `graph.json` contains:
+
+- top-level `services`
+- top-level `apis`
+- `knowledgeGraph.nodes`
+- `knowledgeGraph.edges`
+- `knowledgeGraph.communities`
+- `knowledgeGraph.analysis`
+
+## How Blocks Fit In
+
+`devgraph-*` blocks still matter. They are not a separate build mode. They are the authoritative service layer inside the hybrid graph:
+
+- `devgraph-service` defines service identity, commands, dependencies, and optional owned `paths`
+- `devgraph-api` attaches routes to services
+- `devgraph-env` attaches environment variables to services
+
+The rest of the build pipeline adds file nodes and graph relationships around that service layer.
+
+## Agent Context
+
+`devgraph agents --format skills` writes a `.skills/` directory for AI coding tools. It includes:
+
+- `querying-architecture` for graph-aware commands and references
+- service-specific skills for commands, APIs, owned paths, and dependencies
+- `orchestrating-devgraph-context` for multi-agent handoffs based on `GRAPH_REPORT.md` and `devgraph query`
+
+The orchestration skill uses graph-derived questions and a Markdown handoff template so another agent can continue with known context, evidence, decisions, and open questions.
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Get up and running in 5 minutes.
+    Build your first hybrid graph and inspect the outputs.
   </Card>
   <Card title="CLI Commands" icon="terminal" href="/cli/build">
-    Learn all available commands.
+    Learn the build, query, Studio, and agent workflows.
+  </Card>
+  <Card title="Agent Skills" icon="wand-magic-sparkles" href="/cli/agents">
+    Generate repo-grounded skills and handoff briefs for coding agents.
   </Card>
 </CardGroup>

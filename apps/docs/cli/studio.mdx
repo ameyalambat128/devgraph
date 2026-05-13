@@ -1,6 +1,6 @@
 ---
 title: devgraph studio
-description: "Launch the visual graph viewer"
+description: 'Launch the visual graph viewer'
 ---
 
 ## Usage
@@ -11,44 +11,45 @@ devgraph studio
 
 ## Description
 
-Launches DevGraph Studio, an interactive web-based graph viewer at [http://localhost:9111](http://localhost:9111).
+Launches DevGraph Studio, an interactive graph viewer at [http://localhost:9111](http://localhost:9111).
+
+Studio reads `.devgraph/graph.json` and renders the hybrid graph directly.
 
 ## Features
 
 <CardGroup cols={2}>
-  <Card title="Interactive Graph" icon="diagram-project">
-    Visualize service dependencies with React Flow.
+  <Card title="Mixed Graph" icon="diagram-project">
+    Visualize both service and file nodes in the same graph.
   </Card>
   <Card title="Node Details" icon="circle-info">
-    Click any node to view service info, commands, and dependencies.
+    Inspect path, ownership, provenance, evidence, and neighboring nodes.
   </Card>
   <Card title="Search" icon="magnifying-glass">
-    Find services quickly by name.
+    Find graph nodes quickly by name or path.
   </Card>
-  <Card title="Type Filtering" icon="filter">
-    Filter nodes by service type (node, nextjs, python, etc.).
+  <Card title="Graph Filters" icon="filter">
+    Filter by node kind, community, provenance, and owned versus unowned files.
   </Card>
 </CardGroup>
 
 ## Prerequisites
 
-Before running Studio, build your graph:
+Build the graph before launching Studio:
 
 ```bash
-devgraph build docs/*.md
+devgraph build .
 devgraph studio
 ```
 
-Studio reads from `.devgraph/graph.json`.
+## What You See
+
+Studio is optimized for exploring the hybrid graph:
+
+- service nodes and file nodes use distinct visuals
+- graph layout groups related nodes by structure and community
+- edge tooltips and node panels expose provenance and evidence when available
+- service editing still operates on the service layer from `graph.json`
 
 ## Port
 
 Studio runs on port `9111` by default.
-
-## Screenshot
-
-Studio provides a clean, dark-themed interface for exploring your project architecture:
-
-- **Left panel**: Interactive graph with draggable nodes
-- **Right panel**: Selected service details
-- **Top bar**: Search and filter controls

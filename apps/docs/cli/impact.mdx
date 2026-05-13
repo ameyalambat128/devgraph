@@ -1,6 +1,6 @@
 ---
 title: devgraph impact
-description: "Analyze blast radius - what services are affected if this changes"
+description: 'Analyze blast radius - what services are affected if this changes'
 ---
 
 ## Usage
@@ -11,17 +11,17 @@ devgraph impact <service> [options]
 
 ## Arguments
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description                    |
+| --------- | ------------------------------ |
 | `service` | Name of the service to analyze |
 
 ## Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--graph <path>` | Path to graph.json | `.devgraph/graph.json` |
-| `--json` | Output as JSON | - |
-| `--runbook` | Generate a markdown runbook for AI agents | - |
+| Option           | Description                               | Default                |
+| ---------------- | ----------------------------------------- | ---------------------- |
+| `--graph <path>` | Path to graph.json                        | `.devgraph/graph.json` |
+| `--json`         | Output as JSON                            | -                      |
+| `--runbook`      | Generate a markdown runbook for AI agents | -                      |
 
 ## Description
 
@@ -75,6 +75,7 @@ devgraph impact product-service --runbook
 ```
 
 Creates `.devgraph/runbooks/impact-product-service.md` with:
+
 - Risk assessment table
 - Affected services with their APIs
 - Pre-deployment checklist
@@ -82,8 +83,8 @@ Creates `.devgraph/runbooks/impact-product-service.md` with:
 
 ## Output
 
-| Mode | Output |
-|------|--------|
-| Default | Formatted analysis in terminal |
-| `--json` | JSON object with impact details |
+| Mode        | Output                                                    |
+| ----------- | --------------------------------------------------------- |
+| Default     | Formatted analysis in terminal                            |
+| `--json`    | JSON object with impact details                           |
 | `--runbook` | Markdown file at `.devgraph/runbooks/impact-<service>.md` |

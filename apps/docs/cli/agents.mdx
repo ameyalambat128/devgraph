@@ -1,6 +1,6 @@
 ---
 title: devgraph agents
-description: "Generate rich AGENTS.md files for AI coding assistants"
+description: 'Generate rich AGENTS.md files for AI coding assistants'
 ---
 
 ## Usage
@@ -11,24 +11,32 @@ devgraph agents [options]
 
 ## Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--graph <path>` | Path to graph.json | `.devgraph/graph.json` |
-| `--out-dir <dir>` | Output directory | `.devgraph/agents` |
-| `--service <name>` | Generate for a specific service only | - |
-| `--service-path <path>` | Base path to service directories for inference | - |
-| `--format <format>` | Output format: `agents` or `skills` | `agents` |
-| `--best-effort` | Generate even with missing data (mark as TODO) | - |
-| `--json` | Output result as JSON instead of writing files | - |
+| Option                  | Description                                             | Default                |
+| ----------------------- | ------------------------------------------------------- | ---------------------- |
+| `--graph <path>`        | Path to `graph.json`                                    | `.devgraph/graph.json` |
+| `--out-dir <dir>`       | Output directory                                        | `.devgraph/agents`     |
+| `--service <name>`      | Generate for a specific service only                    | -                      |
+| `--service-path <path>` | Base path to service directories for inference          | -                      |
+| `--format <format>`     | Output format: `agents` or `skills`                     | `agents`               |
+| `--best-effort`         | Generate even with missing data and mark gaps as `TODO` | -                      |
+| `--json`                | Output result as JSON instead of writing files          | -                      |
 
 ## Description
 
-Generates rich `AGENTS.md` files for each service in your graph. These files help AI coding assistants (like Claude, Cursor, Copilot) understand your services better by providing context about commands, dependencies, APIs, and codebase structure.
+Generates `AGENTS.md` files or Agent Skills from the built graph. These outputs help coding assistants understand service metadata, owned paths, downstream relationships, APIs, and graph-aware workflows.
 
-The command automatically infers information from:
-- **package.json scripts**: `dev`, `build`, `test`, `start`, `lint`
-- **Lockfiles**: Detects package manager (npm, pnpm, yarn, bun)
-- **Filesystem landmarks**: `src/`, `app/`, `lib/`, `components/`, `tests/`, etc.
+The command uses:
+
+- top-level service metadata from `devgraph-service`, `devgraph-api`, and `devgraph-env`
+- hybrid graph ownership data from `knowledgeGraph`
+- graph analysis questions and coverage gaps from `knowledgeGraph.analysis`
+- filesystem landmarks such as `src/`, `app/`, `lib/`, `components/`, and `tests/`
+- commands inferred from package metadata when available
+
+Generated guidance now points agents to the two main analysis surfaces first:
+
+- `.devgraph/GRAPH_REPORT.md`
+- `devgraph query "<question>"`
 
 ## Examples
 
@@ -38,23 +46,11 @@ Generate agents for all services:
 devgraph agents
 ```
 
-Output:
-
-```
-Generated 3 AGENTS.md files:
-
-  .devgraph/agents/api-gateway.md
-  .devgraph/agents/user-service.md
-  .devgraph/agents/product-service.md
-```
-
-Generate for a specific service with inference from its directory:
+Generate for a specific service with directory inference:
 
 ```bash
 devgraph agents --service api-gateway --service-path ./packages
 ```
-
-This reads `./packages/api-gateway/package.json` to infer commands.
 
 Use best-effort mode for incomplete graphs:
 
@@ -62,91 +58,76 @@ Use best-effort mode for incomplete graphs:
 devgraph agents --best-effort
 ```
 
-Generates files even when some data is missing, marking gaps as `TODO`.
-
-## Output Format
+## AGENTS.md Output
 
 Each generated `AGENTS.md` includes:
 
-```markdown
-# api-gateway
-
-## Quick Reference
-- **Type**: node
-- **Package Manager**: pnpm
-
-## Commands
-| Task | Command |
-|------|---------|
-| dev | pnpm dev |
-| build | pnpm build |
-| test | pnpm test |
-
-## Dependencies
-- postgres (database)
-- user-service (node)
-
-## APIs Consumed
-- user-service: GET /users/:id, POST /users
-
-## Key Directories
-- `src/` - Source code
-- `tests/` - Test files
-
-## Search Terms
-api-gateway, gateway, routing
-```
+- service commands
+- dependencies and consumers
+- APIs and environment variables
+- owned paths and neighboring files when available
+- graph-aware instructions to read `GRAPH_REPORT.md` and use `devgraph query`
 
 ## Agent Skills Format
 
-Use `--format skills` to generate [Agent Skills](https://agentskills.io) — the open standard supported by Claude Code, Cursor, Gemini CLI, VS Code, GitHub Copilot, and 25+ other tools.
+Use `--format skills` to generate [Agent Skills](https://agentskills.io):
 
 ```bash
 devgraph agents --format skills
 ```
 
-Output:
-
-```
-Generated 6 skill file(s):
-  - querying-architecture/SKILL.md
-  - querying-architecture/references/ARCHITECTURE.md
-  - querying-architecture/references/SERVICES.md
-  - services/api-gateway-context/SKILL.md
-  - services/api-gateway-context/references/ROUTES.md
-  - services/user-service-context/SKILL.md
-
-Output written to: .skills
-```
-
 ### Output Structure
 
-```
+```text
 .skills/
-├── querying-architecture/          # Overview skill
-│   ├── SKILL.md                    # CLI commands + when to use them
+├── orchestrating-devgraph-context/
+│   ├── SKILL.md
 │   └── references/
-│       ├── ARCHITECTURE.md         # Full dependency graph
-│       └── SERVICES.md             # Quick-reference index
-└── services/                       # Per-service skills
+│       └── HANDOFF_TEMPLATE.md
+├── querying-architecture/
+│   ├── SKILL.md
+│   └── references/
+│       ├── ARCHITECTURE.md
+│       └── SERVICES.md
+└── services/
     ├── api-gateway-context/
-    │   ├── SKILL.md                # Commands, deps, consumers
+    │   ├── SKILL.md
     │   └── references/
-    │       └── ROUTES.md           # API route definitions
+    │       └── ROUTES.md
     └── user-service-context/
         └── SKILL.md
 ```
 
-The **overview skill** teaches agents how to query the architecture using CLI commands (`devgraph impact`, `devgraph validate`, `devgraph run`).
+The overview skill tells agents to:
 
-**Per-service skills** provide commands, dependencies, downstream consumers, API routes, and key directories for each service.
+- read `.devgraph/GRAPH_REPORT.md` before broad architecture searches
+- prefer `devgraph query "<question>"` for focused retrieval
+- use service-specific skills when they need commands, APIs, or owned paths
 
-Skills use **progressive disclosure** — agents load only the name and description at startup (~100 tokens), then read the full skill body only when the task is relevant.
+### Orchestration Skill
+
+The `orchestrating-devgraph-context` skill helps one agent gather repo context and hand it to another agent without starting from scratch.
+
+It tells agents to:
+
+- read `.devgraph/GRAPH_REPORT.md`
+- choose 3 to 6 focused questions from graph analysis, coverage gaps, services, dependencies, and APIs
+- run `devgraph query "<question>"` for each selected question
+- ask the user only for missing intent, target service, constraints, or done criteria
+- write a Markdown handoff brief from `references/HANDOFF_TEMPLATE.md`
+
+The handoff template includes:
+
+- goal
+- known context
+- graph evidence
+- decisions
+- open questions
+- suggested next agent task
 
 ## Use Cases
 
-**AI-assisted development**: Drop `AGENTS.md` or Agent Skills files in your repo so AI tools understand your services.
-
-**Onboarding**: New developers can quickly understand how to work with each service.
-
-**Documentation**: Auto-generate baseline documentation from your devgraph blocks.
+- AI-assisted development
+- onboarding and architecture handoff
+- multi-agent context handoff
+- generated service context from the hybrid graph

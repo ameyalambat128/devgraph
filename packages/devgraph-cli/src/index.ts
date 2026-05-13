@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
+  buildProjectGraph,
   buildGraph,
   diffGraphs,
   formatAgentsResult,
@@ -16,6 +17,7 @@ import {
   generateAgentsEnhanced,
   generateCodemapMermaid,
   generateCoordinationRunbook,
+  generateGraphReport,
   generateImpactRunbook,
   generateMermaid,
   generateRunbook,
@@ -25,6 +27,7 @@ import {
   getImpactAnalysis,
   getRunPlan,
   parseMarkdownFiles,
+  queryGraph,
   validate,
 } from '@devgraph/core';
 import { Command } from 'commander';
@@ -140,12 +143,16 @@ program
 
 program
   .command('build')
-  .description('Build graph.json, summary, agents, and mermaid outputs')
-  .argument('[paths...]', 'Markdown files or globs (default **/*.md)')
+  .description('Build the hybrid project graph, reports, and mermaid outputs')
+  .argument('[paths...]', 'Files, directories, or globs (default current workspace)')
   .option('--out-dir <dir>', 'Output directory', '.devgraph')
   .option('--compare <path>', 'Optional previous graph.json to diff against')
   .action(async (paths: string[], options: { outDir: string; compare?: string }) => {
-    const { pats, blocks, errors } = await handleParse(paths);
+    const buildResult = await buildProjectGraph(paths, {
+      cwd: workspaceRoot,
+      outDir: options.outDir,
+    });
+    const { graph, errors } = buildResult;
     if (errors.length) {
       console.error(`Found ${errors.length} error(s):`);
       for (const err of errors) console.error(`- ${err.file}: ${err.message}`);
@@ -153,21 +160,14 @@ program
       return;
     }
 
-    if (!blocks.length) {
-      console.log('No devgraph blocks found.\n');
-      console.log('Add blocks to your markdown like this:\n');
-      console.log('  ```devgraph-service');
-      console.log('  name: my-service');
-      console.log('  type: node');
-      console.log('  commands:');
-      console.log('    dev: npm run dev');
-      console.log('  ```\n');
-      console.log('Then run: devgraph build "**/*.md"\n');
-      console.log('Docs: https://devgraph.ameyalambat.com');
+    if (
+      Object.keys(graph.services).length === 0 &&
+      (graph.knowledgeGraph?.nodes.length ?? 0) === 0
+    ) {
+      console.log('No files were indexed.');
       return;
     }
 
-    const graph = buildGraph(blocks);
     const outDir = path.resolve(workspaceRoot, options.outDir);
     await mkdir(outDir, { recursive: true });
 
@@ -176,6 +176,8 @@ program
 
     const summaryPath = path.join(outDir, 'summary.md');
     await writeFile(summaryPath, generateSummary(graph));
+
+    const reportPath = path.join(outDir, 'GRAPH_REPORT.md');
 
     const agentsDir = path.join(outDir, 'agents');
     await mkdir(agentsDir, { recursive: true });
@@ -192,22 +194,27 @@ program
     await writeFile(codemapPath, generateCodemapMermaid(graph));
     await maybeRenderMermaid(codemapPath, path.join(outDir, 'codemap.png'));
 
+    let diffOutput: string | null = null;
     if (options.compare) {
       try {
         const prevPath = path.resolve(workspaceRoot, options.compare);
         const prevRaw = await readFile(prevPath, 'utf8');
         const prevGraph = JSON.parse(prevRaw);
-        const diff = diffGraphs(graph, prevGraph);
-        await writeFile(path.join(outDir, 'integration_notes.md'), diff);
+        diffOutput = diffGraphs(graph, prevGraph);
+        await writeFile(path.join(outDir, 'integration_notes.md'), diffOutput);
       } catch (err) {
         console.error(`Could not generate diff: ${(err as Error).message}`);
       }
     }
 
+    await writeFile(reportPath, generateGraphReport(graph, diffOutput));
+
     console.log(
-      `Built graph (${Object.keys(graph.services).length} services) from patterns: ${pats.join(', ')}`
+      `Built graph (${Object.keys(graph.services).length} services, ${graph.knowledgeGraph?.nodes.length ?? 0} nodes)`
     );
-    console.log(`Outputs written to ${outDir}`);
+    console.log(
+      `Outputs written to ${outDir} (processed ${buildResult.cache.processed}, reused ${buildResult.cache.reused})`
+    );
   });
 
 program
@@ -562,6 +569,30 @@ program
       }
     }
   );
+
+program
+  .command('query')
+  .description('Query the built knowledge graph for a focused architecture subgraph')
+  .argument('<question>', 'Question to ask against the graph')
+  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
+  .option('--budget <n>', 'Approximate word budget for the result', '400')
+  .option('--dfs', 'Use depth-first traversal instead of breadth-first')
+  .action(async (question: string, options: { graph: string; budget: string; dfs?: boolean }) => {
+    const graphPath = path.resolve(workspaceRoot, options.graph);
+
+    try {
+      const raw = await readFile(graphPath, 'utf8');
+      const graph = JSON.parse(raw);
+      const result = queryGraph(graph, question, {
+        budget: Number(options.budget) || 400,
+        dfs: options.dfs,
+      });
+      console.log(result);
+    } catch (error) {
+      console.error(`Could not query graph: ${(error as Error).message}`);
+      process.exitCode = 1;
+    }
+  });
 
 program
   .command('studio')
