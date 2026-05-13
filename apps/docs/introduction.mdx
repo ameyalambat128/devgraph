@@ -22,6 +22,10 @@ One command gives you service metadata, file-level structure, and graph analysis
   <Card title="Graph Analysis" icon="sparkles">
     Review `GRAPH_REPORT.md` and use `devgraph query` for focused architecture retrieval.
   </Card>
+  <Card title="Agent Handoffs" icon="wand-magic-sparkles">
+    Generate skills that guide agents through graph questions, focused queries, and Markdown handoff
+    briefs.
+  </Card>
   <Card title="Studio" icon="diagram-project">
     Explore service and file nodes interactively with filters for community, provenance, and
     ownership.
@@ -60,6 +64,16 @@ At a high level, `graph.json` contains:
 
 The rest of the build pipeline adds file nodes and graph relationships around that service layer.
 
+## Agent Context
+
+`devgraph agents --format skills` writes a `.skills/` directory for AI coding tools. It includes:
+
+- `querying-architecture` for graph-aware commands and references
+- service-specific skills for commands, APIs, owned paths, and dependencies
+- `orchestrating-devgraph-context` for multi-agent handoffs based on `GRAPH_REPORT.md` and `devgraph query`
+
+The orchestration skill uses graph-derived questions and a Markdown handoff template so another agent can continue with known context, evidence, decisions, and open questions.
+
 ## Next Steps
 
 <CardGroup cols={2}>
@@ -68,5 +82,8 @@ The rest of the build pipeline adds file nodes and graph relationships around th
   </Card>
   <Card title="CLI Commands" icon="terminal" href="/cli/build">
     Learn the build, query, Studio, and agent workflows.
+  </Card>
+  <Card title="Agent Skills" icon="wand-magic-sparkles" href="/cli/agents">
+    Generate repo-grounded skills and handoff briefs for coding agents.
   </Card>
 </CardGroup>

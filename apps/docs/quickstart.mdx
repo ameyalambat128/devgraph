@@ -115,6 +115,16 @@ Studio opens at [http://localhost:9111](http://localhost:9111) and shows:
 - community, provenance, and ownership views
 - node detail panels with evidence and neighbors
 
+## 6. Generate agent skills
+
+Generate reusable skills for AI coding tools:
+
+```bash
+devgraph agents --format skills
+```
+
+This writes `.skills/` with architecture, service, and orchestration skills. The orchestration skill tells agents how to use `GRAPH_REPORT.md`, run focused `devgraph query` prompts, and produce a Markdown handoff brief for another agent.
+
 ## Next Steps
 
 <CardGroup cols={2}>
@@ -123,5 +133,8 @@ Studio opens at [http://localhost:9111](http://localhost:9111) and shows:
   </Card>
   <Card title="Query Command" icon="magnifying-glass" href="/cli/query">
     Use graph retrieval instead of broad file search.
+  </Card>
+  <Card title="Agent Skills" icon="wand-magic-sparkles" href="/cli/agents">
+    Generate architecture, service, and orchestration context for AI agents.
   </Card>
 </CardGroup>

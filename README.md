@@ -221,6 +221,26 @@ The overview skill now tells agents to:
 - use `devgraph query "<question>"` for focused retrieval
 - use DevGraph CLI commands such as `impact`, `validate`, and `run` for service-aware workflows
 
+DevGraph also generates an orchestration skill for handing context from one agent to another:
+
+```text
+.skills/
+├── orchestrating-devgraph-context/
+│   ├── SKILL.md
+│   └── references/
+│       └── HANDOFF_TEMPLATE.md
+├── querying-architecture/
+└── services/
+```
+
+The orchestration skill guides agents to:
+
+- read `GRAPH_REPORT.md` first
+- pick 3 to 6 graph questions from `knowledgeGraph.analysis`, coverage gaps, services, dependencies, and APIs
+- run focused `devgraph query "<question>"` calls
+- ask the user only for missing intent, constraints, and done criteria
+- produce a Markdown handoff brief with goal, known context, graph evidence, decisions, open questions, and a suggested next agent task
+
 ## DevGraph Studio
 
 Visualize your project graph in a local web app:
