@@ -1,5 +1,18 @@
 # devgraph
 
+## 1.0.0
+
+### Major Changes
+
+- c358506: Simplify DevGraph into a file-first local code memory tool with `build`, `watch`, `query`, and `status`.
+
+  Remove the legacy service-graph, validation, agent-generation, and Studio CLI flows in favor of `.devgraph/manifest.json`, `.devgraph/graph.json`, and incremental per-file cache artifacts.
+
+### Patch Changes
+
+- Updated dependencies [c358506]
+  - @devgraph/core@1.0.0
+
 ## 0.6.1
 
 ### Patch Changes

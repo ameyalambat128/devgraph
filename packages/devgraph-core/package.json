@@ -1,6 +1,6 @@
 {
   "name": "@devgraph/core",
-  "version": "0.6.1",
+  "version": "1.0.0",
   "type": "module",
   "description": "Core sync and query engine for DevGraph code memory",
   "main": "dist/index.js",
