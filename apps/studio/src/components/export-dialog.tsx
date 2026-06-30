@@ -12,12 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  generateSummary,
-  generateMermaid,
-  downloadFile,
-  copyToClipboard,
-} from '@/lib/export';
+import { generateSummary, generateMermaid, downloadFile, copyToClipboard } from '@/lib/export';
 import type { Devgraph } from '@/types/graph';
 
 interface ExportDialogProps {
@@ -89,9 +84,7 @@ export function ExportDialog({ graph, open, onOpenChange }: ExportDialogProps) {
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Export Graph</DialogTitle>
-          <DialogDescription>
-            Export your graph in different formats
-          </DialogDescription>
+          <DialogDescription>Export your graph in different formats</DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ExportTab)}>
@@ -112,9 +105,7 @@ export function ExportDialog({ graph, open, onOpenChange }: ExportDialogProps) {
 
           <div className="mt-4">
             <ScrollArea className="h-[300px] rounded-lg border bg-muted/30">
-              <pre className="p-4 text-xs font-mono whitespace-pre-wrap">
-                {content}
-              </pre>
+              <pre className="p-4 text-xs font-mono whitespace-pre-wrap">{content}</pre>
             </ScrollArea>
           </div>
         </Tabs>

@@ -33,10 +33,7 @@ function getMimeType(filePath: string): string {
   return MIME_TYPES[ext] || 'application/octet-stream';
 }
 
-async function serveStaticFile(
-  res: ServerResponse,
-  filePath: string
-): Promise<boolean> {
+async function serveStaticFile(res: ServerResponse, filePath: string): Promise<boolean> {
   try {
     const stats = await stat(filePath);
     if (stats.isFile()) {

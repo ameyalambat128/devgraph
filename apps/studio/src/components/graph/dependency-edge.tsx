@@ -1,11 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import {
-  BaseEdge,
-  getSmoothStepPath,
-  type EdgeProps,
-} from '@xyflow/react';
+import { BaseEdge, getSmoothStepPath, type EdgeProps } from '@xyflow/react';
 import { useStudioStore } from '@/store/studio-store';
 
 function DependencyEdgeComponent({
@@ -32,15 +28,15 @@ function DependencyEdgeComponent({
     borderRadius: 8,
   });
 
-  const isConnectedToHovered = hoveredNodeId && (source === hoveredNodeId || target === hoveredNodeId);
+  const isConnectedToHovered =
+    hoveredNodeId && (source === hoveredNodeId || target === hoveredNodeId);
   const isDimmed = hoveredNodeId && !isConnectedToHovered;
 
-  const strokeColor = selected || isConnectedToHovered 
-    ? 'hsl(var(--primary))' 
-    : 'hsl(var(--muted-foreground))';
-    
+  const strokeColor =
+    selected || isConnectedToHovered ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))';
+
   const strokeWidth = selected || isConnectedToHovered ? 3 : 1.5;
-  const opacity = isDimmed ? 0.1 : (selected || isConnectedToHovered ? 1 : 0.6);
+  const opacity = isDimmed ? 0.1 : selected || isConnectedToHovered ? 1 : 0.6;
 
   return (
     <>

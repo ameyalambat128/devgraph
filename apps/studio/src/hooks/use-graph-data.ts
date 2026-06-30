@@ -1,111 +1,109 @@
 import { useMemo } from 'react';
-import type {
-  Devgraph,
-  ReactFlowGraph,
-  ServiceNode,
-  DependencyEdge,
-} from '@/types/graph';
+import type { Devgraph, GraphEdge, GraphNode, ReactFlowGraph } from '@/types/graph';
 
-/**
- * Transform a Devgraph to React Flow nodes and edges
- */
 export function transformToReactFlow(graph: Devgraph): ReactFlowGraph {
-  const nodes: ServiceNode[] = [];
-  const edges: DependencyEdge[] = [];
-  const serviceNames = Object.keys(graph.services);
-
-  for (const name of serviceNames) {
-    const service = graph.services[name];
-
-    const commandCount = service.commands
-      ? Object.keys(service.commands).length
-      : 0;
-
-    const routeCount = service.apis
-      ? service.apis.reduce(
-          (sum, api) => sum + Object.keys(api.routes || {}).length,
-          0
-        )
-      : 0;
-
-    const envVarCount = service.env
-      ? service.env.reduce(
-          (sum, env) => sum + Object.keys(env.vars || {}).length,
-          0
-        )
-      : 0;
-
-    const dependencyCount = service.depends?.length || 0;
-
-    nodes.push({
-      id: name,
+  if (!graph.knowledgeGraph) {
+    const serviceNodes: GraphNode[] = Object.values(graph.services).map((service) => ({
+      id: service.name,
       type: 'service',
-      position: { x: 0, y: 0 }, // Will be set by layout
+      position: { x: 0, y: 0 },
       data: {
-        name,
-        type: service.type,
-        commandCount,
-        routeCount,
-        envVarCount,
-        dependencyCount,
+        id: service.name,
+        label: service.name,
+        nodeKind: 'service',
+        serviceType: service.type,
+        relationCount: service.depends?.length ?? 0,
+        routeCount:
+          service.apis?.reduce((sum, api) => sum + Object.keys(api.routes || {}).length, 0) ?? 0,
+        envVarCount:
+          service.env?.reduce((sum, env) => sum + Object.keys(env.vars || {}).length, 0) ?? 0,
+        commandCount: Object.keys(service.commands ?? {}).length,
       },
-    });
+    }));
 
-    // Create edges for dependencies
-    if (service.depends) {
-      for (const dependency of service.depends) {
-        edges.push({
-          id: `${name}-${dependency}`,
-          source: name,
+    const serviceEdges: GraphEdge[] = Object.values(graph.services).flatMap((service) =>
+      (service.depends ?? []).map((dependency) => ({
+        id: `${service.name}-${dependency}`,
+        source: service.name,
+        target: dependency,
+        type: 'dependency',
+        data: {
+          source: service.name,
           target: dependency,
-          type: 'dependency',
-        });
-      }
-    }
+          relation: 'depends_on',
+          confidence: 'EXTRACTED',
+        },
+      }))
+    );
+
+    return { nodes: serviceNodes, edges: serviceEdges };
   }
+
+  const communityMap = new Map(
+    graph.knowledgeGraph.communities.map((community) => [community.id, community.label])
+  );
+
+  const nodes: GraphNode[] = graph.knowledgeGraph.nodes.map((node) => {
+    const service = node.kind === 'service' ? graph.services[node.label] : null;
+    const owned = graph.knowledgeGraph?.edges.some(
+      (edge) => edge.relation === 'owns' && edge.target === node.id
+    );
+
+    return {
+      id: node.id,
+      type: node.kind,
+      position: { x: 0, y: 0 },
+      data: {
+        id: node.id,
+        label: node.label,
+        nodeKind: node.kind,
+        path: node.path,
+        serviceType: service?.type,
+        communityId: node.community,
+        communityLabel: node.community ? communityMap.get(node.community) : undefined,
+        relationCount:
+          graph.knowledgeGraph?.edges.filter(
+            (edge) => edge.source === node.id || edge.target === node.id
+          ).length ?? 0,
+        routeCount:
+          service?.apis?.reduce((sum, api) => sum + Object.keys(api.routes || {}).length, 0) ?? 0,
+        envVarCount:
+          service?.env?.reduce((sum, env) => sum + Object.keys(env.vars || {}).length, 0) ?? 0,
+        commandCount: Object.keys(service?.commands ?? {}).length,
+        ownership: node.kind === 'file' ? (owned ? 'owned' : 'unowned') : undefined,
+        metadata: node.metadata,
+      },
+    };
+  });
+
+  const edges: GraphEdge[] = graph.knowledgeGraph.edges.map((edge) => ({
+    id: `${edge.source}-${edge.target}-${edge.relation}`,
+    source: edge.source,
+    target: edge.target,
+    type: 'dependency',
+    data: edge,
+  }));
 
   return { nodes, edges };
 }
 
-/**
- * Hook to transform graph data to React Flow format
- */
-export function useGraphData(graph: Devgraph | null): ReactFlowGraph | null {
+export function useGraphData(graph: Devgraph | null) {
   return useMemo(() => {
     if (!graph) return null;
     return transformToReactFlow(graph);
   }, [graph]);
 }
 
-/**
- * Get unique service types from a graph
- */
-export function getServiceTypes(graph: Devgraph): string[] {
-  const types = new Set<string>();
-  for (const service of Object.values(graph.services)) {
-    types.add(service.type);
+export function getNodeKinds(graph: Devgraph) {
+  const nodeKinds = new Set<string>();
+  if (!graph.knowledgeGraph) {
+    nodeKinds.add('service');
+    return Array.from(nodeKinds);
   }
-  return Array.from(types).sort();
-}
 
-/**
- * Filter graph by service type
- */
-export function filterByServiceType(
-  graph: ReactFlowGraph,
-  serviceType: string | null
-): ReactFlowGraph {
-  if (!serviceType) return graph;
+  for (const node of graph.knowledgeGraph.nodes) {
+    nodeKinds.add(node.kind);
+  }
 
-  const filteredNodes = graph.nodes.filter(
-    (node) => node.data.type === serviceType
-  );
-  const filteredNodeIds = new Set(filteredNodes.map((n) => n.id));
-
-  const filteredEdges = graph.edges.filter(
-    (edge) =>
-      filteredNodeIds.has(edge.source) && filteredNodeIds.has(edge.target)
-  );
-
-  return { nodes: filteredNodes, edges: filteredEdges };
+  return Array.from(nodeKinds).sort();
 }

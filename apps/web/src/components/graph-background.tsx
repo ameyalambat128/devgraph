@@ -19,28 +19,28 @@ export function GraphBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
 
     const points: Point[] = [];
     // Less density for a subtle effect
-    const pointCount = Math.floor((width * height) / 40000); 
+    const pointCount = Math.floor((width * height) / 40000);
     const connectionDistance = 180;
-    
+
     // Initialize points
     for (let i = 0; i < pointCount; i++) {
       points.push({
         x: Math.random() * width,
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.3, // Very slow velocity
-        vy: (Math.random() - 0.5) * 0.3
+        vy: (Math.random() - 0.5) * 0.3,
       });
     }
 
     const handleResize = () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
-      // Re-initialize points on large resize could be good, 
+      // Re-initialize points on large resize could be good,
       // but keeping them is fine for now to avoid distinct "reset" feel
     };
 
@@ -48,7 +48,7 @@ export function GraphBackground() {
 
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
-      
+
       // Update and draw points
       for (let i = 0; i < points.length; i++) {
         const p = points[i];
@@ -75,7 +75,7 @@ export function GraphBackground() {
           if (dist < connectionDistance) {
             ctx.beginPath();
             // Opacity fades as distance increases
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.08 * (1 - dist / connectionDistance)})`; 
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.08 * (1 - dist / connectionDistance)})`;
             ctx.lineWidth = 1;
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);

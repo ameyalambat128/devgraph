@@ -14,7 +14,7 @@ function NetworkGraph({ count = 250, radius = 20 }) {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     const p = new Array(count).fill(0).map(() => new THREE.Vector3());
-    
+
     // Generate points
     for (let i = 0; i < count; i++) {
       // Random point inside a sphere
@@ -49,10 +49,10 @@ function NetworkGraph({ count = 250, radius = 20 }) {
       }
     }
 
-    return { 
-      positions, 
-      colors, 
-      lines: new Float32Array(linePositions) 
+    return {
+      positions,
+      colors,
+      lines: new Float32Array(linePositions),
     };
   }, [count, radius]);
 
@@ -68,14 +68,8 @@ function NetworkGraph({ count = 250, radius = 20 }) {
     <group ref={groupRef}>
       <points ref={pointsRef}>
         <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[positions, 3]}
-          />
-          <bufferAttribute
-            attach="attributes-color"
-            args={[colors, 3]}
-          />
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+          <bufferAttribute attach="attributes-color" args={[colors, 3]} />
         </bufferGeometry>
         <pointsMaterial
           size={0.15}
@@ -89,17 +83,9 @@ function NetworkGraph({ count = 250, radius = 20 }) {
 
       <lineSegments ref={linesRef}>
         <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[lines, 3]}
-          />
+          <bufferAttribute attach="attributes-position" args={[lines, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial
-          color="#ffffff"
-          transparent
-          opacity={0.08}
-          depthWrite={false}
-        />
+        <lineBasicMaterial color="#ffffff" transparent opacity={0.08} depthWrite={false} />
       </lineSegments>
     </group>
   );
@@ -115,7 +101,7 @@ export function Scene3D() {
       >
         <fog attach="fog" args={['#050505', 15, 35]} />
         <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-             <NetworkGraph />
+          <NetworkGraph />
         </Float>
       </Canvas>
     </div>

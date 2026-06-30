@@ -109,9 +109,7 @@ export function GraphLoader({ onGraphLoad }: GraphLoaderProps) {
                 onDrop={handleDrop}
               >
                 <FileJson className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground mb-4">
-                  Drag and drop your graph.json here, or
-                </p>
+                <p className="text-muted-foreground mb-4">Drag and drop your graph.json here, or</p>
                 <label>
                   <input
                     type="file"
@@ -131,11 +129,7 @@ export function GraphLoader({ onGraphLoad }: GraphLoaderProps) {
 
             <TabsContent value="paste" className="mt-4 space-y-4">
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClipboardPaste}
-                >
+                <Button variant="outline" size="sm" onClick={handleClipboardPaste}>
                   <Clipboard className="w-4 h-4 mr-2" />
                   Paste from Clipboard
                 </Button>
