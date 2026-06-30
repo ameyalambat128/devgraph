@@ -1,15 +1,19 @@
 ---
 title: Quickstart
-description: 'Get started with DevGraph in 5 minutes'
+description: 'Get started with DevGraph local code memory in 5 minutes'
 ---
 
 ## Installation
 
-Install DevGraph globally or run it directly with `bunx`:
+Install DevGraph globally or run it directly:
 
 <CodeGroup>
 ```bash pnpm
 pnpm add -g devgraph
+```
+
+```bash pnpm-dlx
+pnpm dlx devgraph@latest build .
 ```
 
 ```bash bunx
@@ -18,123 +22,80 @@ bunx devgraph@latest build .
 
 </CodeGroup>
 
-## 1. Add service blocks where they help
-
-`devgraph build` scans your repo by default. Blocks are optional, but they are the authoritative service layer when you want named services, commands, APIs, environment variables, or explicit owned paths.
-
-Example:
-
-````yaml
-```devgraph-service
-name: api
-type: node
-paths:
-  - services/api
-commands:
-  dev: pnpm dev
-  build: pnpm build
-depends:
-  - database
-```
-
-```devgraph-api
-service: api
-routes:
-  GET /health: Health check
-  GET /api/users: List users
-  POST /api/users: Create user
-```
-
-```devgraph-env
-service: api
-vars:
-  PORT: "3000"
-  DATABASE_URL: postgresql://localhost:5432/mydb
-```
-````
-
-## 2. Build the graph
+## 1. Build the graph
 
 ```bash
 devgraph build .
 ```
 
+By default this indexes code, repo config, and root context files, then writes local artifacts to `.devgraph/`.
+
 You can also pass specific directories, files, or globs:
 
 ```bash
-devgraph build apps packages docs/**/*.md
+devgraph build apps packages
 ```
 
-## 3. Check outputs
+## 2. Check outputs
 
-Outputs are generated in `.devgraph/`:
+Artifacts are generated in `.devgraph/`:
 
 ```text
 .devgraph/
+  |- manifest.json
   |- graph.json
-  |- summary.md
-  |- GRAPH_REPORT.md
-  |- agents/
-    |- api.md
-  |- system.mmd
-  |- codemap.mmd
+  |- cache/
+    |- <file-id>.json
 ```
 
-| File              | Description                                                                                   |
-| ----------------- | --------------------------------------------------------------------------------------------- |
-| `graph.json`      | Machine-readable output containing top-level `services`, `apis`, and `knowledgeGraph`         |
-| `summary.md`      | Human-readable service overview                                                               |
-| `GRAPH_REPORT.md` | Hybrid graph analysis with god nodes, surprising connections, bridge nodes, and coverage gaps |
-| `agents/*.md`     | Per-service context files for coding assistants                                               |
-| `system.mmd`      | Mermaid diagram of the build pipeline and service relationships                               |
-| `codemap.mmd`     | Mermaid diagram of owned paths and file relationships                                         |
+| File            | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| `manifest.json` | Indexed file metadata, hashes, and sync timestamps     |
+| `graph.json`    | Canonical local memory graph                           |
+| `cache/*.json`  | Per-file extracted artifacts used for incremental sync |
+
+## 3. Check graph health
+
+```bash
+devgraph status
+```
+
+This shows indexed file count, changed file count, graph paths, and last sync time.
 
 ## 4. Query the graph
 
 Use `devgraph query` when you want a focused answer from the built graph:
 
 ```bash
-devgraph query "which files belong to api?"
-devgraph query "what documents auth?" --budget 250 --dfs
+devgraph query "where is devgraph build implemented"
+devgraph query "where is syncProject defined" --budget 250
 ```
 
-The output is a bounded text subgraph with node labels, relations, provenance, and source paths.
+The output is a bounded response with matched files, code snippets, and nearby graph edges.
 
-## 5. Visualize with Studio
+## 5. Keep it fresh
 
-Launch the interactive graph viewer:
+Run watch mode while you work:
 
 ```bash
-devgraph studio
+devgraph watch .
 ```
 
-Studio opens at [http://localhost:9111](http://localhost:9111) and shows:
-
-- service and file nodes
-- search plus graph filters
-- community, provenance, and ownership views
-- node detail panels with evidence and neighbors
-
-## 6. Generate agent skills
-
-Generate reusable skills for AI coding tools:
-
-```bash
-devgraph agents --format skills
-```
-
-This writes `.skills/` with architecture, service, and orchestration skills. The orchestration skill tells agents how to use `GRAPH_REPORT.md`, run focused `devgraph query` prompts, and produce a Markdown handoff brief for another agent.
+`watch` reuses the same sync engine as `build` and updates the local graph on file changes.
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Build Command" icon="terminal" href="/cli/build">
-    Learn about `.devgraphignore`, `--compare`, and hybrid outputs.
+    Learn about the incremental sync loop and local artifacts.
+  </Card>
+  <Card title="Watch Command" icon="arrows-rotate" href="/cli/watch">
+    Keep the graph fresh while you edit code.
   </Card>
   <Card title="Query Command" icon="magnifying-glass" href="/cli/query">
-    Use graph retrieval instead of broad file search.
+    Retrieve focused evidence from the graph.
   </Card>
-  <Card title="Agent Skills" icon="wand-magic-sparkles" href="/cli/agents">
-    Generate architecture, service, and orchestration context for AI agents.
+  <Card title="Status Command" icon="circle-info" href="/cli/status">
+    Inspect graph freshness and indexed file counts.
   </Card>
 </CardGroup>

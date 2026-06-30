@@ -1,6 +1,6 @@
 ---
 title: devgraph query
-description: 'Retrieve a focused subgraph from the built knowledge graph'
+description: 'Retrieve focused code evidence from the local memory graph'
 ---
 
 ## Usage
@@ -11,52 +11,53 @@ devgraph query "<question>" [options]
 
 ## Options
 
-| Option           | Description                                                      | Default                |
-| ---------------- | ---------------------------------------------------------------- | ---------------------- |
-| `--graph <path>` | Path to `graph.json`                                             | `.devgraph/graph.json` |
-| `--budget <n>`   | Maximum amount of output to emit                                 | `200`                  |
-| `--dfs`          | Traverse with depth-first search instead of breadth-first search | `false`                |
-| `--help`         | Show help                                                        |
+| Option           | Description                              | Default                |
+| ---------------- | ---------------------------------------- | ---------------------- |
+| `--graph <path>` | Path to `graph.json`                     | `.devgraph/graph.json` |
+| `--budget <n>`   | Approximate word budget for the response | `500`                  |
+| `--json`         | Print the structured result as JSON      | `false`                |
+| `--help`         | Show help                                |                        |
 
 ## Description
 
-`devgraph query` works against the built `knowledgeGraph` inside `graph.json`.
+`devgraph query` works against the built local graph in `.devgraph/graph.json`.
 
-It ranks nodes using repo-grounded fields such as:
+It ranks files and snippets using repo-grounded signals such as:
 
-- node label
 - file path
-- service name
-- extracted summary and tags when available
+- symbol names
+- extracted chunk text
+- nearby graph edges such as `imports` and `references`
 
-The command then walks the graph from the best matches and emits a bounded text subgraph instead of freeform prose.
+The command emits a bounded result with:
+
+- matched files
+- matching snippets with line ranges
+- nearby graph edges
 
 ## Example Questions
 
 ```bash
-devgraph query "which files belong to api?"
-devgraph query "what documents auth?"
-devgraph query "how does studio depend on core?" --budget 300
-devgraph query "show bridge files around agents" --budget 250 --dfs
+devgraph query "where is devgraph build implemented"
+devgraph query "how does devgraph watch work"
+devgraph query "where is syncProject defined" --budget 300
 ```
 
 ## Output Shape
 
 Query output includes:
 
-- node labels
-- node kinds
-- graph relations
-- provenance values
-- source paths or source locations when available
+- ranked file matches
+- snippets with line ranges
+- related edges from the graph
 
-This makes it useful as a retrieval surface for humans and coding agents that need a narrow, explainable slice of the graph.
+This makes it useful for humans and coding agents that need a narrow, explainable slice of the repo.
 
 ## Typical Workflow
 
 ```bash
 devgraph build .
-devgraph query "which files belong to api?"
+devgraph query "where is devgraph build implemented"
 ```
 
-Use `GRAPH_REPORT.md` when you want a broad architectural read. Use `devgraph query` when you want a focused traversal through the built graph.
+Use `devgraph query` when broad file search is too noisy and you want focused graph-backed evidence.

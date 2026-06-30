@@ -2,7 +2,7 @@
 
 ## Overview
 
-DevGraph is a Turborepo monorepo (pnpm-first) that scans Markdown for `devgraph-*` fenced blocks, builds a project graph, and generates outputs like `graph.json`, `summary.md`, agent markdown files, and Mermaid diagrams inside `.devgraph/`.
+DevGraph is a Turborepo monorepo (pnpm-first) for persistent local code memory. It incrementally indexes source code, repo config, and root context files into inspectable artifacts inside `.devgraph/`.
 
 ## Brand Guidelines
 
@@ -16,27 +16,34 @@ apps/
   studio/             # Graph visualization app (Next.js, React Flow)
                       # Built as static export, embedded in CLI
 packages/
-  devgraph-core/      # Parsers, graph builder, generators, diff
-  devgraph-cli/       # CLI entrypoint + embedded Studio server
-.devgraph/            # Generated outputs (gitignored)
+  devgraph-core/      # Discovery, extraction, sync, query
+  devgraph-cli/       # CLI entrypoint
+.devgraph/            # Local graph artifacts (gitignored)
 ```
 
 ## CLI Commands
 
 ```bash
-devgraph validate [paths...]   # Validate devgraph blocks
-devgraph build [paths...]      # Build graph.json + outputs
-devgraph studio                # Start local Studio server (port 9111)
+devgraph build [paths...]      # Build or refresh the local graph
+devgraph watch [paths...]      # Keep the local graph fresh
+devgraph query "<question>"    # Query the local graph
+devgraph status [paths...]     # Inspect graph freshness
 ```
 
-### Studio Command
+## Local Artifacts
 
-`devgraph studio` serves the embedded React app locally:
+```text
+.devgraph/
+├── manifest.json
+├── graph.json
+└── cache/
+    ├── <file-id>.json
+    └── ...
+```
 
-- Graph visualization with React Flow
-- Click nodes to view service details
-- Edit and export graph.json
-- Static Next.js build bundled in CLI npm package
+- `manifest.json` tracks hashes, kinds, extraction version, and sync timestamps
+- `graph.json` is the canonical local memory graph
+- `cache/*.json` stores per-file extracted artifacts for incremental rebuilds
 
 ## Stack
 
@@ -55,8 +62,8 @@ pnpm install           # Install deps
 pnpm dev               # Run all apps in dev mode
 pnpm build             # Build all packages
 pnpm build:cli-full    # Build CLI with embedded Studio
-pnpm devgraph build    # Generate .devgraph/ outputs
-pnpm devgraph studio   # Start Studio server
+pnpm devgraph build .  # Generate .devgraph/ outputs
+pnpm devgraph query "where is syncProject defined"
 ```
 
 ### Studio Dev Mode
@@ -64,8 +71,8 @@ pnpm devgraph studio   # Start Studio server
 To run Studio in dev mode with hot reload using existing `.devgraph/`:
 
 ```bash
-pnpm devgraph build examples/*.md   # Generate graph first
-pnpm dev:studio                      # http://localhost:3000
+pnpm devgraph build .  # Generate graph first
+pnpm dev:studio        # http://localhost:3000
 ```
 
 Studio dev reads from `.devgraph/graph.json` via `/api/graph` route.
@@ -83,9 +90,9 @@ git tag vX.X.X && git push origin vX.X.X  # Tag release
 
 ## Build Pipeline (Studio Embedding)
 
-1. `pnpm build:studio` → Next.js static export to `apps/studio/out/`
-2. `pnpm build:cli-full` → Copies static files to `packages/devgraph-cli/dist/studio-web/`
-3. CLI serves embedded files at `http://localhost:9111`
+1. `pnpm build:studio` builds the Studio static export in `apps/studio/out/`
+2. `pnpm build:cli-full` copies those assets to `packages/devgraph-cli/dist/studio-web/`
+3. The CLI package can ship the embedded assets without making Studio part of the active CLI surface
 
 ## Code Style
 
@@ -97,15 +104,15 @@ git tag vX.X.X && git push origin vX.X.X  # Tag release
 
 | File                                         | Purpose                           |
 | -------------------------------------------- | --------------------------------- |
-| `packages/devgraph-cli/src/index.ts`         | CLI entry, commands               |
-| `packages/devgraph-cli/src/studio/server.ts` | HTTP server for Studio            |
-| `packages/devgraph-core/src/index.ts`        | Parser, graph builder, generators |
-| `apps/studio/src/app/page.tsx`               | Studio main page                  |
-| `apps/studio/src/store/studio-store.ts`      | Zustand state                     |
+| `packages/devgraph-cli/src/index.ts`         | CLI entry for `build`, `watch`, `query`, and `status` |
+| `packages/devgraph-core/src/sync.ts`         | Incremental sync loop and `.devgraph/` writes |
+| `packages/devgraph-core/src/retrieval.ts`    | Query ranking and bounded output |
+| `packages/devgraph-core/src/types.ts`        | Graph, manifest, and query result types |
+| `apps/studio/src/app/page.tsx`               | Studio app entry point |
 
 ## Notes for AI Agents
 
 - Generated `.devgraph/` outputs are gitignored
-- Studio static assets bundled in CLI for offline use
+- Studio remains an app surface, not an active CLI command
 - Graph types defined in `apps/studio/src/types/`
 - Use Context7 MCP for framework docs (Next.js, React Flow, etc.)

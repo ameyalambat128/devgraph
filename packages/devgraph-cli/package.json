@@ -2,7 +2,7 @@
   "name": "devgraph",
   "version": "0.6.1",
   "type": "module",
-  "description": "CLI that scans Markdown for devgraph-* blocks and builds a unified project graph",
+  "description": "CLI for persistent local code memory and graph-based code understanding",
   "bin": {
     "devgraph": "./dist/index.js"
   },
@@ -20,11 +20,10 @@
   "keywords": [
     "devgraph",
     "cli",
-    "documentation",
+    "code-memory",
+    "knowledge-graph",
     "monorepo",
-    "architecture",
-    "agents",
-    "mermaid"
+    "query"
   ],
   "scripts": {
     "dev": "tsx src/index.ts",

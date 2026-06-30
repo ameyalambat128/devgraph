@@ -1,6 +1,6 @@
 ---
 title: devgraph build
-description: 'Build the hybrid project graph and generate outputs'
+description: 'Incrementally sync code into the local memory graph'
 ---
 
 ## Usage
@@ -19,27 +19,28 @@ If you omit `paths`, DevGraph scans the current workspace root.
 
 ## Options
 
-| Option             | Description                                                      |
-| ------------------ | ---------------------------------------------------------------- |
-| `--compare <path>` | Compare the current graph output against a previous `graph.json` |
-| `--out-dir <dir>`  | Output directory for generated files                             |
-| `--help`           | Show help                                                        |
+| Option            | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| `--out-dir <dir>` | Output directory for generated artifacts               |
+| `--force`         | Bypass the shrink guard if a rebuild gets much smaller |
+| `--json`          | Print the sync result as JSON                          |
+| `--help`          | Show help                                              |
 
 ## What Build Does
 
-`devgraph build` is the canonical hybrid pipeline:
+`devgraph build` is a one-shot sync into local memory:
 
 1. Collect inputs from files, directories, or globs
 2. Apply default ignores and `.devgraphignore`
-3. Classify and extract deterministic graph data
-4. Merge service metadata from `devgraph-*` blocks with file-level graph structure
-5. Analyze the graph and emit reports plus diagrams
-
-`devgraph-service` blocks remain the authoritative service layer. The rest of the build adds file nodes and typed graph edges around that layer.
+3. Hash candidate files
+4. Compare against `.devgraph/manifest.json`
+5. Re-extract only changed files
+6. Merge per-file cache artifacts into `.devgraph/graph.json`
+7. Write the updated manifest and graph back to disk
 
 ## Ignore Rules
 
-DevGraph applies default exclusions such as:
+DevGraph excludes common noise by default, including:
 
 - `.git/`
 - `.devgraph/`
@@ -47,14 +48,17 @@ DevGraph applies default exclusions such as:
 - `dist/`
 - `build/`
 - `.next/`
-- coverage outputs
-- obvious generated artifacts
+- `examples/`
+- `internal-docs/`
+- `apps/docs/`
+- static exports and public assets
+- lockfiles and generated metadata
 
 You can add a repo-local `.devgraphignore` file with `.gitignore` syntax to exclude more paths.
 
 ## Incremental Cache
 
-Build stores file extraction state in `.devgraph/cache/manifest.json`. The cache is keyed by file path, file hash, and extractor version so unchanged files can be skipped on later builds.
+Build stores per-file extraction state in `.devgraph/cache/`. `manifest.json` records file hashes and extraction version so unchanged files can be reused.
 
 ## Examples
 
@@ -67,39 +71,27 @@ devgraph build .
 Build selected paths:
 
 ```bash
-devgraph build apps packages docs/**/*.md
+devgraph build apps packages
 ```
 
-Build and compare against an earlier graph:
+Force a rebuild to overwrite a large shrink:
 
 ```bash
-devgraph build . --compare .devgraph/graph.json
+devgraph build . --force
 ```
 
 ## Output
 
 Build writes the following files to `.devgraph/`:
 
-| File              | Description                                                                                   |
-| ----------------- | --------------------------------------------------------------------------------------------- |
-| `graph.json`      | Machine-readable output containing top-level `services`, `apis`, and `knowledgeGraph`         |
-| `summary.md`      | Human-readable service overview                                                               |
-| `GRAPH_REPORT.md` | Hybrid graph analysis with god nodes, surprising connections, bridge nodes, and coverage gaps |
-| `agents/*.md`     | Per-service context files for coding assistants                                               |
-| `system.mmd`      | Mermaid diagram of the build pipeline and service relationships                               |
-| `codemap.mmd`     | Mermaid diagram of owned paths and file relationships                                         |
-
-At a high level, `graph.json` contains:
-
-- top-level `services`
-- top-level `apis`
-- `knowledgeGraph.nodes`
-- `knowledgeGraph.edges`
-- `knowledgeGraph.communities`
-- `knowledgeGraph.analysis`
+| File            | Description                                                     |
+| --------------- | --------------------------------------------------------------- |
+| `manifest.json` | Indexed paths, hashes, kinds, extraction version, and sync time |
+| `graph.json`    | Canonical code-memory graph                                     |
+| `cache/*.json`  | Per-file extracted artifacts                                    |
 
 ## Related Commands
 
-- [`devgraph query`](/cli/query) for focused graph retrieval
-- [`devgraph studio`](/cli/studio) for interactive graph exploration
-- [`devgraph agents`](/cli/agents) for generated AI context files and orchestration skills
+- [`devgraph watch`](/cli/watch) to keep the graph fresh during active work
+- [`devgraph query`](/cli/query) for focused retrieval against the graph
+- [`devgraph status`](/cli/status) for index health and freshness

@@ -2,7 +2,7 @@
   "name": "@devgraph/core",
   "version": "0.6.1",
   "type": "module",
-  "description": "Core parser and generators for DevGraph - build project graphs from Markdown",
+  "description": "Core sync and query engine for DevGraph code memory",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -18,10 +18,10 @@
   "license": "MIT",
   "keywords": [
     "devgraph",
-    "documentation",
-    "parser",
+    "code-search",
+    "knowledge-graph",
     "monorepo",
-    "architecture"
+    "retrieval"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

@@ -1,0 +1,38 @@
+---
+title: devgraph watch
+description: 'Watch the repo and keep the local memory graph fresh'
+---
+
+## Usage
+
+```bash
+devgraph watch [paths...] [options]
+```
+
+## Options
+
+| Option            | Description                              | Default     |
+| ----------------- | ---------------------------------------- | ----------- |
+| `--out-dir <dir>` | Output directory for generated artifacts | `.devgraph` |
+| `--force`         | Bypass the shrink guard                  | `false`     |
+| `--debounce <ms>` | Debounce time for filesystem events      | `300`       |
+| `--help`          | Show help                                |             |
+
+## What Watch Does
+
+`devgraph watch` runs an initial build, then watches the repo for file changes.
+
+When files change it:
+
+1. debounces the event stream
+2. reruns the same sync engine used by `devgraph build`
+3. updates changed per-file artifacts in `.devgraph/cache/`
+4. rewrites `manifest.json` and `graph.json`
+
+## Typical Workflow
+
+```bash
+devgraph watch .
+```
+
+Keep this running while you work if you want the local graph to stay fresh without manual rebuilds.

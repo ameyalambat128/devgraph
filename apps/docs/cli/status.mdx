@@ -1,0 +1,38 @@
+---
+title: devgraph status
+description: 'Inspect graph freshness and indexed file counts'
+---
+
+## Usage
+
+```bash
+devgraph status [paths...] [options]
+```
+
+## Options
+
+| Option            | Description                              | Default     |
+| ----------------- | ---------------------------------------- | ----------- |
+| `--out-dir <dir>` | Output directory for generated artifacts | `.devgraph` |
+| `--json`          | Print the status as JSON                 | `false`     |
+| `--help`          | Show help                                |             |
+
+## What Status Shows
+
+`devgraph status` inspects the local graph state and reports:
+
+- graph version
+- extraction version
+- indexed file count
+- changed file count
+- last sync time
+- manifest and graph paths
+
+If files have changed since the last build, status lists them as stale.
+
+## Typical Workflow
+
+```bash
+devgraph build .
+devgraph status
+```

@@ -1,89 +1,61 @@
 ---
 title: Introduction
-description: 'One graph. Every repo. Context for humans and AI.'
+description: 'Persistent local code memory for AI coding assistants.'
 ---
 
 # What is DevGraph?
 
-DevGraph builds a hybrid project graph from your repo. It scans folders, files, and mixed repo assets, preserves `devgraph-*` blocks as the authoritative service layer, and emits a graph that works for humans, CLIs, Studio, and coding agents.
-
-One command gives you service metadata, file-level structure, and graph analysis surfaces that stay grounded in the repo.
+DevGraph is a file-first local memory system for code understanding. It incrementally indexes your repo into a graph inside `.devgraph/` so coding assistants can query structure instead of rereading the entire codebase.
 
 ## Key Features
 
 <CardGroup cols={2}>
-  <Card title="Hybrid Build" icon="folder-tree">
-    Build a graph from directories, files, and globs with service and file nodes in one output.
+  <Card title="Incremental Build" icon="folder-tree">
+    Sync changed files only. DevGraph hashes source files and reuses cached per-file artifacts.
   </Card>
-  <Card title="Service Layer" icon="cube">
-    Use `devgraph-service`, `devgraph-api`, and `devgraph-env` blocks to define authoritative
-    service metadata.
+  <Card title="On-device Memory" icon="hard-drive">
+    Everything lives in `.devgraph/` as plain files you can inspect, diff, and keep local.
   </Card>
-  <Card title="Graph Analysis" icon="sparkles">
-    Review `GRAPH_REPORT.md` and use `devgraph query` for focused architecture retrieval.
+  <Card title="Code-first Graph" icon="code">
+    V1 indexes files, symbols, imports, references, and lightweight context files like `README.md`.
   </Card>
-  <Card title="Agent Handoffs" icon="wand-magic-sparkles">
-    Generate skills that guide agents through graph questions, focused queries, and Markdown handoff
-    briefs.
+  <Card title="Focused Retrieval" icon="magnifying-glass">
+    Use `devgraph query` for bounded evidence instead of broad file search.
   </Card>
-  <Card title="Studio" icon="diagram-project">
-    Explore service and file nodes interactively with filters for community, provenance, and
-    ownership.
+  <Card title="Self-updating Loop" icon="arrows-rotate">
+    Run `devgraph watch` to keep the graph fresh while you edit code.
   </Card>
 </CardGroup>
 
 ## Generated Outputs
 
-When you run `devgraph build`, DevGraph writes the following files to `.devgraph/`:
+When you run `devgraph build`, DevGraph writes:
 
-| File              | Description                                                                                   |
-| ----------------- | --------------------------------------------------------------------------------------------- |
-| `graph.json`      | Machine-readable output containing top-level `services`, `apis`, and `knowledgeGraph`         |
-| `summary.md`      | Human-readable service overview                                                               |
-| `GRAPH_REPORT.md` | Hybrid graph analysis with god nodes, surprising connections, bridge nodes, and coverage gaps |
-| `agents/*.md`     | Per-service context files for coding assistants                                               |
-| `system.mmd`      | Mermaid diagram of the build pipeline and service relationships                               |
-| `codemap.mmd`     | Mermaid diagram of owned paths and file relationships                                         |
+| File            | Description                                                            |
+| --------------- | ---------------------------------------------------------------------- |
+| `manifest.json` | Tracks indexed paths, hashes, kinds, extraction version, and sync time |
+| `graph.json`    | Canonical local memory graph for query and agent use                   |
+| `cache/*.json`  | Per-file extracted artifacts used for incremental rebuilds             |
 
-At a high level, `graph.json` contains:
+## Command Surface
 
-- top-level `services`
-- top-level `apis`
-- `knowledgeGraph.nodes`
-- `knowledgeGraph.edges`
-- `knowledgeGraph.communities`
-- `knowledgeGraph.analysis`
+DevGraph v1 ships four commands:
 
-## How Blocks Fit In
-
-`devgraph-*` blocks still matter. They are not a separate build mode. They are the authoritative service layer inside the hybrid graph:
-
-- `devgraph-service` defines service identity, commands, dependencies, and optional owned `paths`
-- `devgraph-api` attaches routes to services
-- `devgraph-env` attaches environment variables to services
-
-The rest of the build pipeline adds file nodes and graph relationships around that service layer.
-
-## Agent Context
-
-`devgraph agents --format skills` writes a `.skills/` directory for AI coding tools. It includes:
-
-- `querying-architecture` for graph-aware commands and references
-- service-specific skills for commands, APIs, owned paths, and dependencies
-- `orchestrating-devgraph-context` for multi-agent handoffs based on `GRAPH_REPORT.md` and `devgraph query`
-
-The orchestration skill uses graph-derived questions and a Markdown handoff template so another agent can continue with known context, evidence, decisions, and open questions.
+- `devgraph build [paths...]`
+- `devgraph watch [paths...]`
+- `devgraph query "<question>"`
+- `devgraph status`
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Build your first hybrid graph and inspect the outputs.
+    Build your first local memory graph and inspect the outputs.
   </Card>
   <Card title="CLI Commands" icon="terminal" href="/cli/build">
-    Learn the build, query, Studio, and agent workflows.
+    Learn the build, watch, query, and status workflows.
   </Card>
-  <Card title="Agent Skills" icon="wand-magic-sparkles" href="/cli/agents">
-    Generate repo-grounded skills and handoff briefs for coding agents.
+  <Card title="Query Command" icon="magnifying-glass" href="/cli/query">
+    Use graph retrieval instead of broad repo search.
   </Card>
 </CardGroup>
