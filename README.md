@@ -4,198 +4,131 @@
 [![npm downloads](https://img.shields.io/npm/dm/devgraph?style=flat&labelColor=000&color=8B5CF6)](https://www.npmjs.com/package/devgraph)
 [![GitHub stars](https://img.shields.io/github/stars/ameyalambat128/devgraph?style=flat&labelColor=000&color=8B5CF6)](https://github.com/ameyalambat128/devgraph/stargazers)
 
-One graph. Every repo. Context for humans and AI.
+Persistent local code memory for AI coding assistants.
 
-DevGraph scans Markdown for `devgraph-*` fenced blocks and builds a unified project graph with human-readable and LLM-optimized outputs.
+DevGraph incrementally indexes your codebase into a queryable graph that lives in `.devgraph/`. It is on-device, file-based, and optimized for code understanding instead of report generation.
 
-## Quick Start
-
-### Install
+## What ships in v1
 
 ```bash
-npm install -g devgraph
-# or use npx
-npx devgraph@latest build docs/*.md
+devgraph build [paths...]
+devgraph watch [paths...]
+devgraph query "<question>"
+devgraph status
 ```
 
-### 1. Add blocks to your Markdown
+That is the product surface.
 
-In any `.md` file (e.g., `docs/architecture.md`):
+## How it works
 
-```markdown
-## API Service
+`devgraph build` runs a small sync loop:
 
-\`\`\`devgraph-service
-name: api
-type: node
-commands:
-  dev: npm run dev
-  build: npm run build
-depends:
-  - database
-\`\`\`
+1. resolve candidate files
+2. apply default ignores and `.devgraphignore`
+3. hash files
+4. compare against the manifest
+5. re-extract only changed files
+6. merge per-file artifacts into a canonical graph
+7. write updated artifacts back to `.devgraph/`
 
-\`\`\`devgraph-api
-service: api
-routes:
-  GET /health: Health check
-  GET /api/users: List users
-  POST /api/users: Create user
-\`\`\`
+`devgraph watch` reuses the same sync engine and keeps the graph fresh on local file changes.
 
-\`\`\`devgraph-env
-service: api
-vars:
-  PORT: "3000"
-  DATABASE_URL: postgresql://localhost:5432/mydb
-\`\`\`
+## Output artifacts
+
+DevGraph stores inspectable local artifacts:
+
+```text
+.devgraph/
+├── manifest.json
+├── graph.json
+└── cache/
+    ├── <file-id>.json
+    └── ...
 ```
 
-### 2. Build the graph
+- `manifest.json` tracks relative paths, hashes, kinds, extraction version, and sync timestamps
+- `graph.json` is the canonical queryable memory graph
+- `cache/*.json` stores per-file extracted artifacts for incremental rebuilds
+
+## Indexed by default
+
+V1 indexes:
+
+- source code
+- repo config files that help navigation
+- root context files such as `README.md`, `AGENTS.md`, and `CLAUDE.md`
+
+V1 ignores common noise by default:
+
+- examples
+- internal planning or marketing docs
+- docs app content
+- generated assets and build output
+- lockfiles and static exports
+
+Add `.devgraphignore` for repo-specific exclusions.
+
+## Install
 
 ```bash
-devgraph build docs/*.md
+# run without installing
+bunx devgraph@latest build .
+
+# or
+pnpm dlx devgraph@latest build .
+
+# or install globally
+pnpm add -g devgraph
+bun add -g devgraph
 ```
 
-### 3. Check outputs
+## Quickstart
 
-Outputs are generated in `.devgraph/`:
-
-| File | Description |
-|------|-------------|
-| `graph.json` | Machine-readable project graph |
-| `summary.md` | Human-readable overview with tables |
-| `agents/*.md` | Per-service context files for LLMs |
-| `.skills/` | [Agent Skills](https://agentskills.io) for 25+ AI tools (via `--format skills`) |
-| `system.mmd` | Mermaid diagram of service dependencies |
-| `codemap.mmd` | Mermaid diagram of repo structure |
-| `integration_notes.md` | Diff summary when using `--compare` |
-| `runbooks/*.md` | AI-ready runbooks from `devgraph run --runbook` |
-
-## Block Types
-
-| Block | Purpose | Required Fields |
-|-------|---------|-----------------|
-| `devgraph-service` | Define a service | `name`, `type` |
-| `devgraph-api` | Define API routes | `service`, `routes` |
-| `devgraph-env` | Define env vars | `service`, `vars` |
-
-### devgraph-service
-
-```yaml
-name: my-service          # Service name (required)
-type: node                # Service type: node, nextjs, python, etc. (required)
-commands:                 # Optional commands
-  dev: npm run dev
-  build: npm run build
-depends:                  # Optional dependencies
-  - other-service
-```
-
-### devgraph-api
-
-```yaml
-service: my-service       # Parent service name (required)
-routes:                   # Route definitions (required)
-  GET /health: Health check
-  POST /api/users: Create user
-```
-
-### devgraph-env
-
-```yaml
-service: my-service       # Parent service name (required)
-vars:                     # Environment variables (required)
-  PORT: "3000"
-  DATABASE_URL: postgresql://localhost:5432/db
-```
-
-## CLI Commands
+Build the local graph:
 
 ```bash
-# Validate blocks without generating outputs
-devgraph validate docs/*.md
-
-# Build graph and generate all outputs
-devgraph build docs/*.md
-
-# Build with diff against previous graph
-devgraph build docs/*.md --compare .devgraph/graph.json
-
-# Generate a dependency-aware run plan
-devgraph run api
-
-# Output run plan as JSON or a runbook
-devgraph run api --json
-devgraph run api --runbook
-
-# Execute the run plan (start all services)
-devgraph run api --exec
-
-# Generate Agent Skills for AI tools
-devgraph agents --format skills
-
-# Launch visual graph viewer
-devgraph studio
+devgraph build .
 ```
 
-## Agent Skills
-
-DevGraph generates [Agent Skills](https://agentskills.io) — the open standard supported by Claude Code, Cursor, Gemini CLI, VS Code, GitHub Copilot, and [25+ other tools](https://agentskills.io).
+Inspect graph health:
 
 ```bash
-devgraph agents --format skills
+devgraph status
 ```
 
-This creates a `.skills/` directory with SKILL.md files that AI agents auto-discover at startup:
-
-- **Overview skill** — teaches agents your architecture and CLI commands (`devgraph impact`, `devgraph validate`, `devgraph run`)
-- **Per-service skills** — commands, dependencies, downstream consumers, API routes, and key directories for each service
-
-No MCP server. No running processes. Skills are static files committed to git — every agent session starts with full architectural context.
-
-## DevGraph Studio
-
-Visualize your project graph in a local web app:
+Ask a focused code question:
 
 ```bash
-devgraph studio
+devgraph query "where is devgraph build implemented"
 ```
 
-Opens at `http://localhost:9111` with:
-- Interactive graph visualization (React Flow)
-- Node details panel with service info
-- Search and filter by service type
-- Export and edit graph data
-
-## Examples
-
-See [`examples/ecommerce.md`](examples/ecommerce.md) for a realistic multi-service example.
-
-## Development
+Keep it fresh while you work:
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Run CLI locally
-pnpm devgraph build examples/*.md
-
-# Build packages
-pnpm build:core && pnpm build:cli
-
-# Run tests
-pnpm test:core
+devgraph watch .
 ```
 
-## Structure
+## Query model
 
-- `apps/web`: Landing page
-- `apps/studio`: Visual graph viewer (React Flow)
-- `packages/devgraph-core`: Parser, graph builder, generators
-- `packages/devgraph-cli`: CLI + embedded Studio server
-- `.devgraph/`: Generated outputs (git-ignored)
+The graph is code-first.
 
-## License
+V1 nodes:
 
-[MIT](LICENSE) © [Ameya Lambat](https://ameyalambat.com)
+- file
+- symbol
+
+V1 edges:
+
+- `contains`
+- `defines`
+- `imports`
+- `references`
+- `mentions`
+
+`devgraph query` ranks files and snippets using paths, symbol names, chunk text, and nearby graph edges. It returns bounded evidence instead of a huge repo dump.
+
+## Current focus
+
+DevGraph v1 is code understanding first.
+
+Multi-source memory for docs, papers, and meetings is a later goal. The current architecture leaves room for that, but the shipped loop is intentionally narrow and deterministic.

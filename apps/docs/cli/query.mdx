@@ -1,0 +1,63 @@
+---
+title: devgraph query
+description: 'Retrieve focused code evidence from the local memory graph'
+---
+
+## Usage
+
+```bash
+devgraph query "<question>" [options]
+```
+
+## Options
+
+| Option           | Description                              | Default                |
+| ---------------- | ---------------------------------------- | ---------------------- |
+| `--graph <path>` | Path to `graph.json`                     | `.devgraph/graph.json` |
+| `--budget <n>`   | Approximate word budget for the response | `500`                  |
+| `--json`         | Print the structured result as JSON      | `false`                |
+| `--help`         | Show help                                |                        |
+
+## Description
+
+`devgraph query` works against the built local graph in `.devgraph/graph.json`.
+
+It ranks files and snippets using repo-grounded signals such as:
+
+- file path
+- symbol names
+- extracted chunk text
+- nearby graph edges such as `imports` and `references`
+
+The command emits a bounded result with:
+
+- matched files
+- matching snippets with line ranges
+- nearby graph edges
+
+## Example Questions
+
+```bash
+devgraph query "where is devgraph build implemented"
+devgraph query "how does devgraph watch work"
+devgraph query "where is syncProject defined" --budget 300
+```
+
+## Output Shape
+
+Query output includes:
+
+- ranked file matches
+- snippets with line ranges
+- related edges from the graph
+
+This makes it useful for humans and coding agents that need a narrow, explainable slice of the repo.
+
+## Typical Workflow
+
+```bash
+devgraph build .
+devgraph query "where is devgraph build implemented"
+```
+
+Use `devgraph query` when broad file search is too noisy and you want focused graph-backed evidence.

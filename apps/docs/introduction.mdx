@@ -1,50 +1,61 @@
 ---
 title: Introduction
-description: "One graph. Every repo. Context for humans and AI."
+description: 'Persistent local code memory for AI coding assistants.'
 ---
 
 # What is DevGraph?
 
-DevGraph is a universal context layer for codebases. It scans Markdown files for service definitions, builds a project graph, and generates outputs like `graph.json`, `summary.md`, and agent-specific context files.
-
-One command to map your entire architecture—for humans and AI alike.
+DevGraph is a file-first local memory system for code understanding. It incrementally indexes your repo into a graph inside `.devgraph/` so coding assistants can query structure instead of rereading the entire codebase.
 
 ## Key Features
 
 <CardGroup cols={2}>
-  <Card title="Markdown-First" icon="file-lines">
-    Define services, APIs, and environment variables in fenced code blocks within your existing docs.
+  <Card title="Incremental Build" icon="folder-tree">
+    Sync changed files only. DevGraph hashes source files and reuses cached per-file artifacts.
   </Card>
-  <Card title="Visual Graph" icon="diagram-project">
-    Launch DevGraph Studio to explore your architecture interactively.
+  <Card title="On-device Memory" icon="hard-drive">
+    Everything lives in `.devgraph/` as plain files you can inspect, diff, and keep local.
   </Card>
-  <Card title="AI-Ready Outputs" icon="robot">
-    Generate per-service context files optimized for LLMs and AI agents.
+  <Card title="Code-first Graph" icon="code">
+    V1 indexes files, symbols, imports, references, and lightweight context files like `README.md`.
   </Card>
-  <Card title="Mermaid Diagrams" icon="sitemap">
-    Auto-generate dependency and codebase structure diagrams.
+  <Card title="Focused Retrieval" icon="magnifying-glass">
+    Use `devgraph query` for bounded evidence instead of broad file search.
+  </Card>
+  <Card title="Self-updating Loop" icon="arrows-rotate">
+    Run `devgraph watch` to keep the graph fresh while you edit code.
   </Card>
 </CardGroup>
 
 ## Generated Outputs
 
-When you run `devgraph build`, the following files are created in `.devgraph/`:
+When you run `devgraph build`, DevGraph writes:
 
-| File | Description |
-|------|-------------|
-| `graph.json` | Machine-readable project graph |
-| `summary.md` | Human-readable overview with tables |
-| `agents/*.md` | Per-service context files for LLMs |
-| `system.mmd` | Mermaid diagram of service dependencies |
-| `codemap.mmd` | Mermaid diagram of repo structure |
+| File            | Description                                                            |
+| --------------- | ---------------------------------------------------------------------- |
+| `manifest.json` | Tracks indexed paths, hashes, kinds, extraction version, and sync time |
+| `graph.json`    | Canonical local memory graph for query and agent use                   |
+| `cache/*.json`  | Per-file extracted artifacts used for incremental rebuilds             |
+
+## Command Surface
+
+DevGraph v1 ships four commands:
+
+- `devgraph build [paths...]`
+- `devgraph watch [paths...]`
+- `devgraph query "<question>"`
+- `devgraph status`
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Get up and running in 5 minutes.
+    Build your first local memory graph and inspect the outputs.
   </Card>
   <Card title="CLI Commands" icon="terminal" href="/cli/build">
-    Learn all available commands.
+    Learn the build, watch, query, and status workflows.
+  </Card>
+  <Card title="Query Command" icon="magnifying-glass" href="/cli/query">
+    Use graph retrieval instead of broad repo search.
   </Card>
 </CardGroup>

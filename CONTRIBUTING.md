@@ -11,12 +11,13 @@ cd devgraph
 pnpm install
 
 # Run locally
-pnpm devgraph build examples/*.md    # Build graph from examples
-pnpm devgraph studio                  # Launch visual graph viewer
+pnpm devgraph build .                 # Build the local graph
+pnpm devgraph status                  # Inspect graph freshness
+pnpm devgraph query "where is syncProject defined"
 
 # Build packages
 pnpm build:core                       # Build core library
-pnpm build:cli-full                   # Build CLI with embedded Studio
+pnpm build:cli                        # Build CLI
 ```
 
 ## Project Structure
@@ -26,8 +27,8 @@ apps/
   web/                # Landing page (Next.js)
   studio/             # Visual graph viewer (React Flow)
 packages/
-  devgraph-core/      # Parser, graph builder, generators
-  devgraph-cli/       # CLI + embedded Studio server
+  devgraph-core/      # Discovery, extraction, sync, query
+  devgraph-cli/       # CLI
 ```
 
 ## Code Quality (Pre-commit)
@@ -56,6 +57,19 @@ pnpm changeset
 ```
 
 Select the packages affected and describe your change. This creates a file in `.changeset/` that gets consumed during release.
+
+Create a changeset when a branch changes published package behavior:
+
+- `packages/devgraph-cli/**` -> `devgraph`
+- `packages/devgraph-core/**` -> `@devgraph/core`
+
+You can usually skip a changeset when only unpublished surfaces changed, such as:
+
+- `apps/docs/**`
+- `apps/studio/**`
+- `apps/web/**`
+- `.agents/**`
+- `.claude/**`
 
 ## Code Style
 

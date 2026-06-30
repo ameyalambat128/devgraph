@@ -1,6 +1,6 @@
 ---
 title: devgraph build
-description: "Build the project graph and generate outputs"
+description: 'Incrementally sync code into the local memory graph'
 ---
 
 ## Usage
@@ -11,45 +11,87 @@ devgraph build [paths...] [options]
 
 ## Arguments
 
-| Argument | Description | Default |
-|----------|-------------|---------|
-| `paths` | Glob patterns for Markdown files | `**/*.md` |
+| Argument | Description                          | Default           |
+| -------- | ------------------------------------ | ----------------- |
+| `paths`  | Files, directories, or globs to scan | current workspace |
+
+If you omit `paths`, DevGraph scans the current workspace root.
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
-| `--compare <file>` | Compare with previous graph.json for diff |
-| `--help` | Show help |
+| Option            | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| `--out-dir <dir>` | Output directory for generated artifacts               |
+| `--force`         | Bypass the shrink guard if a rebuild gets much smaller |
+| `--json`          | Print the sync result as JSON                          |
+| `--help`          | Show help                                              |
+
+## What Build Does
+
+`devgraph build` is a one-shot sync into local memory:
+
+1. Collect inputs from files, directories, or globs
+2. Apply default ignores and `.devgraphignore`
+3. Hash candidate files
+4. Compare against `.devgraph/manifest.json`
+5. Re-extract only changed files
+6. Merge per-file cache artifacts into `.devgraph/graph.json`
+7. Write the updated manifest and graph back to disk
+
+## Ignore Rules
+
+DevGraph excludes common noise by default, including:
+
+- `.git/`
+- `.devgraph/`
+- `node_modules/`
+- `dist/`
+- `build/`
+- `.next/`
+- `examples/`
+- `internal-docs/`
+- `apps/docs/`
+- static exports and public assets
+- lockfiles and generated metadata
+
+You can add a repo-local `.devgraphignore` file with `.gitignore` syntax to exclude more paths.
+
+## Incremental Cache
+
+Build stores per-file extraction state in `.devgraph/cache/`. `manifest.json` records file hashes and extraction version so unchanged files can be reused.
 
 ## Examples
 
-Build from all Markdown files in docs:
+Build the current repo:
 
 ```bash
-devgraph build docs/*.md
+devgraph build .
 ```
 
-Build from multiple directories:
+Build selected paths:
 
 ```bash
-devgraph build docs/*.md architecture/*.md
+devgraph build apps packages
 ```
 
-Build with diff comparison:
+Force a rebuild to overwrite a large shrink:
 
 ```bash
-devgraph build docs/*.md --compare .devgraph/graph.json
+devgraph build . --force
 ```
 
 ## Output
 
-Creates the following in `.devgraph/`:
+Build writes the following files to `.devgraph/`:
 
-| File | Description |
-|------|-------------|
-| `graph.json` | Machine-readable project graph |
-| `summary.md` | Human-readable overview with tables |
-| `agents/*.md` | Per-service context files for LLMs |
-| `system.mmd` | Mermaid diagram of service dependencies |
-| `codemap.mmd` | Mermaid diagram of repo structure |
+| File            | Description                                                     |
+| --------------- | --------------------------------------------------------------- |
+| `manifest.json` | Indexed paths, hashes, kinds, extraction version, and sync time |
+| `graph.json`    | Canonical code-memory graph                                     |
+| `cache/*.json`  | Per-file extracted artifacts                                    |
+
+## Related Commands
+
+- [`devgraph watch`](/cli/watch) to keep the graph fresh during active work
+- [`devgraph query`](/cli/query) for focused retrieval against the graph
+- [`devgraph status`](/cli/status) for index health and freshness

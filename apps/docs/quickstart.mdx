@@ -1,111 +1,101 @@
 ---
 title: Quickstart
-description: "Get started with DevGraph in 5 minutes"
+description: 'Get started with DevGraph local code memory in 5 minutes'
 ---
 
 ## Installation
 
-Install DevGraph globally or use npx:
+Install DevGraph globally or run it directly:
 
 <CodeGroup>
-```bash npm
-npm install -g devgraph
-```
-
 ```bash pnpm
 pnpm add -g devgraph
 ```
 
-```bash npx
-npx devgraph@latest build docs/*.md
+```bash pnpm-dlx
+pnpm dlx devgraph@latest build .
 ```
+
+```bash bunx
+bunx devgraph@latest build .
+```
+
 </CodeGroup>
 
-<Note>
-  Using `@latest` with npx ensures you always get the newest version.
-</Note>
-
-## 1. Add blocks to your Markdown
-
-In any `.md` file (e.g., `docs/architecture.md`), add devgraph blocks:
-
-```yaml
-## API Service
-
-```devgraph-service
-name: api
-type: node
-commands:
-  dev: npm run dev
-  build: npm run build
-depends:
-  - database
-```
-
-```devgraph-api
-service: api
-routes:
-  GET /health: Health check
-  GET /api/users: List users
-  POST /api/users: Create user
-```
-
-```devgraph-env
-service: api
-vars:
-  PORT: "3000"
-  DATABASE_URL: postgresql://localhost:5432/mydb
-```
-```
-
-## 2. Build the graph
+## 1. Build the graph
 
 ```bash
-devgraph build docs/*.md
+devgraph build .
 ```
 
-## 3. Check outputs
+By default this indexes code, repo config, and root context files, then writes local artifacts to `.devgraph/`.
 
-Outputs are generated in `.devgraph/`:
+You can also pass specific directories, files, or globs:
+
+```bash
+devgraph build apps packages
+```
+
+## 2. Check outputs
+
+Artifacts are generated in `.devgraph/`:
 
 ```text
 .devgraph/
+  |- manifest.json
   |- graph.json
-  |- summary.md
-  |- agents/
-    |- api.md
-  |- system.mmd
-  |- codemap.mmd
+  |- cache/
+    |- <file-id>.json
 ```
 
-| File | Description |
-|------|-------------|
-| `graph.json` | Machine-readable project graph |
-| `summary.md` | Human-readable overview with tables |
-| `agents/*.md` | Per-service context files for LLMs |
-| `system.mmd` | Mermaid diagram of service dependencies |
-| `codemap.mmd` | Mermaid diagram of repo structure |
+| File            | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| `manifest.json` | Indexed file metadata, hashes, and sync timestamps     |
+| `graph.json`    | Canonical local memory graph                           |
+| `cache/*.json`  | Per-file extracted artifacts used for incremental sync |
 
-## 4. Visualize with Studio
-
-Launch the interactive graph viewer:
+## 3. Check graph health
 
 ```bash
-devgraph studio
+devgraph status
 ```
 
-Opens at [http://localhost:9111](http://localhost:9111) with:
-- Interactive node exploration
-- Service details panel
-- Search and filter by type
+This shows indexed file count, changed file count, graph paths, and last sync time.
+
+## 4. Query the graph
+
+Use `devgraph query` when you want a focused answer from the built graph:
+
+```bash
+devgraph query "where is devgraph build implemented"
+devgraph query "where is syncProject defined" --budget 250
+```
+
+The output is a bounded response with matched files, code snippets, and nearby graph edges.
+
+## 5. Keep it fresh
+
+Run watch mode while you work:
+
+```bash
+devgraph watch .
+```
+
+`watch` reuses the same sync engine as `build` and updates the local graph on file changes.
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Block Types" icon="cube" href="/blocks/service">
-    Learn about all block types.
+  <Card title="Build Command" icon="terminal" href="/cli/build">
+    Learn about the incremental sync loop and local artifacts.
   </Card>
-  <Card title="DevGraph Studio" icon="chart-network" href="/cli/studio">
-    Explore the visual graph viewer.
+  <Card title="Watch Command" icon="arrows-rotate" href="/cli/watch">
+    Keep the graph fresh while you edit code.
+  </Card>
+  <Card title="Query Command" icon="magnifying-glass" href="/cli/query">
+    Retrieve focused evidence from the graph.
+  </Card>
+  <Card title="Status Command" icon="circle-info" href="/cli/status">
+    Inspect graph freshness and indexed file counts.
   </Card>
 </CardGroup>

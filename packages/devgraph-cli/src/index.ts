@@ -1,614 +1,181 @@
 #!/usr/bin/env node
-import { spawn } from 'node:child_process';
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import {
-  buildGraph,
-  diffGraphs,
-  formatAgentsResult,
-  formatCoordinationPlan,
-  formatImpactAnalysis,
-  formatRunPlan,
-  formatSkillsResult,
-  formatValidationResult,
-  formatValidationResultJson,
-  generateAgents,
-  generateAgentsEnhanced,
-  generateCodemapMermaid,
-  generateCoordinationRunbook,
-  generateImpactRunbook,
-  generateMermaid,
-  generateRunbook,
-  generateSkills,
-  generateSummary,
-  getCoordinationPlan,
-  getImpactAnalysis,
-  getRunPlan,
-  parseMarkdownFiles,
-  validate,
+  getStatus,
+  queryGraph,
+  readGraph,
+  syncProject,
+  watchProject,
+  type StatusResult,
+  type SyncResult,
 } from '@devgraph/core';
 import { Command } from 'commander';
-import { startStudioServer } from './studio/server.js';
-import { openBrowser } from './studio/open-browser.js';
-import { VERSION } from './version';
-
-const BANNER = `
-╔══════════════════════════════════════╗
-║           D E V G R A P H            ║
-║       One graph. Every repo.         ║
-╚══════════════════════════════════════╝
-`;
+import { VERSION } from './version.js';
 
 const program = new Command();
 const workspaceRoot = process.env.PNPM_WORKSPACE_ROOT || process.cwd();
 
-program.name('devgraph').description(BANNER).version(VERSION);
+function printSyncResult(result: SyncResult) {
+  const preview = (paths: string[]) =>
+    paths.length <= 12 ? paths : [...paths.slice(0, 12), `...and ${paths.length - 12} more`];
 
-async function handleParse(patterns: string[]) {
-  const pats = patterns.length ? patterns : ['**/*.md'];
-  const { blocks, errors } = await parseMarkdownFiles(pats, { cwd: workspaceRoot });
-  return { pats, blocks, errors };
+  console.log(`Synced ${result.stats.indexed} file(s) into ${result.paths.graphPath}`);
+  console.log(
+    `Changed ${result.stats.changed}, reused ${result.stats.reused}, removed ${result.stats.removed}`
+  );
+  if (result.changedPaths.length > 0) {
+    console.log(`Updated: ${preview(result.changedPaths).join(', ')}`);
+  }
+  if (result.removedPaths.length > 0) {
+    console.log(`Removed: ${preview(result.removedPaths).join(', ')}`);
+  }
+}
+
+function printStatus(status: StatusResult) {
+  console.log(`Index version: ${status.version}`);
+  console.log(`Extraction version: ${status.extractionVersion}`);
+  console.log(`Indexed files: ${status.indexedFiles}`);
+  console.log(`Changed files: ${status.changedFiles}`);
+  console.log(`Manifest: ${status.manifestPath}`);
+  console.log(`Graph: ${status.graphPath}`);
+  if (status.lastSyncAt) {
+    console.log(`Last sync: ${status.lastSyncAt}`);
+  }
+  if (status.staleFiles.length > 0) {
+    console.log(`Stale: ${status.staleFiles.join(', ')}`);
+  }
 }
 
 program
-  .command('validate')
-  .description('Validate devgraph blocks: schema, consistency, and architecture rules')
-  .argument('[paths...]', 'Markdown files or globs (default **/*.md)')
-  .option('--json', 'Output validation result as JSON')
-  .option('--config <path>', 'Path to config file (default: .devgraph/config.yaml)')
-  .option('--report <path>', 'Write JSON report to file')
-  .action(
-    async (paths: string[], options: { json?: boolean; config?: string; report?: string }) => {
-      try {
-        const { pats, blocks, errors: parseErrors } = await handleParse(paths);
-
-        if (!blocks.length && parseErrors.length === 0) {
-          if (options.json) {
-            console.log(
-              JSON.stringify(
-                { ok: true, errors: [], warnings: [], message: 'No devgraph blocks found' },
-                null,
-                2
-              )
-            );
-          } else {
-            console.log('No devgraph blocks found.\n');
-            console.log('Add blocks to your markdown like this:\n');
-            console.log('  ```devgraph-service');
-            console.log('  name: my-service');
-            console.log('  type: node');
-            console.log('  commands:');
-            console.log('    dev: npm run dev');
-            console.log('  ```\n');
-            console.log('Then run: devgraph build "**/*.md"\n');
-            console.log('Docs: https://devgraph.ameyalambat.com');
-          }
-          return;
-        }
-
-        // Build graph for consistency checks
-        const graph = buildGraph(blocks);
-
-        // Run full validation
-        const result = await validate(blocks, graph, parseErrors, {
-          configPath: options.config,
-        });
-
-        // Write report if requested
-        if (options.report) {
-          const reportDir = path.dirname(path.resolve(workspaceRoot, options.report));
-          await mkdir(reportDir, { recursive: true });
-          await writeFile(
-            path.resolve(workspaceRoot, options.report),
-            formatValidationResultJson(result)
-          );
-        }
-
-        // Output result
-        if (options.json) {
-          console.log(formatValidationResultJson(result));
-        } else {
-          console.log(formatValidationResult(result));
-          if (result.ok) {
-            console.log(`\nValidated ${blocks.length} block(s) from patterns: ${pats.join(', ')}`);
-          }
-        }
-
-        // Set exit code
-        process.exitCode = result.ok ? 0 : 1;
-      } catch (error) {
-        // Exit code 2 for tooling errors
-        if (options.json) {
-          console.log(
-            JSON.stringify(
-              {
-                ok: false,
-                errors: [{ code: 'TOOLING_ERROR', message: (error as Error).message }],
-                warnings: [],
-              },
-              null,
-              2
-            )
-          );
-        } else {
-          console.error(`Tooling error: ${(error as Error).message}`);
-        }
-        process.exitCode = 2;
-      }
-    }
-  );
+  .name('devgraph')
+  .description('Persistent local code memory for AI coding assistants')
+  .version(VERSION);
 
 program
   .command('build')
-  .description('Build graph.json, summary, agents, and mermaid outputs')
-  .argument('[paths...]', 'Markdown files or globs (default **/*.md)')
+  .description('Sync changed code into the local memory graph')
+  .argument('[paths...]', 'Files, directories, or globs to index')
   .option('--out-dir <dir>', 'Output directory', '.devgraph')
-  .option('--compare <path>', 'Optional previous graph.json to diff against')
-  .action(async (paths: string[], options: { outDir: string; compare?: string }) => {
-    const { pats, blocks, errors } = await handleParse(paths);
-    if (errors.length) {
-      console.error(`Found ${errors.length} error(s):`);
-      for (const err of errors) console.error(`- ${err.file}: ${err.message}`);
-      process.exitCode = 1;
-      return;
-    }
+  .option('--force', 'Bypass the shrink guard')
+  .option('--json', 'Print the sync result as JSON')
+  .action(async (paths: string[], options: { outDir: string; force?: boolean; json?: boolean }) => {
+    try {
+      const result = await syncProject(paths, {
+        cwd: workspaceRoot,
+        outDir: options.outDir,
+        force: options.force,
+      });
 
-    if (!blocks.length) {
-      console.log('No devgraph blocks found.\n');
-      console.log('Add blocks to your markdown like this:\n');
-      console.log('  ```devgraph-service');
-      console.log('  name: my-service');
-      console.log('  type: node');
-      console.log('  commands:');
-      console.log('    dev: npm run dev');
-      console.log('  ```\n');
-      console.log('Then run: devgraph build "**/*.md"\n');
-      console.log('Docs: https://devgraph.ameyalambat.com');
-      return;
-    }
-
-    const graph = buildGraph(blocks);
-    const outDir = path.resolve(workspaceRoot, options.outDir);
-    await mkdir(outDir, { recursive: true });
-
-    const graphPath = path.join(outDir, 'graph.json');
-    await writeFile(graphPath, JSON.stringify(graph, null, 2));
-
-    const summaryPath = path.join(outDir, 'summary.md');
-    await writeFile(summaryPath, generateSummary(graph));
-
-    const agentsDir = path.join(outDir, 'agents');
-    await mkdir(agentsDir, { recursive: true });
-    const agents = generateAgents(graph);
-    for (const [name, content] of Object.entries(agents)) {
-      await writeFile(path.join(agentsDir, `${name}.md`), content);
-    }
-
-    const mermaidPath = path.join(outDir, 'system.mmd');
-    await writeFile(mermaidPath, generateMermaid(graph));
-    await maybeRenderMermaid(mermaidPath, path.join(outDir, 'system.png'));
-
-    const codemapPath = path.join(outDir, 'codemap.mmd');
-    await writeFile(codemapPath, generateCodemapMermaid(graph));
-    await maybeRenderMermaid(codemapPath, path.join(outDir, 'codemap.png'));
-
-    if (options.compare) {
-      try {
-        const prevPath = path.resolve(workspaceRoot, options.compare);
-        const prevRaw = await readFile(prevPath, 'utf8');
-        const prevGraph = JSON.parse(prevRaw);
-        const diff = diffGraphs(graph, prevGraph);
-        await writeFile(path.join(outDir, 'integration_notes.md'), diff);
-      } catch (err) {
-        console.error(`Could not generate diff: ${(err as Error).message}`);
+      if (result.guarded) {
+        console.error('Refusing to overwrite the graph because the rebuild shrank too much.');
+        console.error('Re-run with --force if this is intentional.');
+        process.exitCode = 1;
+        return;
       }
-    }
 
-    console.log(
-      `Built graph (${Object.keys(graph.services).length} services) from patterns: ${pats.join(', ')}`
-    );
-    console.log(`Outputs written to ${outDir}`);
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+        return;
+      }
+
+      printSyncResult(result);
+    } catch (error) {
+      console.error((error as Error).message);
+      process.exitCode = 1;
+    }
   });
 
 program
-  .command('run')
-  .description('Generate a run plan for a service and its dependencies')
-  .argument('<service>', 'Service name to run')
-  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
-  .option('--runbook', 'Generate a markdown runbook file for AI agents')
-  .option('--json', 'Output as JSON')
-  .option('--exec', 'Execute the run plan (start all services)')
+  .command('watch')
+  .description('Watch the repo and keep the local memory graph fresh')
+  .argument('[paths...]', 'Files, directories, or globs to index')
+  .option('--out-dir <dir>', 'Output directory', '.devgraph')
+  .option('--force', 'Bypass the shrink guard')
+  .option('--debounce <ms>', 'Debounce time in milliseconds', '300')
   .action(
-    async (
-      service: string,
-      options: { graph: string; runbook?: boolean; json?: boolean; exec?: boolean }
-    ) => {
-      const graphPath = path.resolve(workspaceRoot, options.graph);
-
-      // Load graph
-      let graphData;
+    async (paths: string[], options: { outDir: string; force?: boolean; debounce: string }) => {
       try {
-        const raw = await readFile(graphPath, 'utf8');
-        graphData = JSON.parse(raw);
-      } catch {
-        console.error(`Graph file not found at: ${graphPath}`);
-        console.log('\nRun "devgraph build" first to generate graph.json');
-        process.exitCode = 1;
-        return;
-      }
+        const watcher = await watchProject(paths, {
+          cwd: workspaceRoot,
+          outDir: options.outDir,
+          force: options.force,
+          debounceMs: Number(options.debounce) || 300,
+          onSync(result) {
+            if (result.guarded) {
+              console.error(
+                'Watch sync refused to overwrite the graph because it shrank too much.'
+              );
+              return;
+            }
 
-      // Generate run plan
-      const result = getRunPlan(graphData, service);
+            printSyncResult(result);
+          },
+        });
 
-      if (!result.ok) {
-        if (result.error === 'not_found') {
-          console.error(`Service not found: ${result.service}`);
-          console.log('\nAvailable services:');
-          for (const name of Object.keys(graphData.services)) {
-            console.log(`  - ${name}`);
-          }
-        } else if (result.error === 'cycle') {
-          console.error(`Dependency cycle detected: ${result.path.join(' → ')}`);
-        } else if (result.error === 'missing_dependency') {
-          console.error(
-            `Service "${result.service}" depends on "${result.missing}" which is not defined`
-          );
-        }
-        process.exitCode = 1;
-        return;
-      }
+        const shutdown = () => {
+          watcher.close();
+          process.exit(0);
+        };
 
-      const { plan } = result;
-
-      // Output mode: JSON
-      if (options.json) {
-        console.log(JSON.stringify(plan, null, 2));
-        return;
-      }
-
-      // Output mode: Runbook
-      if (options.runbook) {
-        const runbookDir = path.join(path.dirname(graphPath), 'runbooks');
-        await mkdir(runbookDir, { recursive: true });
-        const runbookPath = path.join(runbookDir, `${service}.md`);
-        const runbookContent = generateRunbook(plan);
-        await writeFile(runbookPath, runbookContent);
-        console.log(`Runbook generated: ${runbookPath}`);
-        return;
-      }
-
-      // Output mode: Exec
-      if (options.exec) {
-        console.log(BANNER);
-        console.log(`Starting services for: ${service}\n`);
-
-        for (let i = 0; i < plan.steps.length; i++) {
-          const step = plan.steps[i];
-          console.log(`[${i + 1}/${plan.steps.length}] Starting ${step.service}...`);
-
-          if (!step.command) {
-            console.log(`      ⚠ No dev command defined, skipping`);
-            continue;
-          }
-
-          console.log(`      → ${step.command}`);
-
-          // For exec, we spawn the command in the background
-          // This is a simple implementation - real version might use proper process management
-          const proc = spawn(step.command, [], {
-            shell: true,
-            stdio: 'inherit',
-            detached: false,
-          });
-
-          // Wait a bit for the service to start
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-
-          // Check if process died immediately
-          if (proc.exitCode !== null && proc.exitCode !== 0) {
-            console.log(`      ✗ Failed to start`);
-            process.exitCode = 1;
-            return;
-          }
-
-          console.log(`      ✓ Started`);
-        }
-
-        console.log(`\n✓ All ${plan.steps.length} services started`);
-        console.log('Press Ctrl+C to stop all.\n');
-
-        // Keep the process running
+        process.on('SIGINT', shutdown);
+        process.on('SIGTERM', shutdown);
+        console.log('Watching for changes. Press Ctrl+C to stop.');
         await new Promise(() => {});
-        return;
+      } catch (error) {
+        console.error((error as Error).message);
+        process.exitCode = 1;
       }
-
-      // Default: Print formatted plan
-      console.log(formatRunPlan(plan));
     }
   );
 
 program
-  .command('impact')
-  .description('Analyze blast radius - what services are affected if this service changes')
-  .argument('<service>', 'Service name to analyze impact for')
+  .command('query')
+  .description('Query the local memory graph for code understanding')
+  .argument('<question>', 'Question to ask against the graph')
   .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
-  .option('--json', 'Output as JSON')
-  .option('--runbook', 'Generate a markdown runbook file for AI agents')
-  .action(
-    async (service: string, options: { graph: string; json?: boolean; runbook?: boolean }) => {
-      const graphPath = path.resolve(workspaceRoot, options.graph);
-
-      // Load graph
-      let graphData;
-      try {
-        const raw = await readFile(graphPath, 'utf8');
-        graphData = JSON.parse(raw);
-      } catch {
-        console.error(`Graph file not found at: ${graphPath}`);
-        console.log('\nRun "devgraph build" first to generate graph.json');
-        process.exitCode = 1;
-        return;
-      }
-
-      // Generate impact analysis
-      const result = getImpactAnalysis(graphData, service);
-
-      if (!result.ok) {
-        if (result.error === 'not_found') {
-          console.error(`Service not found: ${result.service}`);
-          console.log('\nAvailable services:');
-          for (const name of Object.keys(graphData.services)) {
-            console.log(`  - ${name}`);
-          }
-        } else if (result.error === 'cycle') {
-          console.error(`Dependency cycle detected: ${result.path.join(' → ')}`);
-        }
-        process.exitCode = 1;
-        return;
-      }
-
-      const { impact } = result;
-
-      // Output mode: JSON
-      if (options.json) {
-        console.log(JSON.stringify(impact, null, 2));
-        return;
-      }
-
-      // Output mode: Runbook
-      if (options.runbook) {
-        const runbookDir = path.join(path.dirname(graphPath), 'runbooks');
-        await mkdir(runbookDir, { recursive: true });
-        const runbookPath = path.join(runbookDir, `impact-${service}.md`);
-        const runbookContent = generateImpactRunbook(impact, graphData);
-        await writeFile(runbookPath, runbookContent);
-        console.log(`Impact runbook generated: ${runbookPath}`);
-        return;
-      }
-
-      // Default: Print formatted analysis
-      console.log(formatImpactAnalysis(impact));
-    }
-  );
-
-program
-  .command('coordinate')
-  .description('Plan cross-service coordination - what else must change if this service changes')
-  .argument('<service>', 'Service name to coordinate changes for')
-  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
-  .option('--json', 'Output as JSON')
-  .option('--runbook', 'Generate a markdown runbook file for AI agents')
-  .action(
-    async (service: string, options: { graph: string; json?: boolean; runbook?: boolean }) => {
-      const graphPath = path.resolve(workspaceRoot, options.graph);
-
-      let graphData;
-      try {
-        const raw = await readFile(graphPath, 'utf8');
-        graphData = JSON.parse(raw);
-      } catch {
-        console.error(`Graph file not found at: ${graphPath}`);
-        console.log('\nRun "devgraph build" first to generate graph.json');
-        process.exitCode = 1;
-        return;
-      }
-
-      const result = getCoordinationPlan(graphData, service);
-
-      if (!result.ok) {
-        if (result.error === 'not_found') {
-          console.error(`Service not found: ${result.service}`);
-          console.log('\nAvailable services:');
-          for (const name of Object.keys(graphData.services)) {
-            console.log(`  - ${name}`);
-          }
-        } else if (result.error === 'cycle') {
-          console.error(`Dependency cycle detected: ${result.path.join(' → ')}`);
-        }
-        process.exitCode = 1;
-        return;
-      }
-
-      const { plan } = result;
+  .option('--budget <n>', 'Approximate word budget for the response', '500')
+  .option('--json', 'Print the query result as JSON')
+  .action(async (question: string, options: { graph: string; budget: string; json?: boolean }) => {
+    try {
+      const graph = await readGraph(options.graph);
+      const response = queryGraph(graph, question, {
+        budget: Number(options.budget) || 500,
+      });
 
       if (options.json) {
-        console.log(JSON.stringify(plan, null, 2));
+        console.log(JSON.stringify(response.result, null, 2));
         return;
       }
 
-      if (options.runbook) {
-        const coordinationDir = path.join(path.dirname(graphPath), 'coordination');
-        await mkdir(coordinationDir, { recursive: true });
-        const runbookPath = path.join(coordinationDir, `${service}.md`);
-        const runbookContent = generateCoordinationRunbook(plan, graphData);
-        await writeFile(runbookPath, runbookContent);
-        console.log(`Coordination runbook generated: ${runbookPath}`);
-        return;
-      }
-
-      console.log(formatCoordinationPlan(plan));
-    }
-  );
-
-program
-  .command('agents')
-  .description('Generate rich AGENTS.md files or Agent Skills for AI coding assistants')
-  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
-  .option('--out-dir <dir>', 'Output directory')
-  .option('--format <format>', 'Output format: agents or skills', 'agents')
-  .option('--service <name>', 'Generate for a specific service only')
-  .option('--service-path <path>', 'Base path to service directories for inference')
-  .option('--best-effort', 'Generate even with missing data (mark as TODO)')
-  .option('--json', 'Output result as JSON instead of writing files')
-  .action(
-    async (options: {
-      graph: string;
-      outDir?: string;
-      format: string;
-      service?: string;
-      servicePath?: string;
-      bestEffort?: boolean;
-      json?: boolean;
-    }) => {
-      const graphPath = path.resolve(workspaceRoot, options.graph);
-
-      // Load graph
-      let graphData;
-      try {
-        const raw = await readFile(graphPath, 'utf8');
-        graphData = JSON.parse(raw);
-      } catch {
-        console.error(`Graph file not found at: ${graphPath}`);
-        console.log('\nRun "devgraph build" first to generate graph.json');
-        process.exitCode = 1;
-        return;
-      }
-
-      if (options.format === 'skills') {
-        // Generate Agent Skills
-        const result = generateSkills(graphData, {
-          servicePath: options.servicePath,
-          bestEffort: options.bestEffort,
-          services: options.service ? [options.service] : undefined,
-        });
-
-        if (options.json) {
-          console.log(JSON.stringify(result, null, 2));
-          return;
-        }
-
-        if (result.files.length === 0) {
-          if (result.warnings.length > 0) {
-            console.error('No skill files generated.\n');
-            console.error('Warnings:');
-            for (const warning of result.warnings) {
-              console.error(`  - ${warning}`);
-            }
-            console.log('\nTip: Use --best-effort to generate with TODO placeholders');
-            process.exitCode = 1;
-          } else {
-            console.log('No services found in graph.');
-          }
-          return;
-        }
-
-        const outDir = path.resolve(workspaceRoot, options.outDir ?? '.skills');
-        for (const file of result.files) {
-          const filePath = path.join(outDir, file.relativePath);
-          await mkdir(path.dirname(filePath), { recursive: true });
-          await writeFile(filePath, file.content);
-        }
-
-        console.log(formatSkillsResult(result));
-        console.log(`\nOutput written to: ${outDir}`);
-      } else {
-        // Generate AGENTS.md (default)
-        const result = generateAgentsEnhanced(graphData, {
-          servicePath: options.servicePath,
-          bestEffort: options.bestEffort,
-          services: options.service ? [options.service] : undefined,
-        });
-
-        if (options.json) {
-          console.log(JSON.stringify(result, null, 2));
-          return;
-        }
-
-        if (Object.keys(result.agents).length === 0) {
-          if (result.warnings.length > 0) {
-            console.error('No agent files generated.\n');
-            console.error('Warnings:');
-            for (const warning of result.warnings) {
-              console.error(`  - ${warning}`);
-            }
-            console.log('\nTip: Use --best-effort to generate with TODO placeholders');
-            process.exitCode = 1;
-          } else {
-            console.log('No services found in graph.');
-          }
-          return;
-        }
-
-        const outDir = path.resolve(workspaceRoot, options.outDir ?? '.devgraph/agents');
-        await mkdir(outDir, { recursive: true });
-
-        for (const [name, content] of Object.entries(result.agents)) {
-          const filePath = path.join(outDir, `${name}.md`);
-          await writeFile(filePath, content);
-        }
-
-        console.log(formatAgentsResult(result));
-        console.log(`\nOutput written to: ${outDir}`);
-      }
-    }
-  );
-
-program
-  .command('studio')
-  .description('Start DevGraph Studio server to visualize and edit your graph')
-  .option('--port <port>', 'Port to run the server on', '9111')
-  .option('--graph <path>', 'Path to graph.json', '.devgraph/graph.json')
-  .option('--no-open', 'Do not open browser automatically')
-  .action(async (options: { port: string; graph: string; open: boolean }) => {
-    const port = parseInt(options.port, 10);
-    const graphPath = path.resolve(workspaceRoot, options.graph);
-
-    // Check if graph.json exists
-    try {
-      await access(graphPath);
-    } catch {
-      console.error(`Graph file not found at: ${graphPath}`);
-      console.log('\nRun "devgraph build" first to generate graph.json');
-      process.exitCode = 1;
-      return;
-    }
-
-    console.log(BANNER);
-    console.log('Starting DevGraph Studio...\n');
-
-    try {
-      await startStudioServer({ port, graphPath });
-      console.log(`Studio server running at: http://localhost:${port}`);
-      console.log(`Graph API available at:   http://localhost:${port}/api/graph`);
-      console.log('\nPress Ctrl+C to stop the server.\n');
-
-      if (options.open) {
-        openBrowser(`http://localhost:${port}`);
-      }
+      console.log(response.text);
     } catch (error) {
-      console.error(`Failed to start server: ${(error as Error).message}`);
+      console.error((error as Error).message);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('status')
+  .description('Show local memory graph health and freshness')
+  .argument('[paths...]', 'Files, directories, or globs to inspect')
+  .option('--out-dir <dir>', 'Output directory', '.devgraph')
+  .option('--json', 'Print the status as JSON')
+  .action(async (paths: string[], options: { outDir: string; json?: boolean }) => {
+    try {
+      const status = await getStatus(paths, {
+        cwd: workspaceRoot,
+        outDir: options.outDir,
+      });
+
+      if (options.json) {
+        console.log(JSON.stringify(status, null, 2));
+        return;
+      }
+
+      printStatus(status);
+    } catch (error) {
+      console.error((error as Error).message);
       process.exitCode = 1;
     }
   });
 
 program.parseAsync(process.argv);
-
-async function maybeRenderMermaid(input: string, output: string) {
-  // Try using locally installed @mermaid-js/mermaid-cli (mmdc).
-  const mmdc = path.join(process.cwd(), 'node_modules', '.bin', 'mmdc');
-  await new Promise<void>((resolve) => {
-    const proc = spawn(mmdc, ['-i', input, '-o', output], { stdio: 'ignore' });
-    proc.on('error', () => resolve()); // missing binary
-    proc.on('exit', () => resolve());
-  });
-}
