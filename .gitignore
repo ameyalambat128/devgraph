@@ -17,7 +17,4 @@ dist
 .env*
 !.env.example
 .claude/*
-!.claude/commands/
-.claude/commands/*
-!.claude/commands/changeset.md
 .gemini-clipboard/
